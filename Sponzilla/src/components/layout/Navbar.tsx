@@ -1,27 +1,33 @@
 
+import { Link } from 'react-router-dom';
 
-const Navbar =() => {
+const Navbar = () => {
     return (
-        <nav className="bg-gray-100 px-6 py-4">
-            <div className="flex justify-between items-center">
-                <div className="flex space-x-4">
-                    {/* Left - Navigation Links */}
-                    <a href="#" className="text-gray-700 hover:text-blue-600">Home</a>
-                    <a href="#" className="text-gray-700 hover:text-blue-600">About</a>
-                    <a href="#" className="text-gray-700 hover:text-blue-600">Contact</a>
+        <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f1f2f4] px-10 py-3">
+            <div className="flex items-center gap-4 text-[#121416]">
+                <div className="size-4">
+                    <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
+                    </svg>
                 </div>
-                <div className="text-center">
-                    {/* Center - Logo */}
-                    <img src="/logo.png" alt="Logo" className="h-8" />
+                <h2 className="text-[#121416] text-lg font-bold leading-tight tracking-[-0.015em]">SponZilla</h2>
+            </div>
+            <div className="flex flex-1 justify-end gap-8">
+                <div className="flex items-center gap-9">
+                    <a className="text-[#121416] text-sm font-medium leading-normal" href="#">For Clubs</a>
+                    <a className="text-[#121416] text-sm font-medium leading-normal" href="#">For Brands</a>
+                    <a className="text-[#121416] text-sm font-medium leading-normal" href="#">Resources</a>
                 </div>
-                <div>
-                    {/* Right - Login Button */}
-                    <button className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
-                        Login
+                <div className="flex gap-2">
+                    <Link to="/list-event" className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#dce8f3] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span className="truncate">List Your Event</span>
+                    </Link>
+                    <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#f1f2f4] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]">
+                        <span className="truncate">Find Events</span>
                     </button>
                 </div>
             </div>
-        </nav>
+        </header>
     )
 }
 
