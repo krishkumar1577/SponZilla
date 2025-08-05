@@ -136,8 +136,8 @@ const HomePage: React.FC = () => {
           <div className="flex max-w-[960px] flex-1 flex-col">
             <footer className="flex flex-col gap-6 px-5 py-10 text-center">
               <div className="flex flex-wrap items-center justify-center gap-6 sm:flex-row sm:justify-around">
-                <a className="text-[#6a7681] text-base font-normal leading-normal min-w-40" href="#">About</a>
-                <a className="text-[#6a7681] text-base font-normal leading-normal min-w-40" href="#">Contact</a>
+                <Link className="text-[#6a7681] text-base font-normal leading-normal min-w-40" to="/about">About</Link>
+                <Link to="/contact" className="text-[#617689] text-base font-normal leading-normal min-w-40">Contact Us</Link>
                 <a className="text-[#6a7681] text-base font-normal leading-normal min-w-40" href="#">Privacy Policy</a>
                 <a className="text-[#6a7681] text-base font-normal leading-normal min-w-40" href="#">Terms of Service</a>
               </div>
