@@ -140,7 +140,7 @@ const Messages: React.FC = () => {
                     value={messageValue}
                     onChange={(e) => setMessageValue(e.target.value)}
                   />
-                  <div className="flex border-none bg-[#f0f3f4] items-center justify-center pr-4 rounded-r-lg border-l-0 !pr-2">
+                  <div className="flex border-none bg-[#f0f3f4] items-center justify-center rounded-r-lg border-l-0 !pr-2">
                     <div className="flex items-center gap-4 justify-end">
                       <div className="flex items-center gap-1">
                         <button className="flex items-center justify-center p-1.5">

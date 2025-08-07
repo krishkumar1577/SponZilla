@@ -138,8 +138,8 @@ const HomePage: React.FC = () => {
               <div className="flex flex-wrap items-center justify-center gap-6 sm:flex-row sm:justify-around">
                 <Link className="text-[#6a7681] text-base font-normal leading-normal min-w-40" to="/about">About</Link>
                 <Link to="/contact" className="text-[#617689] text-base font-normal leading-normal min-w-40">Contact Us</Link>
-                <a className="text-[#6a7681] text-base font-normal leading-normal min-w-40" href="#">Privacy Policy</a>
-                <a className="text-[#6a7681] text-base font-normal leading-normal min-w-40" href="#">Terms of Service</a>
+                <Link to="/privacy-policy" className="text-[#6a7681] text-base font-normal leading-normal min-w-40">Privacy Policy</Link>
+                <Link to="/terms-of-service" className="text-[#6a7681] text-base font-normal leading-normal min-w-40">Terms of Service</Link>
               </div>
               <p className="text-[#6a7681] text-base font-normal leading-normal">© 2025 Krish. All rights reserved.</p>
             </footer>
