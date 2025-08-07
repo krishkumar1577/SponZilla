@@ -10,6 +10,9 @@ import LoginPage from './pages/Login';
 import BrandDashboardPage from './pages/BrandDashboard';
 import FindClubsPage from './pages/FindClubs';
 import MessagesPage from './pages/Messages';
+import HelpPage from './pages/Help';
+import BrandProfilePage from './pages/BrandProfile';
+import SettingsPage from './pages/Settings';
 import './App.css';
 
 function App() {
@@ -28,6 +31,9 @@ function App() {
           <Route path="/brand-dashboard" element={<BrandDashboardPage />} />
           <Route path="/find-clubs" element={<FindClubsPage />} />
           <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/help" element={<HelpPage />} />
+          <Route path="/brand-profile" element={<BrandProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </div>
     </Router>
