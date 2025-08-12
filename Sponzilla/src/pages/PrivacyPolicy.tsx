@@ -40,18 +40,7 @@ const PrivacyPolicy: React.FC = () => {
 
             {/* Privacy Policy Content */}
             <p className="text-[#111518] text-base font-normal leading-normal pb-3 pt-1 px-4 text-left">
-              At SponZilla, we value your privacy and are committed to protecting your personal information. This Privacy Policy explains how we collect, use, and share your
-              information when you use our platform. By using SponZilla, you agree to the terms of this Privacy Policy. We may collect information you provide directly, such as
-              when you register, create a profile, or contact us. This information may include your name, email address, organization details, and other relevant information. We
-              also collect information automatically, such as your IP address, device information, and usage data. This helps us improve our platform and provide a better user
-              experience. We use your information to provide and improve our services, personalize your experience, communicate with you, and ensure the security of our platform.
-              We may share your information with third-party service providers who assist us in operating our platform, conducting business, or servicing you, as long as those
-              parties agree to keep this information confidential. We may also disclose your information if required by law or to protect our rights and interests. We take
-              reasonable measures to protect your information from unauthorized access, use, or disclosure. However, no method of transmission over the internet or electronic
-              storage is completely secure, so we cannot guarantee absolute security. You have the right to access, update, or delete your personal information. You can manage your
-              information through your account settings or by contacting us directly. We may update this Privacy Policy from time to time. We will notify you of any significant
-              changes by posting the new policy on our platform. Your continued use of SponZilla after any changes indicates your acceptance of the updated policy. If you have
-              any questions or concerns about this Privacy Policy, please contact us at privacy@sponzilla.com.
+              At SponZilla, we value your trust and are committed to safeguarding your personal information. This Privacy Policy describes how we handle the information you provide when you use our platform and related services (“Services”). By accessing or using SponZilla, you agree to the terms outlined here. We collect the information you choose to share with us, such as when you register, create a profile, make a transaction, or contact us. This information may include your name, email address, organization details, and any other details you voluntarily provide. We use this information to deliver and improve our Services, personalize your experience, communicate with you, and ensure the proper functioning of our platform. We do not sell your personal information. However, we may share it with trusted service providers who assist us in operating our Services or conducting business activities, under agreements that require them to protect your information. We may also disclose information if required by law or in connection with the protection of our legal rights. We take reasonable measures to protect your personal data from unauthorized access or disclosure, but no system is completely secure. You may request to access, update, or delete your information at any time by contacting us. This Privacy Policy may be updated periodically to reflect changes in our practices or for legal and regulatory reasons. Any changes will be posted on this page, and your continued use of the Services after such updates indicates your acceptance of the revised terms. For any questions regarding this Privacy Policy, please contact me at xdevkrish@gmail.com .
             </p>
           </div>
         </div>

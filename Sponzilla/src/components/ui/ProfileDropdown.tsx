@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '../../contexts/UserContext';
 
 interface ProfileDropdownProps {
   profileImageUrl?: string;
@@ -7,11 +8,15 @@ interface ProfileDropdownProps {
 }
 
 const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ 
-  profileImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuCanujA-hYauxn7UOxEnRuAOBOGGHlSFrhJUNhwNXcl5X95OIFQAZudPUYMixDbuQM8suLs726Zo_B5B1QA6nq5WY0hqUxLQeCYztr2UXCAGK4WjdagCfjo_3pcjfE7QWae-YqdfJcx7fqhXrpNP7tC82R7LlOUJkq_5PkLW_SkZ9NX5QMV14oPQiXITX2PeC9iJNRpjOrwDBZFxmlW3J2CTNSiLkkTeB3bhm_Fuy_i6YY2pxfYY8Qi_t8QXCwnh0fcZAr4X2fJg-U",
+  profileImageUrl,
   className = ""
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useUser();
+
+  // Use user's profile image if available, otherwise use default
+  const imageUrl = profileImageUrl || user.profileImage || "https://lh3.googleusercontent.com/aida-public/AB6AXuCanujA-hYauxn7UOxEnRuAOBOGGHlSFrhJUNhwNXcl5X95OIFQAZudPUYMixDbuQM8suLs726Zo_B5B1QA6nq5WY0hqUxLQeCYztr2UXCAGK4WjdagCfjo_3pcjfE7QWae-YqdfJcx7fqhXrpNP7tC82R7LlOUJkq_5PkLW_SkZ9NX5QMV14oPQiXITX2PeC9iJNRpjOrwDBZFxmlW3J2CTNSiLkkTeB3bhm_Fuy_i6YY2pxfYY8Qi_t8QXCwnh0fcZAr4X2fJg-U";
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -28,12 +33,10 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   }, []);
 
   const handleLogout = () => {
-    // Add logout logic here (clear tokens, user data, etc.)
-    console.log('Logging out...');
-    // For now, just close the dropdown
+    logout();
     setIsOpen(false);
-    // Redirect to landing page or logout confirmation
-    // window.location.href = '/';
+    // Optionally redirect to home page
+    window.location.href = '/';
   };
 
   const toggleDropdown = () => {
@@ -46,7 +49,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       <button
         onClick={toggleDropdown}
         className="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 hover:ring-2 hover:ring-[#617889] hover:ring-offset-2 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#617889] focus:ring-offset-2"
-        style={{ backgroundImage: `url("${profileImageUrl}")` }}
+        style={{ backgroundImage: `url("${imageUrl}")` }}
         aria-label="Profile menu"
       />
 
@@ -59,7 +62,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           {/* Menu Items */}
           <div className="py-1">
             <Link
-              to="/brand-profile"
+              to={user.type === 'club' ? '/club-profile' : '/brand-profile'}
               onClick={() => setIsOpen(false)}
               className="flex items-center px-4 py-2 text-sm text-[#111518] hover:bg-[#f0f3f4] transition-colors duration-150"
             >
@@ -72,7 +75,7 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
             </Link>
             
             <Link
-              to="/profile-settings"
+              to={user.type === 'club' ? '/club-settings' : user.type === 'brand' ? '/brand-settings' : '/settings'}
               onClick={() => setIsOpen(false)}
               className="flex items-center px-4 py-2 text-sm text-[#111518] hover:bg-[#f0f3f4] transition-colors duration-150"
             >
