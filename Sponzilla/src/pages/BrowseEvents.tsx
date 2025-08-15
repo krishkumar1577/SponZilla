@@ -5,7 +5,6 @@ import { getAllEvents } from '../data/mockEvents';
 
 const BrowseEventsWithSearchPage: React.FC = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
   const [selectedDate, setSelectedDate] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [selectedUniversity, setSelectedUniversity] = useState('');

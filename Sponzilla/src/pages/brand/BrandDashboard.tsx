@@ -1,12 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { SmartNavbar } from '../../components/layout/Navbar';
 
 const BrandDashboardPage: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchTerm(e.target.value);
-  };
 
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
