@@ -26,7 +26,7 @@ import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
 import UserTypeSwitcher from './components/ui/UserTypeSwitcher';
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
 function App() {
