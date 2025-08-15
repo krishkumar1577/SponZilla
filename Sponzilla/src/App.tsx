@@ -26,6 +26,7 @@ import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
 import UserTypeSwitcher from './components/ui/UserTypeSwitcher';
+import { Analytics } from "@vercel/analytics/next"
 import './App.css';
 
 function App() {
@@ -64,6 +65,7 @@ function App() {
           {/* User Type Switcher for Demo (remove in production) */}
           <UserTypeSwitcher />
         </div>
+        <Analytics />
       </Router>
     </UserProvider>
   );
