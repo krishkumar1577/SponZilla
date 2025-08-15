@@ -20,6 +20,8 @@ import PrivacyPolicyPage from './pages/PrivacyPolicy';
 import MessagesPage from './pages/Messages';
 import HelpPage from './pages/Help';
 import BrandProfilePage from './pages/brand/BrandProfile';
+import BrandLanding from './pages/brand/BrandLanding';
+import ClubLanding from './pages/club/ClubLanding';
 import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
@@ -52,6 +54,8 @@ function App() {
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/brand-profile" element={<BrandProfilePage />} />
+            <Route path="/brand-landing" element={<BrandLanding />} />
+            <Route path="/club-landing" element={<ClubLanding />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/club-settings" element={<ClubSettings />} />
             <Route path="/brand-settings" element={<BrandSettings />} />

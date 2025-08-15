@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const ListEventPage: React.FC = () => {
   return (
@@ -18,8 +19,8 @@ const ListEventPage: React.FC = () => {
             <div className="flex items-center gap-9">
               <a className="text-[#121416] text-sm font-medium leading-normal" href="#">Home</a>
               <a className="text-[#121416] text-sm font-medium leading-normal" href="#">Events</a>
-              <a className="text-[#121416] text-sm font-medium leading-normal" href="#">For Brands</a>
-              <a className="text-[#121416] text-sm font-medium leading-normal" href="#">For Clubs</a>
+              <Link to="/brand-landing" className="text-[#121416] text-sm font-medium leading-normal">For Brands</Link>
+              <Link to="/club-landing" className="text-[#121416] text-sm font-medium leading-normal">For Clubs</Link>
             </div>
             <div className="flex gap-2">
               <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#f1f2f4] text-[#121416] text-sm font-bold leading-normal tracking-[0.015em]">
