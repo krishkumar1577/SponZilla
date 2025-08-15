@@ -3,17 +3,39 @@
 <div align="center">
   <h3>The Ultimate Sponsorship Marketplace for Student Clubs & Brands</h3>
   <p>Connecting student organizations with brands through seamless sponsorship opportunities</p>
-  
-  ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-  ![React](https://img.shields.io/badge/React-18.0+-61DAFB.svg?logo=react)
-  ![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6.svg?logo=typescript)
-  ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.0+-38B2AC.svg?logo=tailwind-css)
-  ![Vite](https://img.shields.io/badge/Vite-5.0+-646CFF.svg?logo=vite)
+ ## 👨‍💻 Creator
+
+**Krish** - Full Stack Developer & Entrepreneur  
+- 💡 Conceived and built SponZilla from the ground up
+- 🎯 Passionate about connecting student communities with brands
+- 🚀 Experienced in React, TypeScript, and modern web development
+- 📧 Contact: krishkumar1577@gmail.com
+- 🐙 GitHub: [@krishkumar1577](https://github.com/krishkumar1577)
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">
+  <p>🦕 <strong>SponZilla</strong> - Where Sponsorships Come to Life</p>
+  <p>Created by Me(krish) with React, TypeScript, and lots of coffee ☕</p>
+  <p>Made with ❤️ for the student community</p>
+</div>ion](https://img.shields.io/badge/version-1.0.0-blue.svg)
+  ![React](https://img.shields.io/badge/React-19.0+-61DAFB.svg?logo=react)
+  ![TypeScript](https://img.shields.io/badge/TypeScript-5.8+-3178C6.svg?logo=typescript)
+  ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.1+-38B2AC.svg?logo=tailwind-css)
+  ![Vite](https://img.shields.io/badge/Vite-Latest-646CFF.svg?logo=vite)
+  ![License](https://img.shields.io/badge/License-MIT-green.svg)
+  [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/krishkumar1577/SponZilla)
 </div>
 
 ## 🚀 Overview
 
-SponZilla is a revolutionary platform that bridges the gap between student clubs and brands, creating mutually beneficial sponsorship opportunities. Our platform empowers student organizations to find sponsors while helping brands connect with engaged college audiences.
+SponZilla is a revolutionary platform that bridges the gap between student clubs and brands, creating mutually beneficial sponsorship opportunities. Conceived and built by **Krish**, this platform empowers student organizations to find sponsors while helping brands connect with engaged college audiences.
+
+Built with modern web technologies and deployed on Vercel, SponZilla offers a seamless, fast, and intuitive experience for both clubs and brands looking to create meaningful partnerships.
 
 ### ✨ Key Features
 

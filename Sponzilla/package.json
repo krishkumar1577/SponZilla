@@ -1,8 +1,32 @@
 {
-  "name": "react",
+  "name": "sponzilla",
+  "displayName": "SponZilla",
+  "description": "The ultimate sponsorship marketplace connecting student clubs with brands",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.0",
   "type": "module",
+  "author": "Krish <xdevkrish@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://sponzilla.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/krishkumar1577/SponZilla.git"
+  },
+  "bugs": {
+    "url": "https://github.com/krishkumar1577/SponZilla/issues"
+  },
+  "keywords": [
+    "sponsorship",
+    "student-clubs",
+    "brands",
+    "events",
+    "university",
+    "college",
+    "partnerships",
+    "react",
+    "typescript",
+    "tailwindcss"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
