@@ -4,6 +4,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./src/config/database');  // Import database connection
+const User = require('./src/models/user');
 
 
 const app = express();
@@ -21,6 +22,36 @@ app.get('/',(req, res) => {
         status: 'running'
     });
 })
+
+app.get('/test-user', async (req, res) => {
+  try {
+    // Check if test user already exists
+    const existing = await User.findOne({ email: 'test@example.com' });
+    if (existing) {
+      return res.json({ 
+        message: 'Test user already exists',
+        user: existing 
+      });
+    }
+    
+    // Create test user
+    const testUser = await User.create({
+      name: 'Test Club',
+      email: 'test@example.com',
+      password: 'password123',
+      role: 'club'
+    });
+    
+    res.json({ 
+      message: 'Test user created successfully!',
+      user: testUser 
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      error: error.message 
+    });
+  }
+});
 
 app.get('/health', (req, res)=>{
     res.json({
