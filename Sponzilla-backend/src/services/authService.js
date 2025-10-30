@@ -1,5 +1,5 @@
-const bcrypt = require(bcrypt);
-const jwt = require(jsonwebtoken);
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require("../models/user");
 
 class AuthService {
@@ -32,8 +32,7 @@ class AuthService {
       },
       token,
     };
-  }
-  catch(error) {
+  } catch (error) {
     throw error;
   }
 
