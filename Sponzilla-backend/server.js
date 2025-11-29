@@ -1,19 +1,25 @@
 
+// STEP 1: Import packages
 require('dotenv').config();  // Load .env file
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./src/config/database');  // Import database connection
 
+// STEP 2: Create Express app
 const app = express();
 
+// STEP 2.5: Connect to Database
 connectDB();
 
+// STEP 3: Middleware (code that runs before routes)
 app.use(cors());  // Allow frontend to access backend
 app.use(express.json());  // Allow reading JSON data from requests
 
-// Import User model
-const User = require('./src/models/user');
+// Import models and routes
+const User = require('./src/models/user');  // Fixed: lowercase 'user'
 const authRoutes = require('./src/routes/authRoutes');
+const profileRoutes = require('./src/routes/profileRoutes'); // Add this line
+
 
 // STEP 4: Simple test route
 app.get('/', (req, res) => {
@@ -21,6 +27,14 @@ app.get('/', (req, res) => {
     message: 'Welcome to SponZilla Backend API!',
     version: '1.0.0',
     status: 'running'
+  });
+});
+
+// STEP 5: Health check route (to test if server is alive)
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    timestamp: new Date()
   });
 });
 
@@ -55,13 +69,10 @@ app.get('/test-user', async (req, res) => {
   }
 });
 
-// STEP 5: Health check route (to test if server is alive)
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    timestamp: new Date()
-  });
-});
+// STEP 5.5: Mount auth routes
+app.use('/api/auth', authRoutes);
+app.use('/api/profiles', profileRoutes);  // Commented out until we create it
+app.use('/api/profiles', profileRoutes);  // Commented out until we create it
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {
