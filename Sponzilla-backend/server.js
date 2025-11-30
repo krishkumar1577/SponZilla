@@ -1,5 +1,3 @@
-
-// STEP 1: Import packages
 require('dotenv').config();  // Load .env file
 const express = require('express');
 const cors = require('cors');
@@ -16,10 +14,10 @@ app.use(cors());  // Allow frontend to access backend
 app.use(express.json());  // Allow reading JSON data from requests
 
 // Import models and routes
-const User = require('./src/models/user');  // Fixed: lowercase 'user'
+const User = require('./src/models/user');  // Fixed: keep lowercase 'user' as per your file structure
 const authRoutes = require('./src/routes/authRoutes');
-const profileRoutes = require('./src/routes/profileRoutes'); // Add this line
-
+const profileRoutes = require('./src/routes/profileRoutes');
+const eventRoutes = require('./src/routes/eventRoutes'); // Add this new route
 
 // STEP 4: Simple test route
 app.get('/', (req, res) => {
@@ -69,10 +67,10 @@ app.get('/test-user', async (req, res) => {
   }
 });
 
-// STEP 5.5: Mount auth routes
+// STEP 5.5: Mount routes
 app.use('/api/auth', authRoutes);
-app.use('/api/profiles', profileRoutes);  // Commented out until we create it
-app.use('/api/profiles', profileRoutes);  // Commented out until we create it
+app.use('/api/profiles', profileRoutes);
+app.use('/api/events', eventRoutes); // Add event routes
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {
