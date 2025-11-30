@@ -26,6 +26,7 @@ import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
 import UserTypeSwitcher from './components/ui/UserTypeSwitcher';
+import ApiTestPage from './pages/ApiTest';
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
@@ -60,6 +61,7 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/club-settings" element={<ClubSettings />} />
             <Route path="/brand-settings" element={<BrandSettings />} />
+            <Route path="/api-test" element={<ApiTestPage />} />
           </Routes>
           
           {/* User Type Switcher for Demo (remove in production) */}

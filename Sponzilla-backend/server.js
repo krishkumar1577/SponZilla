@@ -10,7 +10,49 @@ const app = express();
 connectDB();
 
 // STEP 3: Middleware (code that runs before routes)
-app.use(cors());  // Allow frontend to access backend
+// Configure CORS for GitHub Codespaces
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Log all requests for debugging
+    console.log('🌐 CORS Request from origin:', origin);
+    
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Allow localhost for development
+    if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+      return callback(null, true);
+    }
+    
+    // Allow GitHub Codespaces URLs
+    if (origin.includes('github.dev') || origin.includes('githubpreview.dev')) {
+      console.log('✅ CORS allowing GitHub Codespace origin:', origin);
+      return callback(null, true);
+    }
+    
+    // Allow specific production domains (add your domains here)
+    const allowedOrigins = [
+      'https://sponzilla.vercel.app',
+      // Add more production URLs here
+    ];
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Log rejected origin for debugging
+    console.log('❌ CORS rejected origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true, // Allow cookies and credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
+  maxAge: 86400, // Cache preflight for 24 hours
+};
+
+app.use(cors(corsOptions));  // Allow frontend to access backend
+
 app.use(express.json());  // Allow reading JSON data from requests
 
 // Import models and routes

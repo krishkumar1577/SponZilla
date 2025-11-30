@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
+import { authAPI, type LoginCredentials, type RegisterData } from '../services/api';
 
 export type UserType = 'guest' | 'club' | 'brand';
 
@@ -9,14 +10,17 @@ interface User {
   email?: string;
   type: UserType;
   profileImage?: string;
+  token?: string;
 }
 
 interface UserContextType {
   user: User;
   setUser: (user: User) => void;
-  login: (userData: User) => void;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
+  register: (data: RegisterData) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
+  loading: boolean;
 }
 
 const defaultUser: User = {
@@ -31,44 +35,109 @@ interface UserProviderProps {
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User>(defaultUser);
+  const [loading, setLoading] = useState(false);
 
-  const login = (userData: User) => {
-    setUser(userData);
-    // Here you could also store to localStorage or sessionStorage
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const response = await authAPI.login(credentials);
+      
+      const userData: User = {
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        type: response.user.role as UserType,
+        token: response.token,
+      };
+
+      setUser(userData);
+      
+      // Store token and user data
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      return true;
+    } catch (error) {
+      console.error('Login failed:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (data: RegisterData): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const response = await authAPI.register(data);
+      
+      const userData: User = {
+        id: response.user.id,
+        name: response.user.name,
+        email: response.user.email,
+        type: response.user.role as UserType,
+        token: response.token,
+      };
+
+      setUser(userData);
+      
+      // Store token and user data
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('user', JSON.stringify(userData));
+      
+      return true;
+    } catch (error) {
+      console.error('Registration failed:', error);
+      return false;
+    } finally {
+      setLoading(false);
+    }
   };
 
   const logout = () => {
     setUser(defaultUser);
+    localStorage.removeItem('authToken');
     localStorage.removeItem('user');
   };
 
-  const isAuthenticated = user.type !== 'guest';
+  const isAuthenticated = user.type !== 'guest' && !!user.token;
 
   // Load user from localStorage on mount
   React.useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('authToken');
+    
+    if (savedUser && savedToken) {
       try {
-        const parsedUser = JSON.parse(savedUser);
-        setUser(parsedUser);
+        const userData = JSON.parse(savedUser);
+        userData.token = savedToken;
+        setUser(userData);
+        
+        // Optional: Verify token is still valid
+        authAPI.getProfile()
+          .then(() => {
+            // Token is still valid
+          })
+          .catch(() => {
+            // Token expired or invalid, logout
+            logout();
+          });
       } catch (error) {
-        console.error('Error parsing saved user:', error);
-        localStorage.removeItem('user');
+        console.error('Failed to parse saved user data:', error);
+        logout();
       }
     }
   }, []);
 
-  const value: UserContextType = {
-    user,
-    setUser,
-    login,
-    logout,
-    isAuthenticated,
-  };
-
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider value={{ 
+      user, 
+      setUser, 
+      login, 
+      register, 
+      logout, 
+      isAuthenticated, 
+      loading 
+    }}>
       {children}
     </UserContext.Provider>
   );

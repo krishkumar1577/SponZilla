@@ -93,6 +93,32 @@ const eventSchema = new mongoose.Schema({
     type: String
   }],
   
+  // Sponsorship tiers/packages available
+  sponsorshipTiers: [{
+    name: {
+      type: String,
+      required: true
+    },
+    amount: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    benefits: [{
+      type: String
+    }],
+    spotsAvailable: {
+      type: Number,
+      default: 1,
+      min: 1
+    },
+    spotsTaken: {
+      type: Number,
+      default: 0,
+      min: 0
+    }
+  }],
+  
   // Event status
   status: {
     type: String,
