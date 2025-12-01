@@ -95,6 +95,9 @@ export const authAPI = {
 // ============================================
 // EVENTS API
 // ============================================
+// ============================================
+// EVENTS API
+// ============================================
 export interface Event {
   _id: string;
   title: string;
@@ -111,24 +114,108 @@ export interface Event {
     sponsorshipNeeded: number;
     currency: string;
   };
-  sponsorshipTiers: Array<{
+  sponsorshipTiers?: Array<{
     name: string;
     amount: number;
     benefits: string[];
     spotsAvailable: number;
     spotsTaken: number;
   }>;
+  benefits?: string[];
   clubId: {
     _id: string;
     clubName: string;
     university: string;
+    description?: string;
     logo?: string;
+    contactPerson?: {
+      name: string;
+      email: string;
+      phone: string;
+    };
   };
   status: 'draft' | 'published' | 'ongoing' | 'completed' | 'cancelled';
+  sponsorshipRequests?: string[];
+  analytics: {
+    views: number;
+    impressions: number;
+    applications: number;
+  };
+  tags?: string[];
+  pitchDeck?: string | null;
+  socialMedia?: {
+    instagram?: string;
+    twitter?: string;
+    facebook?: string;
+    website?: string;
+  };
+  highlights?: string[];
+  previousEditions?: Array<{
+    year: number;
+    attendees: number;
+    sponsors: number;
+    budget: number;
+  }>;
   featured: boolean;
   verified: boolean;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ClubProfile {
+  _id: string;
+  clubName: string;
+  university: string;
+  description: string;
+  category: string;
+  memberCount: number;
+  establishedYear: number;
+  website?: string;
+  logo?: string;
+  socialMedia?: {
+    instagram?: string;
+    twitter?: string;
+    facebook?: string;
+    linkedin?: string;
+    website?: string;
+  };
+  contactPerson: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  contactEmail?: string;
+  verified: boolean;
+  views?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BrandProfile {
+  _id: string;
+  userId: string;
+  brandName: string;
+  description: string;
+  industry: string;
+  website: string;
+  logo?: string;
+  contactPerson: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  socialMedia: {
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+  };
+  sponsorshipBudget: {
+    min: number;
+    max: number;
+  };
+  targetAudience: string[];
+  preferredEventTypes: string[];
+  verified: boolean;
 }
 
 export interface EventsResponse {
@@ -228,61 +315,16 @@ export const eventsAPI = {
 // ============================================
 // PROFILES API
 // ============================================
-export interface ClubProfile {
-  _id: string;
-  userId: string;
-  clubName: string;
-  university: string;
-  description: string;
-  contactPerson: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  logo?: string;
-  website?: string;
-  socialMedia: {
-    instagram?: string;
-    twitter?: string;
-    linkedin?: string;
-  };
-  categories: string[];
-  achievements: Array<{
-    title: string;
-    description: string;
-    date: string;
-  }>;
-  verified: boolean;
-}
-
-export interface BrandProfile {
-  _id: string;
-  userId: string;
-  brandName: string;
-  description: string;
-  industry: string;
-  website: string;
-  logo?: string;
-  contactPerson: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  socialMedia: {
-    instagram?: string;
-    twitter?: string;
-    linkedin?: string;
-  };
-  sponsorshipBudget: {
-    min: number;
-    max: number;
-  };
-  targetAudience: string[];
-  preferredEventTypes: string[];
-  verified: boolean;
-}
 
 export const profilesAPI = {
+  // Get all clubs
+  getAllClubs: (): Promise<{ clubs: ClubProfile[] }> =>
+    apiRequest('/profiles/clubs'),
+
+  // Get all brands
+  getAllBrands: (): Promise<{ brands: BrandProfile[] }> =>
+    apiRequest('/profiles/brands'),
+
   // Club profiles
   createClubProfile: (data: Omit<ClubProfile, '_id' | 'userId' | 'verified'>): Promise<{ message: string; profile: ClubProfile }> =>
     apiRequest('/profiles/club', {
@@ -307,7 +349,7 @@ export const profilesAPI = {
     }),
 
   getBrandProfile: (id?: string): Promise<{ profile: BrandProfile }> =>
-    apiRequest(`/profiles/brand${id ? `/${id}` : ''}`),
+    apiRequest(`/profiles/brands${id ? `/${id}` : ''}`),
 
   updateBrandProfile: (data: Partial<Omit<BrandProfile, '_id' | 'userId' | 'verified'>>): Promise<{ message: string; profile: BrandProfile }> =>
     apiRequest('/profiles/brand', {

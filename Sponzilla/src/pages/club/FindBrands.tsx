@@ -1,12 +1,141 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { SmartNavbar } from '../../components/layout/Navbar';
+import { profilesAPI } from '../../services/api';
+import type { BrandProfile } from '../../services/api';
 
 const FindBrands: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [brands, setBrands] = useState<BrandProfile[]>([]);
+  const [filteredBrands, setFilteredBrands] = useState<BrandProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+  const [selectedIndustry, setSelectedIndustry] = useState<string>('');
+  const [selectedBudgetRange, setSelectedBudgetRange] = useState<string>('');
+  const [selectedEventType] = useState<string>('');
+  const [selectedAudience, setSelectedAudience] = useState<string>('');
+  const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
+  const [showValuesDropdown, setShowValuesDropdown] = useState(false);
+  const [showHistoryDropdown, setShowHistoryDropdown] = useState(false);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+  };
+
+  useEffect(() => {
+    fetchBrands();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, selectedIndustry, selectedBudgetRange, selectedEventType, selectedAudience, brands]);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowIndustryDropdown(false);
+      setShowValuesDropdown(false);
+      setShowHistoryDropdown(false);
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const fetchBrands = async () => {
+    try {
+      setLoading(true);
+      const response = await profilesAPI.getAllBrands();
+      const brandsData = response.brands || [];
+      setBrands(brandsData);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load brands');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = brands;
+    
+    // Search term filtering
+    if (searchTerm) {
+      filtered = filtered.filter(brand => 
+        brand.brandName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        brand.industry.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (brand.description && brand.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    
+    // Industry filtering
+    if (selectedIndustry) {
+      filtered = filtered.filter(brand => 
+        brand.industry.toLowerCase().includes(selectedIndustry.toLowerCase())
+      );
+    }
+    
+    // Budget range filtering
+    if (selectedBudgetRange) {
+      filtered = filtered.filter(brand => {
+        if (!brand.sponsorshipBudget || typeof brand.sponsorshipBudget.max !== 'number') {
+          return false;
+        }
+        const maxBudget = brand.sponsorshipBudget.max;
+        switch (selectedBudgetRange) {
+          case 'Small ($1-$5K)':
+            return maxBudget >= 1000 && maxBudget <= 5000;
+          case 'Medium ($5K-$20K)':
+            return maxBudget >= 5000 && maxBudget <= 20000;
+          case 'Large ($20K-$50K)':
+            return maxBudget >= 20000 && maxBudget <= 50000;
+          case 'Very Large ($50K+)':
+            return maxBudget > 50000;
+          default:
+            return true;
+        }
+      });
+    }
+    
+    // Event type filtering
+    if (selectedEventType) {
+      filtered = filtered.filter(brand => 
+        brand.preferredEventTypes && brand.preferredEventTypes.length > 0 &&
+        brand.preferredEventTypes.some(type => 
+          type.toLowerCase().includes(selectedEventType.toLowerCase())
+        )
+      );
+    }
+    
+    // Audience filtering
+    if (selectedAudience) {
+      filtered = filtered.filter(brand => 
+        brand.targetAudience && brand.targetAudience.length > 0 &&
+        brand.targetAudience.some(audience => 
+          audience.toLowerCase().includes(selectedAudience.toLowerCase())
+        )
+      );
+    }
+    
+    setFilteredBrands(filtered);
+  };
+
+  // Get unique values for filter options
+  const getUniqueIndustries = () => {
+    const industries = brands.map(brand => brand.industry).filter(Boolean);
+    return [...new Set(industries)].sort();
+  };
+
+  const getTargetAudiences = () => {
+    return ['Students', 'Professionals', 'General Public', 'Tech Community', 'Business Leaders'];
+  };
+
+  const getBudgetRanges = () => {
+    return ['Small ($1-$5K)', 'Medium ($5K-$20K)', 'Large ($20K-$50K)', 'Very Large ($50K+)'];
+  };
+
+  const handleBrandClick = (brandId: string) => {
+    navigate(`/brand-profile/${brandId}`);
   };
 
   return (
@@ -44,94 +173,213 @@ const FindBrands: React.FC = () => {
               </label>
             </div>
             <div className="flex gap-3 p-3 flex-wrap pr-4">
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f0f3f4] pl-4 pr-2">
-                <p className="text-[#111518] text-sm font-medium leading-normal text-left">Industry</p>
-                <div className="text-[#111518]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-                  </svg>
-                </div>
-              </button>
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f0f3f4] pl-4 pr-2">
-                <p className="text-[#111518] text-sm font-medium leading-normal text-left">Values</p>
-                <div className="text-[#111518]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-                  </svg>
-                </div>
-              </button>
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f0f3f4] pl-4 pr-2">
-                <p className="text-[#111518] text-sm font-medium leading-normal text-left">Sponsorship History</p>
-                <div className="text-[#111518]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-                  </svg>
-                </div>
-              </button>
+              {/* Industry Filter */}
+              <div className="relative">
+                <button 
+                  className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f0f3f4] pl-4 pr-2 hover:bg-[#e8ebec]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowIndustryDropdown(!showIndustryDropdown);
+                    setShowValuesDropdown(false);
+                    setShowHistoryDropdown(false);
+                  }}
+                >
+                  <p className="text-[#111518] text-sm font-medium leading-normal text-left">
+                    {selectedIndustry || 'Industry'}
+                  </p>
+                  <div className="text-[#111518]" data-icon="CaretDown" data-size="20px" data-weight="regular">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                  </div>
+                </button>
+                {showIndustryDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10" onClick={(e) => e.stopPropagation()}>
+                    <div className="p-2">
+                      <button
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                        onClick={() => {
+                          setSelectedIndustry('');
+                          setShowIndustryDropdown(false);
+                        }}
+                      >
+                        All Industries
+                      </button>
+                      {getUniqueIndustries().map((industry) => (
+                        <button
+                          key={industry}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                          onClick={() => {
+                            setSelectedIndustry(industry);
+                            setShowIndustryDropdown(false);
+                          }}
+                        >
+                          {industry}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Values (Target Audience) Filter */}
+              <div className="relative">
+                <button 
+                  className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f0f3f4] pl-4 pr-2 hover:bg-[#e8ebec]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowValuesDropdown(!showValuesDropdown);
+                    setShowIndustryDropdown(false);
+                    setShowHistoryDropdown(false);
+                  }}
+                >
+                  <p className="text-[#111518] text-sm font-medium leading-normal text-left">
+                    {selectedAudience || 'Target Audience'}
+                  </p>
+                  <div className="text-[#111518]" data-icon="CaretDown" data-size="20px" data-weight="regular">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                  </div>
+                </button>
+                {showValuesDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10" onClick={(e) => e.stopPropagation()}>
+                    <div className="p-2">
+                      <button
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                        onClick={() => {
+                          setSelectedAudience('');
+                          setShowValuesDropdown(false);
+                        }}
+                      >
+                        All Audiences
+                      </button>
+                      {getTargetAudiences().map((audience) => (
+                        <button
+                          key={audience}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                          onClick={() => {
+                            setSelectedAudience(audience);
+                            setShowValuesDropdown(false);
+                          }}
+                        >
+                          {audience}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sponsorship Budget Filter */}
+              <div className="relative">
+                <button 
+                  className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f0f3f4] pl-4 pr-2 hover:bg-[#e8ebec]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowHistoryDropdown(!showHistoryDropdown);
+                    setShowIndustryDropdown(false);
+                    setShowValuesDropdown(false);
+                  }}
+                >
+                  <p className="text-[#111518] text-sm font-medium leading-normal text-left">
+                    {selectedBudgetRange || 'Budget Range'}
+                  </p>
+                  <div className="text-[#111518]" data-icon="CaretDown" data-size="20px" data-weight="regular">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+                      <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+                    </svg>
+                  </div>
+                </button>
+                {showHistoryDropdown && (
+                  <div className="absolute top-full left-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10" onClick={(e) => e.stopPropagation()}>
+                    <div className="p-2">
+                      <button
+                        className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                        onClick={() => {
+                          setSelectedBudgetRange('');
+                          setShowHistoryDropdown(false);
+                        }}
+                      >
+                        All Budgets
+                      </button>
+                      {getBudgetRanges().map((budget) => (
+                        <button
+                          key={budget}
+                          className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 rounded"
+                          onClick={() => {
+                            setSelectedBudgetRange(budget);
+                            setShowHistoryDropdown(false);
+                          }}
+                        >
+                          {budget}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Featured Brands</h2>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
-              <div className="flex flex-col gap-3 pb-3">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAZ_wjm0d2FYTuzgQBZVHMvvAhlee2P3dqDOMmF1zW9Oskt6sefuIGpEOuv4ujdR6Th38ij-JGymOafq9Z-NDhl2LJF1iUWLTNJx7MU_GI-hzOy9H0t-4YNqBSLYoLVv56x8tMmgdMa7wW1pD1SNLEkKBqsMw6_uS7Du6Q_0a3yfvrugbcK5qF9yOJLTlnkVcCWvkpab4dfVSZ22VGp_Uz3zPrZ80YHnhCzhxRmdKi6ZuRL2uxoBfktGndzsBGzC-CRWo6Q4Eybao0")' }}
-                ></div>
-                <div>
-                  <p className="text-[#111518] text-base font-medium leading-normal text-left">Tech Innovators Inc.</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Leading tech company focused on innovation.</p>
-                </div>
+            
+            {loading ? (
+              <div className="p-4 text-center">
+                <p className="text-[#617989]">Loading brands...</p>
               </div>
-              <div className="flex flex-col gap-3 pb-3">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIjmIicJfVoQrUsJmReOEZIWaF_sywqDBZbKYC5_nSpW25rg7wcGMbD7sY0dGMPdoO0o6Wb7vWKmBciSAvcsVvmK8UvA1KHxnriEtLqliPTnpoN-ItyFZ5Ek56mXyBhE3Xl5DooBtm3Hhb9ItvgS-lqM9kh2BiLgFAUnj4t7Kwb3BtmBpoIbWD7y8SV7xaRNzsw2vXIBDkkKeWwvNIT5G2VISgqpBVq1IjRzsT0cM42YJOG5fZ-KOBcu8I4pRMvSS0OxVhgVlULHo")' }}
-                ></div>
-                <div>
-                  <p className="text-[#111518] text-base font-medium leading-normal text-left">EcoSolutions Co.</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Sustainable solutions for a greener future.</p>
-                </div>
+            ) : error ? (
+              <div className="p-4 text-center">
+                <p className="text-red-500">Error: {error}</p>
               </div>
-              <div className="flex flex-col gap-3 pb-3">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDBftH1P3qPOqO2C-BGmThU0Vvxia4kYNNOQyfUF2uw-0FTlWeVmnOKmRZp91-SCzjN0GA0L2sPIezK8jskGAG70NvTs4LAUhta_frAv66TmzXJcYSD0BYmMM3QZq_RFydoAWsl7tnkoSAnWctsNonLrMWRag8FoaOIC_5cTHU-dfsLWyutN_nUcx3spUWvt-14fz9pl6pYXyESAYZGZTgWX0UhLBC_Je3mvxDT0IJ9L_Zh7hFuSacdmpaesjPVBFe3IY0CC0KYlao")' }}
-                ></div>
-                <div>
-                  <p className="text-[#111518] text-base font-medium leading-normal text-left">Creative Minds Ltd.</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Agency specializing in creative marketing.</p>
-                </div>
+            ) : filteredBrands.length === 0 ? (
+              <div className="p-4 text-center">
+                <p className="text-[#617989]">No brands found. Try adjusting your search or filters.</p>
               </div>
-              <div className="flex flex-col gap-3 pb-3">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCy9Y76wLUlAt_SFpJVOodatwoWIHRe8eAPLCGPcC7GihA0cVf8sG-8dj0XqbSa1lhIcQi8MADr5k9QMKM597MTC-tf4-EJJvXgY7L77nipMRxTRNtRlh9BZ-SCNIJXT3bb4HKYYhFRPGxyOMumS_JKu8awbBN0s3jGc7PZ0NBj6G2nK5mW0UEoAcQRsxKZ7QKtAWgTYeyIUWjVumtrAaJKfGY5bPUth7orTQALw_zuxATV3mh3t7Vl9TGGM0sfjPzBMVfK9ipQuWM")' }}
-                ></div>
-                <div>
-                  <p className="text-[#111518] text-base font-medium leading-normal text-left">Global Reach Corp.</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">International corporation with a global presence.</p>
-                </div>
+            ) : (
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
+                {filteredBrands.map((brand) => (
+                  <div 
+                    key={brand._id} 
+                    className="flex flex-col gap-3 pb-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors"
+                    onClick={() => handleBrandClick(brand._id)}
+                  >
+                    <div
+                      className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
+                      style={{ 
+                        backgroundImage: `url("${brand.logo || `https://placehold.co/200x200?text=${encodeURIComponent(brand.brandName.charAt(0))}`}")` 
+                      }}
+                    ></div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="text-[#111518] text-base font-medium leading-normal text-left">{brand.brandName}</p>
+                        {brand.verified && (
+                          <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
+                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                            <p className="text-green-700 text-xs font-medium">Verified</p>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-[#617989] text-sm font-normal leading-normal text-left">
+                        {brand.description && brand.description.length > 50 
+                          ? brand.description.substring(0, 50) + '...' 
+                          : brand.description || 'No description available'}
+                      </p>
+                      <div className="flex items-center gap-2 text-xs text-[#617989] mt-1">
+                        <span>🏢 {brand.industry || 'Industry not specified'}</span>
+                      </div>
+                      {brand.sponsorshipBudget && brand.sponsorshipBudget.min && brand.sponsorshipBudget.max ? (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-xs text-[#617989]">💰 ${brand.sponsorshipBudget.min.toLocaleString()} - ${brand.sponsorshipBudget.max.toLocaleString()}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 mt-1">
+                          <span className="text-xs text-[#617989]">💰 Budget available</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="flex flex-col gap-3 pb-3">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAPk_1z23Nyhg5MDT5WggM9eZLo3Sm96nOJ7Lm0HBOkOFS_9_mCd40r-ie9Zh1cos_T2kaR2eCGDfkt7mt2_cPExL1UCQCBq26lRdzUgC6JYsfe2BMozSfpNz1nayvt3j_Eu8UzxMLFwJEPpVlMaf4F-pfEkmUKTm3jtMwwpyX1UjIofrgq69sIX1X2W9Cj93q5noyjtghVkAK3seBPV1AGnyZKNmWwUsvZrgQPQBWnl6kkqw_jq8po4ACLV7U_Uyes6UDvsMHp7RA")' }}
-                ></div>
-                <div>
-                  <p className="text-[#111518] text-base font-medium leading-normal text-left">Health & Wellness Group</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Promoting health and wellness initiatives.</p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-3 pb-3">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-square bg-cover rounded-xl"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDqa42RUMF03VCB01CLRkNiKnYown9zLkOmsSyN8081TBBnDIcAqU0MXispyd2RjAx9ClGvdfXQC0ycw9O_PgRdKIPgyXFGwUMrueBN8hTyQ6UorbiInLKcM2nH6gzx9QdZPSaBl105H1ANGzsHqiQDTga9ijSeVMB19NtolBVV3F708xyduaZxQ8iCTXDvSD6vfSGlVnOM9MmAJ5ROgp6m3ZBKbug8jRLLYFYIsre4BtftaHQQFKUlAWS2M-MbshxXbWMda62KVJA")' }}
-                ></div>
-                <div>
-                  <p className="text-[#111518] text-base font-medium leading-normal text-left">Community Builders Inc.</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Organization dedicated to community development.</p>
-                </div>
-              </div>
-            </div>
+            )}
             <div className="flex items-center justify-center p-4">
               <Link to="#" className="flex size-10 items-center justify-center">
                 <div className="text-[#111518]" data-icon="CaretLeft" data-size="18px" data-weight="regular">

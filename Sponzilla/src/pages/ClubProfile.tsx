@@ -1,7 +1,95 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { SmartNavbar } from '../components/layout/Navbar';
+import { profilesAPI, eventsAPI } from '../services/api';
+import type { ClubProfile as ClubProfileType, Event } from '../services/api';
 
 const ClubProfile: React.FC = () => {
+  const { clubId } = useParams<{ clubId: string }>();
+  const navigate = useNavigate();
+  const [club, setClub] = useState<ClubProfileType | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+
+  const handleEventClick = (eventId: string) => {
+    navigate(`/view-event/${eventId}`);
+  };
+
+  useEffect(() => {
+    const fetchClub = async () => {
+      try {
+        setLoading(true);
+        if (clubId) {
+          const response = await profilesAPI.getAllClubs();
+          const foundClub = response.clubs.find(c => c._id === clubId);
+          if (foundClub) {
+            setClub(foundClub);
+            
+            // Fetch events for this specific club
+            try {
+              const eventsResponse = await eventsAPI.getAllEvents();
+              const clubEvents = eventsResponse.events.filter(event => 
+                event.clubId._id === clubId
+              );
+              setEvents(clubEvents);
+            } catch (eventsError) {
+              console.error('Failed to load events:', eventsError);
+              // Don't set error for events, just continue without them
+            }
+          } else {
+            setError('Club not found');
+          }
+        } else {
+          setError('Club ID not provided');
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to load club');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClub();
+  }, [clubId]);
+
+  if (loading) {
+    return (
+      <div className="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
+        <div className="layout-container flex h-full grow flex-col">
+          <SmartNavbar />
+          <div className="flex justify-center items-center flex-1">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading club profile...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !club) {
+    return (
+      <div className="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
+        <div className="layout-container flex h-full grow flex-col">
+          <SmartNavbar />
+          <div className="flex justify-center items-center flex-1">
+            <div className="text-center">
+              <p className="text-red-600">{error}</p>
+              <button 
+                onClick={() => window.history.back()} 
+                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Go Back
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
       <div className="layout-container flex h-full grow flex-col">
@@ -13,67 +101,165 @@ const ClubProfile: React.FC = () => {
                 <div className="flex gap-4">
                   <div
                     className="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32"
-                    style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAgaZSpZoEXQy70pqSUHYrCv93Wgr7eiaa4WpYSkeZTLNaD4oJBX3cDIFn-41vBy5Ljek7EpVRIQf25jww6bmyixeUFNEt24T8l9CyCkjHxXKLPXCbzNa8WtkLRax1BjNBOtc34LpClD0z5ji5F22sMPsNN__p50ERX5YyrQohr7ZAw-asoWSLqpAr4NmvP7v0iH-Y7B7_9TlEdE2PUxN_tTS4hXf6x-ifd2Hfs71Fve-EnJ7-2sNHG3cD3pVrAgKKglXIjoAa5mfs")' }}
+                    style={{ 
+                      backgroundImage: `url("${club.logo || `https://placehold.co/128x128?text=${encodeURIComponent(club.clubName.charAt(0))}`}")`
+                    }}
                   ></div>
                   <div className="flex flex-col justify-center">
-                    <p className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] text-left">Tech Innovators Club</p>
-                    <p className="text-[#617989] text-base font-normal leading-normal text-left">Empowering students to explore and innovate in technology.</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] text-left">{club.clubName}</p>
+                      {club.verified && (
+                        <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          <p className="text-green-700 text-xs font-medium">Verified</p>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[#617989] text-base font-normal leading-normal text-left">
+                      {club.description || 'Empowering students to explore and innovate in technology.'}
+                    </p>
+                    <div className="flex items-center gap-1 mt-2">
+                      <div className="flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-full">
+                        <span className="text-gray-600 text-xs">👁</span>
+                        <p className="text-gray-700 text-xs font-medium">{club.views || 0} views</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <button className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-bold leading-normal tracking-[0.015em] w-full max-w-[480px] @[480px]:w-auto">
-                  <span className="truncate">Edit Profile</span>
-                </button>
               </div>
             </div>
             <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">About Us</h2>
             <p className="text-[#111518] text-base font-normal leading-normal pb-3 pt-1 px-4 text-left">
-              The Tech Innovators Club is a vibrant community of students passionate about technology and innovation. We organize workshops, hackathons, and networking events to
-              foster creativity and collaboration among our members. Our goal is to provide a platform for students to learn, experiment, and build impactful projects that address
-              real-world challenges.
+              {club.description || 
+                `The ${club.clubName} is a vibrant community of students passionate about ${club.category?.toLowerCase() || 'their field'}. We organize workshops, events, and networking opportunities to foster creativity and collaboration among our members. Our goal is to provide a platform for students to learn, experiment, and build impactful projects that address real-world challenges.`
+              }
             </p>
             <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Contact Information</h2>
             <div className="p-4 grid grid-cols-[20%_1fr] gap-x-6">
               <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe1e6] py-5">
                 <p className="text-[#617989] text-sm font-normal leading-normal text-left">Email</p>
-                <p className="text-[#111518] text-sm font-normal leading-normal text-left">techinnovators@example.edu</p>
+                <p className="text-[#111518] text-sm font-normal leading-normal text-left">{club.contactEmail || club.contactPerson?.email || 'contact@club.edu'}</p>
               </div>
               <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe1e6] py-5">
                 <p className="text-[#617989] text-sm font-normal leading-normal text-left">Website</p>
-                <p className="text-[#111518] text-sm font-normal leading-normal text-left">techinnovators.example.edu</p>
+                <p className="text-[#111518] text-sm font-normal leading-normal text-left">{club.website || `${club.clubName.toLowerCase().replace(/\s+/g, '')}.example.edu`}</p>
               </div>
               <div className="col-span-2 grid grid-cols-subgrid border-t border-t-[#dbe1e6] py-5">
                 <p className="text-[#617989] text-sm font-normal leading-normal text-left">Social Media</p>
-                <p className="text-[#111518] text-sm font-normal leading-normal text-left">@techinnovators</p>
+                <div className="text-[#111518] text-sm font-normal leading-normal text-left">
+                  {club.socialMedia ? (
+                    <div className="flex flex-wrap gap-2">
+                      {club.socialMedia.instagram && (
+                        <a href={club.socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          Instagram
+                        </a>
+                      )}
+                      {club.socialMedia.twitter && (
+                        <a href={club.socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          Twitter
+                        </a>
+                      )}
+                      {club.socialMedia.facebook && (
+                        <a href={club.socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          Facebook
+                        </a>
+                      )}
+                      {club.socialMedia.linkedin && (
+                        <a href={club.socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          LinkedIn
+                        </a>
+                      )}
+                      {club.socialMedia.website && (
+                        <a href={club.socialMedia.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                          Website
+                        </a>
+                      )}
+                      {!club.socialMedia.instagram && !club.socialMedia.twitter && !club.socialMedia.facebook && !club.socialMedia.linkedin && !club.socialMedia.website && (
+                        <span className="text-gray-500">@{club.clubName.toLowerCase().replace(/\s+/g, '')}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-500">@{club.clubName.toLowerCase().replace(/\s+/g, '')}</span>
+                  )}
+                </div>
               </div>
             </div>
             <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Upcoming Events</h2>
-            <div className="p-4">
-              <div className="flex items-stretch justify-between gap-4 rounded-xl">
-                <div className="flex flex-col gap-1 flex-[2_2_0px]">
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Oct 26, 2024</p>
-                  <p className="text-[#111518] text-base font-bold leading-tight text-left">AI Hackathon</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Join us for a 24-hour hackathon focused on developing AI solutions.</p>
-                </div>
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAVxosjfgSJ_yJaCRxytLZuC9UqeTDmfTgY397lFxFB7fm1YtxnD-LgyHp8TZ1C6fjf6Ynz00B0-T0ce3wEoHhLITWwzbDAesN7G4DHi2kUZPVJCK6KUTnREJ3-48jDX-Km1K7O0mF4vCMaL0rdfsQl3y1mb07yagaeA0a1zlxCsBAYsSmHc4G6pMDnsqIEf9EJ9Oaz6-2sJh6XQrqGeDDKSwoQpLnNvzbiKO0JowxpdVOoAQh1RTF2I7gvcbcZBV_gFWHP67HuCTI")' }}
-                ></div>
+            {events.filter(event => new Date(event.eventDate) > new Date()).length > 0 ? (
+              events
+                .filter(event => new Date(event.eventDate) > new Date())
+                .slice(0, 3)
+                .map((event) => (
+                  <div key={event._id} className="p-4">
+                    <div 
+                      className="flex items-stretch justify-between gap-4 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors p-3"
+                      onClick={() => handleEventClick(event._id)}
+                    >
+                      <div className="flex flex-col gap-1 flex-[2_2_0px]">
+                        <p className="text-[#617989] text-sm font-normal leading-normal text-left">
+                          {new Date(event.eventDate).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </p>
+                        <p className="text-[#111518] text-base font-bold leading-tight text-left">{event.title}</p>
+                        <p className="text-[#617989] text-sm font-normal leading-normal text-left">
+                          {event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description}
+                        </p>
+                      </div>
+                      <div
+                        className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
+                        style={{ 
+                          backgroundImage: `url("${event.images?.[0] || 'https://placehold.co/600x400?text=' + encodeURIComponent(event.title.charAt(0))}")`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <div className="p-4">
+                <p className="text-[#617989] text-sm text-center">No upcoming events scheduled.</p>
               </div>
-            </div>
+            )}
             <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Past Events</h2>
-            <div className="p-4">
-              <div className="flex items-stretch justify-between gap-4 rounded-xl">
-                <div className="flex flex-col gap-1 flex-[2_2_0px]">
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Sep 15, 2024</p>
-                  <p className="text-[#111518] text-base font-bold leading-tight text-left">Robotics Workshop</p>
-                  <p className="text-[#617989] text-sm font-normal leading-normal text-left">Hands-on workshop on building and programming robots.</p>
-                </div>
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDslvP8yrQ082frQpdyF1Es8vTENyxqoRfpGggmqRHyMposu4_N60c7P9Wkg4f7ho-21RAKoabPS2josVw8q2M1nHE9LUfZMi6o2-Ng2JhscrO3h2_N6hiAKShMS4GnhorRIcU_UEKcQkqFMdF0MCI3eWo4vbw7hC-sJQHOkfRr7qvQbPBuwgjoKWa9U3wviQXciy0ptgsLZ8JzTpoX-0IqfSSGiqzAc23CU9fLV7MtnfkSEA_Zid_kq8B4KKwNx_YvJZkdxd3EhG8")' }}
-                ></div>
+            {events.filter(event => new Date(event.eventDate) <= new Date()).length > 0 ? (
+              events
+                .filter(event => new Date(event.eventDate) <= new Date())
+                .slice(0, 3)
+                .map((event) => (
+                  <div key={event._id} className="p-4">
+                    <div 
+                      className="flex items-stretch justify-between gap-4 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors p-3"
+                      onClick={() => handleEventClick(event._id)}
+                    >
+                      <div className="flex flex-col gap-1 flex-[2_2_0px]">
+                        <p className="text-[#617989] text-sm font-normal leading-normal text-left">
+                          {new Date(event.eventDate).toLocaleDateString('en-US', { 
+                            year: 'numeric', 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })}
+                        </p>
+                        <p className="text-[#111518] text-base font-bold leading-tight text-left">{event.title}</p>
+                        <p className="text-[#617989] text-sm font-normal leading-normal text-left">
+                          {event.description.length > 100 ? event.description.substring(0, 100) + '...' : event.description}
+                        </p>
+                      </div>
+                      <div
+                        className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
+                        style={{ 
+                          backgroundImage: `url("${event.images?.[0] || 'https://placehold.co/600x400?text=' + encodeURIComponent(event.title.charAt(0))}")`
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <div className="p-4">
+                <p className="text-[#617989] text-sm text-center">No past events to display.</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

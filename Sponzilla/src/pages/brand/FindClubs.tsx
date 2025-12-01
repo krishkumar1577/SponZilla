@@ -1,11 +1,176 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { SmartNavbar } from '../../components/layout/Navbar';
+import { profilesAPI } from '../../services/api';
+import type { ClubProfile } from '../../services/api';
 
 const FindClubsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [clubs, setClubs] = useState<ClubProfile[]>([]);
+  const [filteredClubs, setFilteredClubs] = useState<ClubProfile[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>('');
+  
+  // Filter states
+  const [selectedEventType, setSelectedEventType] = useState<string>('');
+  const [selectedAudienceReach, setSelectedAudienceReach] = useState<string>('');
+  const [selectedUniversity, setSelectedUniversity] = useState<string>('');
+  const [selectedInterest, setSelectedInterest] = useState<string>('');
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
+  };
+
+  useEffect(() => {
+    fetchClubs();
+  }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, selectedEventType, selectedAudienceReach, selectedUniversity, selectedInterest, clubs]);
+
+  const fetchClubs = async () => {
+    try {
+      setLoading(true);
+      const response = await profilesAPI.getAllClubs();
+      const clubsData = response.clubs || [];
+      setClubs(clubsData);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load clubs');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = clubs;
+    
+    // Search term filtering
+    if (searchTerm) {
+      filtered = filtered.filter(club => 
+        club.clubName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        club.university.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (club.description && club.description.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+    }
+    
+    // Event Type filtering (using category)
+    if (selectedEventType) {
+      filtered = filtered.filter(club => 
+        club.category?.toLowerCase().includes(selectedEventType.toLowerCase())
+      );
+    }
+    
+    // Audience Reach filtering (using member count)
+    if (selectedAudienceReach) {
+      filtered = filtered.filter(club => {
+        const memberCount = club.memberCount || 0;
+        switch (selectedAudienceReach) {
+          case 'Small (1-50)':
+            return memberCount >= 1 && memberCount <= 50;
+          case 'Medium (51-200)':
+            return memberCount >= 51 && memberCount <= 200;
+          case 'Large (201-500)':
+            return memberCount >= 201 && memberCount <= 500;
+          case 'Very Large (500+)':
+            return memberCount > 500;
+          default:
+            return true;
+        }
+      });
+    }
+    
+    // University filtering
+    if (selectedUniversity) {
+      filtered = filtered.filter(club => 
+        club.university.toLowerCase().includes(selectedUniversity.toLowerCase())
+      );
+    }
+    
+    // Interests filtering (using category)
+    if (selectedInterest) {
+      filtered = filtered.filter(club => 
+        club.category?.toLowerCase().includes(selectedInterest.toLowerCase())
+      );
+    }
+    
+    setFilteredClubs(filtered);
+  };
+
+  const handleClubClick = (clubId: string) => {
+    navigate(`/club-profile/${clubId}`);
+  };
+
+  const handleViewProfile = (e: React.MouseEvent, clubId: string) => {
+    e.stopPropagation();
+    navigate(`/club-profile/${clubId}`);
+  };
+
+  // Get unique values for filter options
+  const getUniqueUniversities = () => {
+    const universities = clubs.map(club => club.university);
+    return [...new Set(universities)].sort();
+  };
+
+  const getUniqueCategories = () => {
+    const categories = clubs.map(club => club.category).filter(Boolean);
+    return [...new Set(categories)].sort();
+  };
+
+  const FilterDropdown: React.FC<{
+    label: string;
+    value: string;
+    options: string[];
+    onChange: (value: string) => void;
+  }> = ({ label, value, options, onChange }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    return (
+      <div className="relative">
+        <button 
+          className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f1f2f3] pl-4 pr-2 hover:bg-[#e5e6e8] transition-colors"
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <p className="text-[#131516] text-sm font-medium leading-normal">
+            {value || label}
+          </p>
+          <div className="text-[#131516]" data-icon="CaretDown" data-size="20px" data-weight="regular">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+              <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+            </svg>
+          </div>
+        </button>
+        
+        {isOpen && (
+          <div className="absolute top-10 left-0 bg-white border border-gray-200 rounded-lg shadow-lg z-10 min-w-48">
+            <div className="py-1">
+              <button
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors"
+                onClick={() => {
+                  onChange('');
+                  setIsOpen(false);
+                }}
+              >
+                All {label}
+              </button>
+              {options.map((option) => (
+                <button
+                  key={option}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 transition-colors"
+                  onClick={() => {
+                    onChange(option);
+                    setIsOpen(false);
+                  }}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -45,118 +210,91 @@ const FindClubsPage: React.FC = () => {
               </label>
             </div>
             <div className="flex gap-3 p-3 flex-wrap pr-4">
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f1f2f3] pl-4 pr-2">
-                <p className="text-[#131516] text-sm font-medium leading-normal">Event Type</p>
-                <div className="text-[#131516]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-                  </svg>
-                </div>
-              </button>
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f1f2f3] pl-4 pr-2">
-                <p className="text-[#131516] text-sm font-medium leading-normal">Audience Reach</p>
-                <div className="text-[#131516]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-                  </svg>
-                </div>
-              </button>
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f1f2f3] pl-4 pr-2">
-                <p className="text-[#131516] text-sm font-medium leading-normal">University</p>
-                <div className="text-[#131516]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-                  </svg>
-                </div>
-              </button>
-              <button className="flex h-8 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f1f2f3] pl-4 pr-2">
-                <p className="text-[#131516] text-sm font-medium leading-normal">Interests</p>
-                <div className="text-[#131516]" data-icon="CaretDown" data-size="20px" data-weight="regular">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                    <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
-                  </svg>
-                </div>
-              </button>
+              <FilterDropdown
+                label="Event Type"
+                value={selectedEventType}
+                options={getUniqueCategories()}
+                onChange={setSelectedEventType}
+              />
+              <FilterDropdown
+                label="Audience Reach"
+                value={selectedAudienceReach}
+                options={['Small (1-50)', 'Medium (51-200)', 'Large (201-500)', 'Very Large (500+)']}
+                onChange={setSelectedAudienceReach}
+              />
+              <FilterDropdown
+                label="University"
+                value={selectedUniversity}
+                options={getUniqueUniversities()}
+                onChange={setSelectedUniversity}
+              />
+              <FilterDropdown
+                label="Interests"
+                value={selectedInterest}
+                options={getUniqueCategories()}
+                onChange={setSelectedInterest}
+              />
             </div>
             <h2 className="text-[#131516] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Featured Clubs</h2>
-            <div className="p-4">
-              <div className="flex items-stretch justify-between gap-4 rounded-xl">
-                <div className="flex flex-[2_2_0px] flex-col gap-4">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">Tech</p>
-                    <p className="text-[#131516] text-base font-bold leading-tight text-left">InnovateU Tech Society</p>
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">A hub for tech enthusiasts at InnovateU, hosting workshops, hackathons, and networking events.</p>
-                  </div>
-                  <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 flex-row-reverse bg-[#f1f2f3] text-[#131516] text-sm font-medium leading-normal w-fit">
-                    <span className="truncate">View Profile</span>
-                  </button>
-                </div>
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCfSf1gU25ppQUza9PK2dg1Ohvn2hYL7hf3LRfbM2oLzIXQsjkSfkd9CZA2YmA8s9zYtCK_Vyyjiw19JGyVZxxGDT_-Inc5gaSRq3ELOWx8pv6BpoQv7rH8zE5iuBDVIxnUcjlY4FaLsl2t7I-CIfX5mZU_hHld-wcxGrQP3WCV6stp70bG6P9Yoe-f1CY-1PAK_SdF_tNZQJr4_tbjPcu8XjqoR2m0hEaBmvZ-t0fz7xIU8FNj3BLOgB3PjKEmG8W1VZpH0T0boVY")' }}
-                ></div>
+            
+            {loading ? (
+              <div className="p-4 text-center">
+                <p className="text-[#6b7780]">Loading clubs...</p>
               </div>
-            </div>
-            <div className="p-4">
-              <div className="flex items-stretch justify-between gap-4 rounded-xl">
-                <div className="flex flex-[2_2_0px] flex-col gap-4">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">Arts</p>
-                    <p className="text-[#131516] text-base font-bold leading-tight text-left">Creative Minds Collective</p>
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">
-                      A vibrant community of artists, musicians, and writers at State University, showcasing talent and fostering collaboration.
-                    </p>
-                  </div>
-                  <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 flex-row-reverse bg-[#f1f2f3] text-[#131516] text-sm font-medium leading-normal w-fit">
-                    <span className="truncate">View Profile</span>
-                  </button>
-                </div>
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuBapPeMMheiCa5KP7IZUjP1kf0hOZ2-zjp-ZyJhk_O3NTH3EJsd3Sok1DlpH0nhAjsda0s2I9zLGyOGKBQNvXSNtQCTN8f6x0h4cwYUDRUrsQWCrSJT4WFEVNA0NmE7HH52elKRGuy6_wwGlkc4JmVGOv0WyJW-ZWaBmi38otxvCNHoEHyv_wm1KrAcnlWO2bW7JSlEmuyO3GhaKwwv2aY3gW4r5TlRLnBQlRL2CDvip_bbeNh9LEEwnxlmAWBMhv2-hoUdDY9qitQ")' }}
-                ></div>
+            ) : error ? (
+              <div className="p-4 text-center">
+                <p className="text-red-500">Error: {error}</p>
               </div>
-            </div>
-            <div className="p-4">
-              <div className="flex items-stretch justify-between gap-4 rounded-xl">
-                <div className="flex flex-[2_2_0px] flex-col gap-4">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">Sports</p>
-                    <p className="text-[#131516] text-base font-bold leading-tight text-left">Campus Athletics Club</p>
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">
-                      Promoting sports and fitness at City College, organizing tournaments and training sessions for various sports.
-                    </p>
-                  </div>
-                  <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 flex-row-reverse bg-[#f1f2f3] text-[#131516] text-sm font-medium leading-normal w-fit">
-                    <span className="truncate">View Profile</span>
-                  </button>
-                </div>
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCcXMq4PY2Wcnx17NcdZh0auOr7PBqYzblPQzAxbj68OQ4XjLGhyG2jHRWHGwwng3a1bdoHLoKIHlTiYaQhxEuKdze-T7o43RTZ_37XWPBPCzM-2TMFLPSs0Qt0ALa80F8p4XVHLp53GT6duC6oT4a5nHOgaDc6eb9lmJAmbXSuaXDVu_Pc4DNfDiymvZpgGG79xYq80eAyxjLg8kEmboEcAj76g_e-ZL8mHDKlZEc1oZJPWrEf1IT9_Go6Nhn6htlaM6q4c4CvxEE")' }}
-                ></div>
+            ) : filteredClubs.length === 0 ? (
+              <div className="p-4 text-center">
+                <p className="text-[#6b7780]">No clubs found. Try adjusting your search or filters.</p>
               </div>
-            </div>
-            <div className="p-4">
-              <div className="flex items-stretch justify-between gap-4 rounded-xl">
-                <div className="flex flex-[2_2_0px] flex-col gap-4">
-                  <div className="flex flex-col gap-1">
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">Community</p>
-                    <p className="text-[#131516] text-base font-bold leading-tight text-left">Volunteer United</p>
-                    <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">
-                      Dedicated to community service at Metro University, organizing volunteer events and social impact initiatives.
-                    </p>
+            ) : (
+              filteredClubs.map((club) => (
+                <div key={club._id} className="p-4">
+                  <div 
+                    className="flex items-stretch justify-between gap-4 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
+                    onClick={() => handleClubClick(club._id)}
+                  >
+                    <div className="flex flex-[2_2_0px] flex-col gap-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">{club.category || 'General'}</p>
+                          {club.verified && (
+                            <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                              <p className="text-green-700 text-xs font-medium">Verified</p>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[#131516] text-base font-bold leading-tight text-left">{club.clubName}</p>
+                        <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">
+                          {club.description || `A vibrant community at ${club.university}.`}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-[#6b7780] mt-1">
+                          <span>📍 {club.university}</span>
+                          {club.memberCount && <span>👥 {club.memberCount} members</span>}
+                          <span>👁 {club.views || 0} views</span>
+                        </div>
+                      </div>
+                      <button 
+                        className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 flex-row-reverse bg-[#f1f2f3] text-[#131516] text-sm font-medium leading-normal w-fit hover:bg-[#e5e6e8] transition-colors"
+                        onClick={(e) => handleViewProfile(e, club._id)}
+                      >
+                        <span className="truncate">View Profile</span>
+                      </button>
+                    </div>
+                    <div
+                      className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
+                      style={{ 
+                        backgroundImage: `url("${club.logo || `https://placehold.co/600x400?text=${encodeURIComponent(club.clubName.charAt(0))}`}")` 
+                      }}
+                    ></div>
                   </div>
-                  <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 flex-row-reverse bg-[#f1f2f3] text-[#131516] text-sm font-medium leading-normal w-fit">
-                    <span className="truncate">View Profile</span>
-                  </button>
                 </div>
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-                  style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCdmk-Nzz88oPPCM7Z7FGF2LnMB81ngQIVanTghdwvYqhdaF6-vl4M4mLrKTx8HaeYv9dA0PuxY6rJQFFtY2zVBbGaB9XquQG9r21zPX_UlXdgsSz3vrjH9_eTybZ16doKyQVDAv5mviKmh7JAY1sw9Y858CGKpQA4sHM_bd447CLjeLAI-zxOEPVjQ5XWoRUaOZZWhXX-o7cVuguGofASRepvNsnjSOgu1mCHZcHik2bM-FB_G37bVYMwFXyYPsBgdcI3-Da2Rw-M")' }}
-                ></div>
-              </div>
-            </div>
+              ))
+            )}
+
             <div className="flex items-center justify-center p-4">
               <a href="#" className="flex size-10 items-center justify-center">
                 <div className="text-[#131516]" data-icon="CaretLeft" data-size="18px" data-weight="regular">

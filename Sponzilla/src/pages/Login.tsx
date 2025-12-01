@@ -14,11 +14,13 @@ const LoginPage: React.FC = () => {
     password: 'password123'
   });
   const [signupData, setSignupData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: ''
-  });
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: '',
+  contactPerson: '',
+  contactNumber: ''
+});
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -197,7 +199,7 @@ const LoginPage: React.FC = () => {
                 <div className="flex px-4 py-3">
                   <div className="flex h-10 flex-1 items-center justify-center rounded-xl bg-[#f1f2f4] p-1">
                     <label className={`flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium leading-normal ${
-                      userType === 'Club' 
+                      userType === 'club' 
                         ? 'bg-white shadow-[0_0_4px_rgba(0,0,0,0.1)] text-[#121516]' 
                         : 'text-[#6a7781]'
                     }`}>
@@ -206,13 +208,13 @@ const LoginPage: React.FC = () => {
                         type="radio" 
                         name="userType" 
                         className="invisible w-0" 
-                        value="Club" 
-                        checked={userType === 'Club'}
-                        onChange={() => setUserType('Club')}
+                        value="club" 
+                        checked={userType === 'club'}
+                        onChange={() => setUserType('club')}
                       />
                     </label>
                     <label className={`flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-xl px-2 text-sm font-medium leading-normal ${
-                      userType === 'Brand' 
+                      userType === 'brand' 
                         ? 'bg-white shadow-[0_0_4px_rgba(0,0,0,0.1)] text-[#121516]' 
                         : 'text-[#6a7781]'
                     }`}>
@@ -221,9 +223,9 @@ const LoginPage: React.FC = () => {
                         type="radio" 
                         name="userType" 
                         className="invisible w-0" 
-                        value="Brand" 
-                        checked={userType === 'Brand'}
-                        onChange={() => setUserType('Brand')}
+                        value="brand" 
+                        checked={userType === 'brand'}
+                        onChange={() => setUserType('brand')}
                       />
                     </label>
                   </div>

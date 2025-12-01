@@ -143,9 +143,10 @@ const ViewEvent: React.FC = () => {
                 <div className="text-left">
                   {eventData.clubId?.contactPerson ? (
                     <>
-                      <p className="text-[#111518] text-sm font-normal leading-normal">{eventData.clubId.contactPerson.name} ({eventData.clubId.contactPerson.position})</p>
-                      <p className="text-[#111518] text-sm font-normal leading-normal">{eventData.clubId.contactPerson.email}</p>
-                      <p className="text-[#111518] text-sm font-normal leading-normal">{eventData.clubId.contactPerson.phone}</p>
+                      <p className="text-[#111518] text-sm font-normal leading-normal">{eventData.clubId?.contactPerson?.name || 'Contact available through platform'} ({eventData.clubId?.contactPerson?.name || 'Contact Person'})</p> 
+                      {/* we can change name with position if needed */}
+                      <p className="text-[#111518] text-sm font-normal leading-normal">{eventData.clubId?.contactPerson?.email || 'Contact through club'}</p>
+                      <p className="text-[#111518] text-sm font-normal leading-normal">{eventData.clubId?.contactPerson?.phone || 'Phone available on request'}</p>
                     </>
                   ) : (
                     <p className="text-[#111518] text-sm font-normal leading-normal">Contact information not available</p>

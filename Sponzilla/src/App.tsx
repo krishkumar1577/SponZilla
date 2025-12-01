@@ -26,7 +26,7 @@ import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
 import UserTypeSwitcher from './components/ui/UserTypeSwitcher';
-import ApiTestPage from './pages/ApiTest';
+// import ApiTestPage from './pages/ApiTest';
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
@@ -50,18 +50,20 @@ function App() {
             <Route path="/find-brands" element={<FindBrandsPage />} />
             <Route path="/ai-pitch-deck" element={<AIPitchDeckGeneratorPage />} />
             <Route path="/club-profile" element={<ClubProfilePage />} />
+            <Route path="/club-profile/:clubId" element={<ClubProfilePage />} />
             <Route path="/event-management" element={<EventManagementPage />} />
             <Route path="/terms-of-service" element={<TermsOfServicePage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/brand-profile" element={<BrandProfilePage />} />
+            <Route path="/brand-profile/:brandId" element={<BrandProfilePage />} />
             <Route path="/brand-landing" element={<BrandLanding />} />
             <Route path="/club-landing" element={<ClubLanding />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/club-settings" element={<ClubSettings />} />
             <Route path="/brand-settings" element={<BrandSettings />} />
-            <Route path="/api-test" element={<ApiTestPage />} />
+            {/* <Route path="/api-test" element={<ApiTestPage />} /> */}
           </Routes>
           
           {/* User Type Switcher for Demo (remove in production) */}

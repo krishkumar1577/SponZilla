@@ -256,7 +256,7 @@ const BrowseEventsWithSearchPage: React.FC = () => {
                 </div>
                 <div className="shrink-0 flex flex-col justify-center gap-2">
                   <div className="text-right text-sm text-[#6a7681]">
-                    {event.analytics.views} views
+                    {event.analytics?.views || 0} views
                   </div>
                   <button
                     className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-8 px-4 bg-[#121516] text-white text-sm font-medium leading-normal w-fit hover:bg-[#2a2a2a] transition-colors"
