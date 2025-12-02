@@ -60,6 +60,7 @@ const User = require('./src/models/user');  // Fixed: keep lowercase 'user' as p
 const authRoutes = require('./src/routes/authRoutes');
 const profileRoutes = require('./src/routes/profileRoutes');
 const eventRoutes = require('./src/routes/eventRoutes'); // Add this new route
+const analyticsRoutes = require('./src/routes/analyticsRoutes'); // Add analytics routes
 
 // STEP 4: Simple test route
 app.get('/', (req, res) => {
@@ -113,6 +114,7 @@ app.get('/test-user', async (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/events', eventRoutes); // Add event routes
+app.use('/api/analytics', analyticsRoutes); // Add analytics routes
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {
