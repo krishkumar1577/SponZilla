@@ -9,5 +9,9 @@ router.post('/login', authController.login);
 
 // Protected routes (login required)
 router.get('/me', verifyToken, authController.getProfile);
+router.put('/change-password', verifyToken, authController.changePassword);
+router.put('/update-account', verifyToken, authController.updateAccount);
+router.get('/settings', verifyToken, authController.getSettings);
+router.put('/update-settings', verifyToken, authController.updateSettings);
 
 module.exports = router;

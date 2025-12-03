@@ -15,8 +15,24 @@ const BrandProfilePage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        const response = await profilesAPI.getBrandProfile(brandId);
-        setBrandData(response.profile);
+        
+        if (brandId) {
+          // Viewing someone else's brand profile
+          const response = await profilesAPI.getBrandProfile(brandId);
+          setBrandData(response.profile);
+        } else {
+          // Viewing own profile - load current user's brand profile
+          try {
+            const myProfileResponse = await profilesAPI.getMyProfile();
+            if (myProfileResponse.profile && 'brandName' in myProfileResponse.profile) {
+              setBrandData(myProfileResponse.profile as BrandProfile);
+            } else {
+              setError('No brand profile found. Please create your brand profile first.');
+            }
+          } catch (err) {
+            setError('Failed to load your brand profile. Please create one first.');
+          }
+        }
       } catch (err) {
         console.error('Error fetching brand data:', err);
         setError('Failed to load brand profile');
@@ -25,9 +41,7 @@ const BrandProfilePage: React.FC = () => {
       }
     };
 
-    if (brandId) {
-      fetchBrandData();
-    }
+    fetchBrandData();
   }, [brandId]);
 
   if (loading) {

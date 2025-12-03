@@ -75,6 +75,31 @@ export interface AuthResponse {
   };
 }
 
+export interface UserSettings {
+  notifications: {
+    emailNotifications: boolean;
+    pushNotifications: boolean;
+    marketingEmails: boolean;
+    eventReminders: boolean;
+    messageNotifications: boolean;
+  };
+  security: {
+    twoFactorAuth: boolean;
+    loginAlerts: boolean;
+    sessionTimeout: string;
+  };
+}
+
+export interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface UpdateAccountData {
+  name?: string;
+  email?: string;
+}
+
 export const authAPI = {
   login: (credentials: LoginCredentials): Promise<AuthResponse> =>
     apiRequest('/auth/login', {
@@ -90,6 +115,51 @@ export const authAPI = {
 
   getProfile: (): Promise<{ user: any }> =>
     apiRequest('/auth/me'),
+
+  // Settings & Account Management
+  changePassword: (data: {
+    currentPassword: string;
+    newPassword: string;
+  }): Promise<{ message: string }> =>
+    apiRequest('/auth/change-password', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  updateAccount: (data: {
+    name?: string;
+    email?: string;
+  }): Promise<{ message: string; user: any }> =>
+    apiRequest('/auth/update-account', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  // Settings preferences
+  updateSettings: (data: {
+    notifications?: {
+      emailNotifications?: boolean;
+      pushNotifications?: boolean;
+      marketingEmails?: boolean;
+      eventReminders?: boolean;
+      messageNotifications?: boolean;
+    };
+    security?: {
+      twoFactorAuth?: boolean;
+      loginAlerts?: boolean;
+      sessionTimeout?: string;
+    };
+  }): Promise<{ message: string }> =>
+    apiRequest('/auth/update-settings', {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  getSettings: (): Promise<{
+    notifications: any;
+    security: any;
+  }> =>
+    apiRequest('/auth/settings'),
 };
 
 // ============================================
@@ -312,9 +382,6 @@ export const eventsAPI = {
     apiRequest(`/events/${id}/stats`),
 };
 
-// ============================================
-// PROFILES API
-// ============================================
 
 export const profilesAPI = {
   // Get all clubs

@@ -21,6 +21,7 @@ const ClubProfile: React.FC = () => {
       try {
         setLoading(true);
         if (clubId) {
+          // Viewing someone else's profile
           const response = await profilesAPI.getAllClubs();
           const foundClub = response.clubs.find(c => c._id === clubId);
           if (foundClub) {
@@ -41,7 +42,28 @@ const ClubProfile: React.FC = () => {
             setError('Club not found');
           }
         } else {
-          setError('Club ID not provided');
+          // Viewing own profile - load current user's club profile
+          try {
+            const myProfileResponse = await profilesAPI.getMyProfile();
+            if (myProfileResponse.profile && 'clubName' in myProfileResponse.profile) {
+              setClub(myProfileResponse.profile);
+              
+              // Fetch events for current user's club
+              try {
+                const eventsResponse = await eventsAPI.getAllEvents();
+                const clubEvents = eventsResponse.events.filter(event => 
+                  event.clubId._id === myProfileResponse.profile._id
+                );
+                setEvents(clubEvents);
+              } catch (eventsError) {
+                console.error('Failed to load events:', eventsError);
+              }
+            } else {
+              setError('No club profile found. Please create your club profile first.');
+            }
+          } catch (err) {
+            setError('Failed to load your club profile. Please create one first.');
+          }
         }
       } catch (err: any) {
         setError(err.message || 'Failed to load club');
