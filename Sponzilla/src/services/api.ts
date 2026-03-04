@@ -380,6 +380,45 @@ export const eventsAPI = {
 
   getEventStats: (id: string): Promise<any> =>
     apiRequest(`/events/${id}/stats`),
+
+  // AI Pitch Deck Generation
+  generatePitchDeck: (eventData: {
+    eventName: string;
+    eventDescription: string;
+    eventType: string;
+    expectedAttendance?: string;
+    targetAudience?: string;
+    eventDate?: string;
+    budget?: string;
+    sponsorshipTiers?: Array<{ name: string; price: number; benefits: string[] }>;
+  }): Promise<Blob> =>
+    fetch(`${API_BASE_URL}/api/events/pitch-deck/generate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+      },
+      body: JSON.stringify(eventData),
+    }).then(async (res) => {
+      if (!res.ok) throw new Error('Failed to generate pitch deck');
+      return res.blob();
+    }),
+
+  // Get Pitch Content Preview
+  getPitchContentPreview: (eventData: {
+    eventName: string;
+    eventDescription: string;
+    eventType: string;
+    expectedAttendance?: string;
+    targetAudience?: string;
+    eventDate?: string;
+    budget?: string;
+    sponsorshipTiers?: Array<{ name: string; price: number; benefits: string[] }>;
+  }): Promise<{ success: boolean; data: any }> =>
+    apiRequest('/events/pitch-deck/preview', {
+      method: 'POST',
+      body: JSON.stringify(eventData),
+    }),
 };
 
 
