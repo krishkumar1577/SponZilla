@@ -13,8 +13,8 @@ const connectDB = async () => {
     console.error('❌ MongoDB Connection Failed!');
     console.error('Error:', error.message);
     console.error('Stack:', error.stack);
-    // Exit process if database connection fails
-    process.exit(1);
+    // On Vercel, we don't want to kill the process
+    // process.exit(1);
   }
 };
 

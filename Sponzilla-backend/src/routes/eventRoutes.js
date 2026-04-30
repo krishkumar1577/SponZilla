@@ -13,7 +13,6 @@ router.get('/upcoming', eventController.getUpcomingEvents);
 router.get('/category/:category', eventController.getEventsByCategory);
 
 // AI Pitch Deck Routes - MUST come before protected routes with :id
-router.post('/pitch-deck/generate', verifyToken, isClub, eventController.generatePitchDeck);
 router.post('/pitch-deck/preview', verifyToken, isClub, eventController.generatePitchContent);
 
 // Protected routes (club only) - MUST come before /:id route

@@ -321,64 +321,7 @@ class EventController {
         }
     }
 
-    // Generate AI Pitch Deck
-    async generatePitchDeck(req, res) {
-        try {
-            const { 
-                eventName, 
-                eventDescription, 
-                eventType, 
-                expectedAttendance, 
-                targetAudience,
-                eventDate,
-                budget,
-                sponsorshipTiers 
-            } = req.body;
 
-            // Validate required fields
-            if (!eventName || !eventDescription || !eventType) {
-                return res.status(400).json({ 
-                    error: 'Event name, description, and type are required' 
-                });
-            }
-
-            // Import Gemini service
-            const { generatePitchContent, generatePitchDeckFile } = require('../services/geminiService');
-
-            // Generate pitch content using Gemini AI
-            console.log('Generating pitch content with Gemini AI...');
-            const pitchContent = await generatePitchContent({
-                eventName,
-                eventDescription,
-                eventType,
-                expectedAttendance,
-                targetAudience,
-                eventDate,
-                budget,
-                sponsorshipTiers
-            });
-
-            console.log('Generated pitch content:', pitchContent);
-
-            // Generate PPTX file
-            console.log('Generating PPTX file...');
-            const pptxBuffer = await generatePitchDeckFile(pitchContent);
-
-            // Set response headers for file download
-            res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
-            res.setHeader('Content-Disposition', `attachment; filename="${eventName.replace(/\s+/g, '_')}_pitch_deck.pptx"`);
-            res.setHeader('Content-Length', pptxBuffer.length);
-
-            // Send the file
-            res.send(pptxBuffer);
-
-        } catch (error) {
-            console.error('Pitch deck generation error:', error);
-            res.status(500).json({ 
-                error: error.message || 'Failed to generate pitch deck'
-            });
-        }
-    }
 
     // Generate AI Pitch Content Only (for preview)
     async generatePitchContent(req, res) {
