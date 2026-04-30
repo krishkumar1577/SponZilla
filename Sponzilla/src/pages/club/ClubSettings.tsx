@@ -20,6 +20,7 @@ const ClubSettings: React.FC = () => {
     // Club Information fields  
     clubName: '',
     logo: '',
+    banner: '',
     description: '',
     category: '',
     university: '',
@@ -80,6 +81,8 @@ const ClubSettings: React.FC = () => {
           accountName: user.name || '',
           // Club data
           clubName: clubProfile?.clubName || '',
+          logo: clubProfile?.logo || '',
+          banner: clubProfile?.banner || '',
           description: clubProfile?.description || '',
           category: clubProfile?.category || '',
           university: clubProfile?.university || '',
@@ -178,6 +181,8 @@ const ClubSettings: React.FC = () => {
         case 'Club Information':
           const clubData = {
             clubName: formData.clubName,
+            logo: formData.logo,
+            banner: formData.banner,
             description: formData.description,
             category: formData.category,
             university: formData.university,
@@ -321,6 +326,28 @@ const ClubSettings: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
                 placeholder="Tech Innovation Club"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Logo URL</label>
+              <input
+                type="text"
+                name="logo"
+                value={formData.logo}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+                placeholder="https://example.com/logo.png"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Banner URL</label>
+              <input
+                type="text"
+                name="banner"
+                value={formData.banner}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+                placeholder="https://example.com/banner.jpg"
               />
             </div>
             <div className="flex flex-col gap-3">

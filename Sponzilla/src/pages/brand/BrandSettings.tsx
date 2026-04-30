@@ -20,6 +20,7 @@ const BrandSettings: React.FC = () => {
     // Brand Information fields
     brandName: '',
     logo: '',
+    banner: '',
     description: '',
     industry: '',
     companySize: '',
@@ -90,6 +91,8 @@ const BrandSettings: React.FC = () => {
           accountName: user.name || '',
           // Brand data
           brandName: brandProfile?.brandName || '',
+          logo: brandProfile?.logo || '',
+          banner: brandProfile?.banner || '',
           description: brandProfile?.description || '',
           industry: brandProfile?.industry || '',
           companySize: brandProfile?.companySize || '',
@@ -195,6 +198,8 @@ const BrandSettings: React.FC = () => {
         case 'Brand Information':
           const brandData = {
             brandName: formData.brandName,
+            logo: formData.logo,
+            banner: formData.banner,
             description: formData.description,
             industry: formData.industry,
             companySize: formData.companySize,
@@ -359,6 +364,28 @@ const BrandSettings: React.FC = () => {
                 onChange={handleInputChange}
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
                 placeholder="Your brand/company name"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Logo URL</label>
+              <input
+                type="text"
+                name="logo"
+                value={formData.logo}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+                placeholder="https://example.com/logo.png"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Banner URL</label>
+              <input
+                type="text"
+                name="banner"
+                value={formData.banner}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+                placeholder="https://example.com/banner.jpg"
               />
             </div>
             <div className="flex flex-col gap-3">

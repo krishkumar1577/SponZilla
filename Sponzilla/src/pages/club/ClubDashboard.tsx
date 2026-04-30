@@ -112,11 +112,11 @@ const ClubDashboard: React.FC = () => {
     const now = new Date();
     switch (activeTab) {
       case 'upcoming':
-        return events.filter(event => 
+        return events.filter(event =>
           new Date(event.eventDate) > now && event.status === 'published'
         );
       case 'past':
-        return events.filter(event => 
+        return events.filter(event =>
           new Date(event.eventDate) < now || event.status === 'completed'
         );
       case 'drafts':
@@ -143,10 +143,28 @@ const ClubDashboard: React.FC = () => {
         {/* Main Content */}
         <div className="gap-1 px-6 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col max-w-[920px] flex-1">
+            {/* Onboarding Banner for New Users */}
+            {analytics && analytics.profileExists === false && (
+              <div className="mb-6 p-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl text-white shadow-lg animate-in fade-in slide-in-from-top duration-500">
+                <div className="flex flex-col @[480px]:flex-row items-center justify-between gap-4">
+                  <div className="text-center @[480px]:text-left">
+                    <h3 className="text-xl font-bold mb-1">Welcome to Sponzilla! 🚀</h3>
+                    <p className="text-blue-100 text-sm">Your profile is currently empty. Complete your club profile to start attracting brands and generating AI pitch decks.</p>
+                  </div>
+                  <button
+                    onClick={() => navigate('/club-settings')}
+                    className="px-6 py-2.5 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition-colors shadow-sm"
+                  >
+                    Complete Profile
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Dashboard Header */}
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <p className="text-[#111518] tracking-light text-[32px] font-bold leading-tight min-w-72 text-left">Dashboard</p>
-              <button 
+              <button
                 onClick={() => navigate('/list-event')}
                 className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-medium leading-normal hover:bg-[#e8f0f5] transition-colors"
               >
@@ -249,39 +267,33 @@ const ClubDashboard: React.FC = () => {
               <div className="flex border-b border-[#dbe1e6] px-4 gap-8">
                 <button
                   onClick={() => setActiveTab('past')}
-                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${
-                    activeTab === 'past' 
-                      ? 'border-b-[#111518] text-[#111518]' 
-                      : 'border-b-transparent text-[#617989]'
-                  }`}
+                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${activeTab === 'past'
+                    ? 'border-b-[#111518] text-[#111518]'
+                    : 'border-b-transparent text-[#617989]'
+                    }`}
                 >
-                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${
-                    activeTab === 'past' ? 'text-[#111518]' : 'text-[#617989]'
-                  }`}>Past Events</p>
+                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${activeTab === 'past' ? 'text-[#111518]' : 'text-[#617989]'
+                    }`}>Past Events</p>
                 </button>
                 <button
                   onClick={() => setActiveTab('upcoming')}
-                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${
-                    activeTab === 'upcoming' 
-                      ? 'border-b-[#111518] text-[#111518]' 
-                      : 'border-b-transparent text-[#617989]'
-                  }`}
+                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${activeTab === 'upcoming'
+                    ? 'border-b-[#111518] text-[#111518]'
+                    : 'border-b-transparent text-[#617989]'
+                    }`}
                 >
-                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${
-                    activeTab === 'upcoming' ? 'text-[#111518]' : 'text-[#617989]'
-                  }`}>Upcoming Events</p>
+                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${activeTab === 'upcoming' ? 'text-[#111518]' : 'text-[#617989]'
+                    }`}>Upcoming Events</p>
                 </button>
                 <button
                   onClick={() => setActiveTab('drafts')}
-                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${
-                    activeTab === 'drafts' 
-                      ? 'border-b-[#111518] text-[#111518]' 
-                      : 'border-b-transparent text-[#617989]'
-                  }`}
+                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${activeTab === 'drafts'
+                    ? 'border-b-[#111518] text-[#111518]'
+                    : 'border-b-transparent text-[#617989]'
+                    }`}
                 >
-                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${
-                    activeTab === 'drafts' ? 'text-[#111518]' : 'text-[#617989]'
-                  }`}>Drafts</p>
+                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${activeTab === 'drafts' ? 'text-[#111518]' : 'text-[#617989]'
+                    }`}>Drafts</p>
                 </button>
               </div>
             </div>
@@ -400,25 +412,24 @@ const ClubDashboard: React.FC = () => {
                             {event.venue}
                           </td>
                           <td className="h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium ${
-                              event.status === 'published' ? 'bg-green-100 text-green-800' :
+                            <span className={`inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-medium ${event.status === 'published' ? 'bg-green-100 text-green-800' :
                               event.status === 'draft' ? 'bg-yellow-100 text-yellow-800' :
-                              event.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                              event.status === 'ongoing' ? 'bg-purple-100 text-purple-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
+                                event.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                  event.status === 'ongoing' ? 'bg-purple-100 text-purple-800' :
+                                    'bg-gray-100 text-gray-800'
+                              }`}>
                               {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
                             </span>
                           </td>
                           <td className="h-[72px] px-4 py-2 w-60 text-[#617989] text-sm font-bold leading-normal tracking-[0.015em] text-left">
-                            <button 
+                            <button
                               onClick={() => navigate(`/view-event/${event._id}`)}
                               className="hover:text-[#111518] transition-colors"
                             >
                               View
                             </button>
                             <span className="mx-2">|</span>
-                            <button 
+                            <button
                               onClick={() => navigate(`/event-management/${event._id}`)}
                               className="hover:text-[#111518] transition-colors"
                             >
@@ -460,10 +471,10 @@ const ClubDashboard: React.FC = () => {
                   <div className="flex gap-4 flex-col items-start">
                     <div
                       className="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32"
-                      style={{ 
-                        backgroundImage: clubProfile.logo 
-                          ? `url("${clubProfile.logo}")` 
-                          : `url("https://placehold.co/200x200/f0f3f4/617989?text=${encodeURIComponent(clubProfile.clubName.charAt(0))}")` 
+                      style={{
+                        backgroundImage: clubProfile.logo
+                          ? `url("${clubProfile.logo}")`
+                          : `url("https://placehold.co/200x200/f0f3f4/617989?text=${encodeURIComponent(clubProfile.clubName.charAt(0))}")`
                       }}
                     ></div>
                     <div className="flex flex-col justify-center">
@@ -481,7 +492,7 @@ const ClubDashboard: React.FC = () => {
                     </div>
                   </div>
                 )}
-                <button 
+                <button
                   onClick={() => navigate('/club-settings')}
                   className="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-bold leading-normal tracking-[0.015em] w-full max-w-[480px] hover:bg-[#e8f0f5] transition-colors"
                 >
@@ -539,9 +550,9 @@ const ClubDashboard: React.FC = () => {
                   };
 
                   return (
-                    <div 
-                      key={brand._id} 
-                      className="p-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-xl mx-2" 
+                    <div
+                      key={brand._id}
+                      className="p-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-xl mx-2"
                       onClick={() => navigate(`/brand-profile/${brand._id}`)}
                     >
                       <div className="flex items-stretch justify-between gap-4 rounded-xl">
@@ -557,8 +568,8 @@ const ClubDashboard: React.FC = () => {
                             )}
                           </div>
                           <p className="text-[#617989] text-sm font-normal leading-normal text-left">
-                            {brand.description && brand.description.length > 80 
-                              ? brand.description.substring(0, 80) + '...' 
+                            {brand.description && brand.description.length > 80
+                              ? brand.description.substring(0, 80) + '...'
                               : brand.description || 'Click to view their profile.'
                             }
                           </p>
@@ -568,17 +579,17 @@ const ClubDashboard: React.FC = () => {
                         </div>
                         <div
                           className="w-full bg-center bg-no-repeat aspect-video bg-cover rounded-xl flex-1"
-                          style={{ 
-                            backgroundImage: brand.logo 
-                              ? `url("${brand.logo}")` 
-                              : `url("https://placehold.co/200x120/f0f3f4/617989?text=${encodeURIComponent(brand.brandName.charAt(0))}")` 
+                          style={{
+                            backgroundImage: brand.logo
+                              ? `url("${brand.logo}")`
+                              : `url("https://placehold.co/200x120/f0f3f4/617989?text=${encodeURIComponent(brand.brandName.charAt(0))}")`
                           }}
                         ></div>
                       </div>
                     </div>
                   );
                 })}
-                
+
                 {/* Demo Non-Existent Brand for Error Handling */}
                 <div className="p-4 cursor-pointer hover:bg-gray-50 transition-colors rounded-xl mx-2" onClick={() => navigate('/brand-profile/999999999999999999999999')}>
                   <div className="flex items-stretch justify-between gap-4 rounded-xl">
@@ -598,10 +609,10 @@ const ClubDashboard: React.FC = () => {
                 </div>
               </>
             )}
-            
+
             {/* View All Sponsors Button */}
             <div className="px-4 pb-4">
-              <button 
+              <button
                 onClick={() => navigate('/find-brands')}
                 className="w-full flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-[#dce8f3] text-[#111518] text-sm font-bold leading-normal tracking-[0.015em] hover:bg-[#c8ddf0] transition-colors"
               >

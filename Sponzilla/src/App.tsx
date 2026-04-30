@@ -25,7 +25,6 @@ import ClubLanding from './pages/club/ClubLanding';
 import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
-import UserTypeSwitcher from './components/ui/UserTypeSwitcher';
 // import ApiTestPage from './pages/ApiTest';
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
@@ -66,8 +65,6 @@ function App() {
             {/* <Route path="/api-test" element={<ApiTestPage />} /> */}
           </Routes>
           
-          {/* User Type Switcher for Demo (remove in production) */}
-          <UserTypeSwitcher />
         </div>
         <Analytics />
       </Router>

@@ -240,6 +240,7 @@ export interface ClubProfile {
   establishedYear: number;
   website?: string;
   logo?: string;
+  banner?: string;
   socialMedia?: {
     instagram?: string;
     twitter?: string;
@@ -268,6 +269,7 @@ export interface BrandProfile {
   companySize: string;
   website: string;
   logo?: string;
+  banner?: string;
   contactPerson: {
     name: string;
     email: string;
@@ -491,6 +493,7 @@ export const profilesAPI = {
 // ANALYTICS API  
 // ============================================
 export interface ClubAnalytics {
+  profileExists?: boolean;
   overview: {
     totalSponsorshipsSecured: number;
     totalFundsRaised: number;
@@ -521,6 +524,7 @@ export interface ClubAnalytics {
 }
 
 export interface BrandAnalytics {
+  profileExists?: boolean;
   investment: {
     totalInvestment: number;
     totalSponsored: number;

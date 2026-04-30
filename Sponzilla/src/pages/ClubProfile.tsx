@@ -118,6 +118,14 @@ const ClubProfile: React.FC = () => {
         <SmartNavbar />
         <div className="px-40 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
+            {/* Profile Banner */}
+            <div 
+              className="w-full h-48 @[520px]:h-64 bg-center bg-no-repeat bg-cover rounded-xl mb-4"
+              style={{ 
+                backgroundImage: `url("${club.banner || 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&q=80&w=1200'}")`
+              }}
+            ></div>
+            
             <div className="flex p-4 @container">
               <div className="flex w-full flex-col gap-4 @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
                 <div className="flex gap-4">

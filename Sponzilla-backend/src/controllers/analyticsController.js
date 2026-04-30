@@ -30,7 +30,11 @@ class AnalyticsController {
         // Regular club user - can only view their own analytics
         const clubProfile = await ClubProfile.findOne({ userId: req.userId });
         if (!clubProfile) {
-          return res.status(404).json({ error: 'Club profile not found' });
+          return res.json({
+            success: true,
+            profileExists: false,
+            data: this.getZeroedClubData()
+          });
         }
       }
       
@@ -161,7 +165,11 @@ class AnalyticsController {
         // Regular brand user - can only view their own analytics
         const brandProfile = await BrandProfile.findOne({ userId: req.userId });
         if (!brandProfile) {
-          return res.status(404).json({ error: 'Brand profile not found' });
+          return res.json({
+            success: true,
+            profileExists: false,
+            data: this.getZeroedBrandData()
+          });
         }
       }
       
@@ -438,6 +446,28 @@ class AnalyticsController {
       console.error('Aggregated brand analytics error:', error);
       res.status(500).json({ error: error.message });
     }
+  }
+
+  // Helper to return zeroed club data
+  getZeroedClubData() {
+    return {
+      overview: { totalSponsorshipsSecured: 0, totalFundsRaised: 0, averageSponsorshipValue: 0, totalAttendance: 0 },
+      events: { totalEvents: 0, publishedEvents: 0, completedEvents: 0, upcomingOpportunities: 0 },
+      analytics: { totalViews: 0, totalImpressions: 0, totalApplications: 0, reach: 0 },
+      growth: { sponsorshipGrowth: 0, fundsGrowth: 0, attendanceGrowth: 0 },
+      goals: { totalSponsorshipGoal: 0, achievementPercentage: 0 }
+    };
+  }
+
+  // Helper to return zeroed brand data
+  getZeroedBrandData() {
+    return {
+      investment: { totalInvestment: 0, totalSponsored: 0, averageInvestment: 0, activeCampaigns: 0, pendingProposals: 0 },
+      performance: { totalReach: 0, impressions: 0, engagementRate: 0, roi: 0 },
+      growth: { reachGrowth: 0, engagementGrowth: 0, roiGrowth: 0 },
+      categories: [],
+      demographics: { primaryAudience: [], ageGroups: [] }
+    };
   }
 }
 

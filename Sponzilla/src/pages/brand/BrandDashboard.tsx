@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { SmartNavbar } from '../../components/layout/Navbar';
+import { useNavigate } from 'react-router-dom';
 import { analyticsAPI, type BrandAnalytics } from '../../services/api';
 
 const BrandDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState<BrandAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -74,6 +76,24 @@ const BrandDashboardPage: React.FC = () => {
         {/* Brand Dashboard Header */}
         <SmartNavbar />        <div className="px-40 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
+            {/* Onboarding Banner for New Users */}
+            {analytics && analytics.profileExists === false && (
+              <div className="mb-6 p-6 bg-gradient-to-r from-purple-600 to-blue-700 rounded-2xl text-white shadow-lg animate-in fade-in slide-in-from-top duration-500">
+                <div className="flex flex-col @[480px]:flex-row items-center justify-between gap-4">
+                  <div className="text-center @[480px]:text-left">
+                    <h3 className="text-xl font-bold mb-1">Welcome to Sponzilla! 🚀</h3>
+                    <p className="text-blue-100 text-sm">Your brand profile is currently empty. Complete it to start discovering top university clubs and tracking your ROI.</p>
+                  </div>
+                  <button 
+                    onClick={() => navigate('/brand-settings')}
+                    className="px-6 py-2.5 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition-colors shadow-sm"
+                  >
+                    Complete Profile
+                  </button>
+                </div>
+              </div>
+            )}
+            
             {/* Dashboard Header */}
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <div className="flex min-w-72 flex-col gap-3">

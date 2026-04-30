@@ -38,6 +38,12 @@ const brandProfileSchema = new mongoose.Schema({
     default: null
   },
   
+  // Brand banner URL
+  banner: {
+    type: String,
+    default: null
+  },
+  
   // Company website
   website: {
     type: String,

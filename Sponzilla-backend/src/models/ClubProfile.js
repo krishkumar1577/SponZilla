@@ -58,6 +58,12 @@ const clubProfileSchema = new mongoose.Schema({
     default: null
   },
   
+  // Club banner URL
+  banner: {
+    type: String,
+    default: null
+  },
+  
   // Social media links
   socialMedia: {
     instagram: {

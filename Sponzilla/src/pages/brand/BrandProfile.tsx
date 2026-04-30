@@ -15,7 +15,7 @@ const BrandProfilePage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         if (brandId) {
           // Viewing someone else's brand profile
           const response = await profilesAPI.getBrandProfile(brandId);
@@ -84,7 +84,7 @@ const BrandProfilePage: React.FC = () => {
                 <div
                   className="bg-cover bg-center flex flex-col justify-end overflow-hidden bg-white @[480px]:rounded-xl min-h-[218px]"
                   style={{
-                    backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 25%), url("${brandData.logo || 'https://placehold.co/800x400/f0f3f4/617989?text=' + encodeURIComponent(brandData.brandName)}")`
+                    backgroundImage: `linear-gradient(0deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 25%), url("${brandData.banner || 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=1200'}")`
                   }}
                 >
                   <div className="flex p-4">
@@ -122,7 +122,7 @@ const BrandProfilePage: React.FC = () => {
                       <div className="flex flex-wrap gap-2">
                         <span className="text-sm font-medium text-[#111518]">Sponsorship Budget:</span>
                         <span className="text-sm text-[#617989]">
-                          {brandData.sponsorshipBudget && brandData.sponsorshipBudget.min && brandData.sponsorshipBudget.max 
+                          {brandData.sponsorshipBudget && brandData.sponsorshipBudget.min && brandData.sponsorshipBudget.max
                             ? `$${brandData.sponsorshipBudget.min.toLocaleString()} - $${brandData.sponsorshipBudget.max.toLocaleString()}`
                             : 'Available upon request'
                           }
@@ -131,7 +131,7 @@ const BrandProfilePage: React.FC = () => {
                       {brandData.website && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-[#111518]">Website:</span>
-                          <a 
+                          <a
                             href={brandData.website.startsWith('http') ? brandData.website : `https://${brandData.website}`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -196,14 +196,14 @@ const BrandProfilePage: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Social Media Links */}
               {(brandData.socialMedia?.instagram || brandData.socialMedia?.twitter || brandData.socialMedia?.linkedin) && (
                 <div className="flex flex-col gap-2 mt-4">
                   <p className="text-[#111518] text-base font-medium leading-normal text-left">Connect With Us</p>
                   <div className="flex gap-4">
                     {brandData.socialMedia?.instagram && (
-                      <a 
+                      <a
                         href={brandData.socialMedia.instagram.startsWith('http') ? brandData.socialMedia.instagram : `https://instagram.com/${brandData.socialMedia.instagram.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -213,7 +213,7 @@ const BrandProfilePage: React.FC = () => {
                       </a>
                     )}
                     {brandData.socialMedia?.twitter && (
-                      <a 
+                      <a
                         href={brandData.socialMedia.twitter.startsWith('http') ? brandData.socialMedia.twitter : `https://twitter.com/${brandData.socialMedia.twitter.replace('@', '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -223,7 +223,7 @@ const BrandProfilePage: React.FC = () => {
                       </a>
                     )}
                     {brandData.socialMedia?.linkedin && (
-                      <a 
+                      <a
                         href={brandData.socialMedia.linkedin.startsWith('http') ? brandData.socialMedia.linkedin : `https://linkedin.com/company/${brandData.socialMedia.linkedin}`}
                         target="_blank"
                         rel="noopener noreferrer"
