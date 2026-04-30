@@ -419,7 +419,7 @@ const ClubDashboard: React.FC = () => {
                             </button>
                             <span className="mx-2">|</span>
                             <button 
-                              onClick={() => navigate('/event-management')}
+                              onClick={() => navigate(`/event-management/${event._id}`)}
                               className="hover:text-[#111518] transition-colors"
                             >
                               Edit
@@ -521,7 +521,7 @@ const ClubDashboard: React.FC = () => {
               </div>
             ) : (
               <>
-                {recommendedBrands.map((brand, index) => {
+                {recommendedBrands.map((brand) => {
                   // Calculate match percentage based on brand characteristics
                   const getMatchPercentage = (brand: BrandProfile) => {
                     let score = 80; // Base score

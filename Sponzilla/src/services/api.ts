@@ -6,9 +6,7 @@
 // API Base URL Configuration
 // In development, use empty string to leverage Vite proxy (/api -> backend:5000)
 // In production, use your actual backend domain
-const API_BASE_URL = import.meta.env.PROD 
-  ? 'https://your-backend-domain.com' 
-  : ''; // Empty string uses Vite proxy in development
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Generic API function with error handling
 async function apiRequest<T>(
@@ -16,7 +14,7 @@ async function apiRequest<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL}/api${endpoint}`;
-  
+
   const config: RequestInit = {
     headers: {
       'Content-Type': 'application/json',
@@ -36,15 +34,15 @@ async function apiRequest<T>(
 
   try {
     const response = await fetch(url, config);
-    
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       throw new Error(errorData.error || errorData.message || `HTTP ${response.status}`);
     }
-    
+
     return await response.json();
   } catch (error) {
-    console.error('❌ API Request failed:', error);
+    if (import.meta.env.DEV) console.error('❌ API Request failed:', error);
     throw error;
   }
 }
@@ -267,6 +265,7 @@ export interface BrandProfile {
   brandName: string;
   description: string;
   industry: string;
+  companySize: string;
   website: string;
   logo?: string;
   contactPerson: {
@@ -279,13 +278,20 @@ export interface BrandProfile {
     twitter?: string;
     linkedin?: string;
   };
-  sponsorshipBudget: {
+  sponsorshipBudget?: {
+    min: number;
+    max: number;
+  };
+  preferredEventTypes?: string[];
+  budget: {
     min: number;
     max: number;
   };
   targetAudience: string[];
-  preferredEventTypes: string[];
+  interests: string[];
   verified: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface EventsResponse {
@@ -301,23 +307,21 @@ export interface CreateEventData {
   title: string;
   description: string;
   eventDate: string;
-  endDate?: string;
-  location: {
-    venue: string;
-    city: string;
-    address?: string;
-  };
   category: string;
-  expectedAttendance: number;
+  venue: string;
+  expectedAttendees: number;
+  duration?: number;
+  targetAudience?: string[];
   budget: {
     total: number;
-    sponsorshipGoal: number;
+    sponsorshipNeeded: number;
+    currency?: string;
   };
   sponsorshipTiers: Array<{
     name: string;
-    price: number;
+    amount: number;
     benefits: string[];
-    slots: number;
+    spotsAvailable: number;
   }>;
 }
 
@@ -336,7 +340,7 @@ export const eventsAPI = {
     if (params?.upcoming) searchParams.append('upcoming', 'true');
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
-    
+
     return apiRequest(`/events?${searchParams.toString()}`);
   },
 
@@ -381,28 +385,6 @@ export const eventsAPI = {
   getEventStats: (id: string): Promise<any> =>
     apiRequest(`/events/${id}/stats`),
 
-  // AI Pitch Deck Generation
-  generatePitchDeck: (eventData: {
-    eventName: string;
-    eventDescription: string;
-    eventType: string;
-    expectedAttendance?: string;
-    targetAudience?: string;
-    eventDate?: string;
-    budget?: string;
-    sponsorshipTiers?: Array<{ name: string; price: number; benefits: string[] }>;
-  }): Promise<Blob> =>
-    fetch(`${API_BASE_URL}/api/events/pitch-deck/generate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('authToken')}`,
-      },
-      body: JSON.stringify(eventData),
-    }).then(async (res) => {
-      if (!res.ok) throw new Error('Failed to generate pitch deck');
-      return res.blob();
-    }),
 
   // Get Pitch Content Preview
   getPitchContentPreview: (eventData: {
@@ -436,7 +418,7 @@ export const profilesAPI = {
     apiRequest('/profiles/me'),
 
   // Club profiles
-  createClubProfile: (data: Omit<ClubProfile, '_id' | 'userId' | 'verified'>): Promise<{ message: string; profile: ClubProfile }> =>
+  createClubProfile: (data: Omit<ClubProfile, '_id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt' | 'views'>): Promise<{ message: string; profile: ClubProfile }> =>
     apiRequest('/profiles/club', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -445,14 +427,14 @@ export const profilesAPI = {
   getClubProfile: (id?: string): Promise<{ profile: ClubProfile }> =>
     apiRequest(`/profiles/club${id ? `/${id}` : ''}`),
 
-  updateClubProfile: (data: Partial<Omit<ClubProfile, '_id' | 'userId' | 'verified'>>): Promise<{ message: string; profile: ClubProfile }> =>
+  updateClubProfile: (data: Partial<Omit<ClubProfile, '_id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt' | 'views'>>): Promise<{ message: string; profile: ClubProfile }> =>
     apiRequest('/profiles/club', {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
 
   // Brand profiles
-  createBrandProfile: (data: Omit<BrandProfile, '_id' | 'userId' | 'verified'>): Promise<{ message: string; profile: BrandProfile }> =>
+  createBrandProfile: (data: Omit<BrandProfile, '_id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>): Promise<{ message: string; profile: BrandProfile }> =>
     apiRequest('/profiles/brand', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -461,7 +443,7 @@ export const profilesAPI = {
   getBrandProfile: (id?: string): Promise<{ profile: BrandProfile }> =>
     apiRequest(`/profiles/brands${id ? `/${id}` : ''}`),
 
-  updateBrandProfile: (data: Partial<Omit<BrandProfile, '_id' | 'userId' | 'verified'>>): Promise<{ message: string; profile: BrandProfile }> =>
+  updateBrandProfile: (data: Partial<Omit<BrandProfile, '_id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>>): Promise<{ message: string; profile: BrandProfile }> =>
     apiRequest('/profiles/brand', {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -483,7 +465,7 @@ export const profilesAPI = {
     if (params?.verified) searchParams.append('verified', 'true');
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
-    
+
     return apiRequest(`/profiles/clubs/search?${searchParams.toString()}`);
   },
 
@@ -500,7 +482,7 @@ export const profilesAPI = {
     if (params?.verified) searchParams.append('verified', 'true');
     if (params?.page) searchParams.append('page', params.page.toString());
     if (params?.limit) searchParams.append('limit', params.limit.toString());
-    
+
     return apiRequest(`/profiles/brands/search?${searchParams.toString()}`);
   },
 };

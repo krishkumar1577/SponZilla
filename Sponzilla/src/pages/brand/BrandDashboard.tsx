@@ -197,7 +197,7 @@ const BrandDashboardPage: React.FC = () => {
                   </p>
                 </div>
                 <div className="grid min-h-[180px] grid-flow-col gap-6 grid-rows-[1fr_auto] items-end justify-items-center px-3">
-                  {analytics.categories.slice(0, 3).map((category, index) => (
+                  {analytics.categories.slice(0, 3).map((category) => (
                     <React.Fragment key={category.name}>
                       <div 
                         className="border-[#617989] bg-[#f0f3f4] border-t-2 w-full" 

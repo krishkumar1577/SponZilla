@@ -22,6 +22,7 @@ const BrandSettings: React.FC = () => {
     logo: '',
     description: '',
     industry: '',
+    companySize: '',
     website: '',
     contactEmail: '',
     contactName: '',
@@ -91,6 +92,7 @@ const BrandSettings: React.FC = () => {
           brandName: brandProfile?.brandName || '',
           description: brandProfile?.description || '',
           industry: brandProfile?.industry || '',
+          companySize: brandProfile?.companySize || '',
           website: brandProfile?.website || '',
           contactEmail: brandProfile?.contactPerson?.email || '',
           contactName: brandProfile?.contactPerson?.name || '',
@@ -100,10 +102,10 @@ const BrandSettings: React.FC = () => {
           twitter: brandProfile?.socialMedia?.twitter || '',
           linkedin: brandProfile?.socialMedia?.linkedin || '',
           // Sponsorship
-          minBudget: brandProfile?.sponsorshipBudget?.min?.toString() || '',
-          maxBudget: brandProfile?.sponsorshipBudget?.max?.toString() || '',
+          minBudget: brandProfile?.budget?.min?.toString() || '',
+          maxBudget: brandProfile?.budget?.max?.toString() || '',
           targetAudience: Array.isArray(brandProfile?.targetAudience) ? brandProfile.targetAudience.join(', ') : '',
-          preferredEventTypes: Array.isArray(brandProfile?.preferredEventTypes) ? brandProfile.preferredEventTypes.join(', ') : '',
+          preferredEventTypes: Array.isArray(brandProfile?.interests) ? brandProfile.interests.join(', ') : '',
           // Settings data
           emailNotifications: userSettings?.notifications?.emailNotifications ?? true,
           pushNotifications: userSettings?.notifications?.pushNotifications ?? true,
@@ -195,6 +197,7 @@ const BrandSettings: React.FC = () => {
             brandName: formData.brandName,
             description: formData.description,
             industry: formData.industry,
+            companySize: formData.companySize,
             website: formData.website,
             contactPerson: {
               name: formData.contactName,
@@ -206,12 +209,12 @@ const BrandSettings: React.FC = () => {
               twitter: formData.twitter,
               linkedin: formData.linkedin
             },
-            sponsorshipBudget: {
+            budget: {
               min: parseInt(formData.minBudget) || 0,
               max: parseInt(formData.maxBudget) || 0
             },
-            targetAudience: formData.targetAudience.split(',').map(s => s.trim()).filter(Boolean),
-            preferredEventTypes: formData.preferredEventTypes.split(',').map(s => s.trim()).filter(Boolean)
+            targetAudience: formData.targetAudience.split(',').map(s => s.trim().toLowerCase().replace(' ', '-')).filter(Boolean),
+            interests: formData.preferredEventTypes.split(',').map(s => s.trim().toLowerCase().replace(' ', '-')).filter(Boolean)
           };
           
           if (brandProfile) {
@@ -225,12 +228,12 @@ const BrandSettings: React.FC = () => {
           
         case 'Sponsorship Preferences':
           const sponsorshipData = {
-            sponsorshipBudget: {
+            budget: {
               min: parseInt(formData.minBudget) || 0,
               max: parseInt(formData.maxBudget) || 0
             },
-            targetAudience: formData.targetAudience.split(',').map(s => s.trim()).filter(Boolean),
-            preferredEventTypes: formData.preferredEventTypes.split(',').map(s => s.trim()).filter(Boolean)
+            targetAudience: formData.targetAudience.split(',').map(s => s.trim().toLowerCase().replace(' ', '-')).filter(Boolean),
+            interests: formData.preferredEventTypes.split(',').map(s => s.trim().toLowerCase().replace(' ', '-')).filter(Boolean)
           };
           
           if (brandProfile) {
@@ -369,15 +372,29 @@ const BrandSettings: React.FC = () => {
                 <option value="">Select industry</option>
                 <option value="technology">Technology</option>
                 <option value="finance">Finance</option>
-                <option value="healthcare">Healthcare</option>
                 <option value="education">Education</option>
+                <option value="healthcare">Healthcare</option>
                 <option value="retail">Retail</option>
-                <option value="food">Food & Beverage</option>
-                <option value="automotive">Automotive</option>
-                <option value="sports">Sports & Recreation</option>
+                <option value="fmcg">FMCG</option>
+                <option value="automobile">Automotive</option>
                 <option value="entertainment">Entertainment</option>
-                <option value="nonprofit">Non-profit</option>
                 <option value="other">Other</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Company Size</label>
+              <select
+                name="companySize"
+                value={formData.companySize}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+              >
+                <option value="">Select company size</option>
+                <option value="startup">Startup</option>
+                <option value="small">Small (1-50 employees)</option>
+                <option value="medium">Medium (51-200 employees)</option>
+                <option value="large">Large (201-1000 employees)</option>
+                <option value="enterprise">Enterprise (1000+ employees)</option>
               </select>
             </div>
             <div className="flex flex-col gap-3">
@@ -518,9 +535,9 @@ const BrandSettings: React.FC = () => {
                 onChange={handleInputChange}
                 rows={3}
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
-                placeholder="Students, Young Professionals, Tech Enthusiasts (separate with commas)"
+                placeholder="students, professionals, tech-enthusiasts, entrepreneurs, general (separate with commas)"
               />
-              <p className="text-[#617989] text-sm">Describe your target demographics (separate multiple audiences with commas)</p>
+              <p className="text-[#617989] text-sm">Valid options: students, tech-enthusiasts, entrepreneurs, sports-fans, artists, general (comma separated)</p>
             </div>
             
             <div className="flex flex-col gap-3">
@@ -531,9 +548,9 @@ const BrandSettings: React.FC = () => {
                 onChange={handleInputChange}
                 rows={3}
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
-                placeholder="Tech Conferences, Career Fairs, Networking Events, Workshops (separate with commas)"
+                placeholder="hackathons, cultural-fests, sports-events, workshops, conferences, competitions, seminars (separate with commas)"
               />
-              <p className="text-[#617989] text-sm">Types of events you're most interested in sponsoring (separate multiple types with commas)</p>
+              <p className="text-[#617989] text-sm">Valid options: hackathons, cultural-fests, sports-events, workshops, conferences, competitions, seminars</p>
             </div>
             
             <div className="p-4 bg-green-50 border border-green-200 rounded-lg">

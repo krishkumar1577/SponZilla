@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import html2canvas from 'html2canvas-pro';
 import { useNavigate } from 'react-router-dom';
 import { SmartNavbar } from '../../components/layout/Navbar';
 import { eventsAPI } from '../../services/api';
+import PitchCard from '../../components/club/PitchCard';
 
 interface EventFormData {
   eventName: string;
@@ -20,13 +22,8 @@ interface EventFormData {
 }
 
 interface PitchContent {
-  slides: Array<{
-    title: string;
-    content: string;
-    notes: string;
-  }>;
-  summary: string;
-  callToAction: string;
+  subjectLine: string;
+  emailBody: string;
 }
 
 const AIPitchDeckGenerator: React.FC = () => {
@@ -36,6 +33,7 @@ const AIPitchDeckGenerator: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [pitchPreview, setPitchPreview] = useState<PitchContent | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState<EventFormData>({
     eventName: '',
@@ -166,7 +164,7 @@ const AIPitchDeckGenerator: React.FC = () => {
       if (response.success) {
         setPitchPreview(response.data);
         setCurrentStep(4);
-        setSuccess('Pitch deck preview generated! Ready to download?');
+        setSuccess('Pitch email generated! Ready to copy?');
       }
     } catch (err: any) {
       setError(err.message || 'Failed to generate pitch preview');
@@ -175,42 +173,43 @@ const AIPitchDeckGenerator: React.FC = () => {
     }
   };
 
-  const downloadPitchDeck = async () => {
+  const handlePitchUpdate = (field: 'subjectLine' | 'emailBody', value: string) => {
+    if (pitchPreview) {
+      setPitchPreview({
+        ...pitchPreview,
+        [field]: value
+      });
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (!pitchPreview) return;
+    const textToCopy = `Subject: ${pitchPreview.subjectLine}\n\n${pitchPreview.emailBody}`;
+    navigator.clipboard.writeText(textToCopy);
+    setSuccess('Pitch copied to clipboard! You can now paste it into your email client.');
+    setTimeout(() => {
+      navigate('/club-dashboard');
+    }, 3000);
+  };
+
+  const downloadAsImage = async () => {
+    if (!cardRef.current) return;
     try {
       setLoading(true);
-      setError('');
-
-      const blob = await eventsAPI.generatePitchDeck({
-        eventName: formData.eventName,
-        eventDescription: formData.eventDescription,
-        eventType: formData.eventType,
-        expectedAttendance: formData.expectedAttendance,
-        targetAudience: formData.targetAudience,
-        eventDate: formData.eventDate,
-        budget: formData.budget,
-        sponsorshipTiers: formData.sponsorshipTiers.map((tier) => ({
-          name: tier.name,
-          price: parseInt(tier.price) || 0,
-          benefits: tier.benefits.split('\n').filter((b) => b.trim()),
-        })),
+      const canvas = await html2canvas(cardRef.current, {
+        scale: 2, // High resolution
+        backgroundColor: '#ffffff',
+        useCORS: true
       });
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
-      link.href = url;
-      link.download = `${formData.eventName.replace(/\s+/g, '_')}_pitch_deck.pptx`;
-      document.body.appendChild(link);
+      link.download = `${formData.eventName.replace(/\\s+/g, '_')}_Pitch_Card.png`;
+      link.href = dataUrl;
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      setSuccess('Pitch deck downloaded successfully!');
-      setTimeout(() => {
-        navigate('/club-dashboard');
-      }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Failed to download pitch deck');
+      setSuccess('Pitch Card downloaded successfully!');
+    } catch (err) {
+      console.error('Failed to generate image', err);
+      setError('Failed to download image.');
     } finally {
       setLoading(false);
     }
@@ -236,10 +235,10 @@ const AIPitchDeckGenerator: React.FC = () => {
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <div className="flex min-w-72 flex-col gap-3">
                 <p className="text-[#111518] tracking-light text-[32px] font-bold leading-tight text-left">
-                  AI Pitch Deck Generator
+                  AI Email Pitch Generator
                 </p>
                 <p className="text-[#617989] text-sm font-normal leading-normal text-left">
-                  Create a compelling pitch deck to attract sponsors for your club's events.
+                  Generate a highly persuasive cold email to attract sponsors for your events.
                 </p>
               </div>
             </div>
@@ -248,7 +247,7 @@ const AIPitchDeckGenerator: React.FC = () => {
             <div className="flex flex-col gap-3 p-4">
               <div className="flex gap-6 justify-between">
                 <p className="text-[#111518] text-base font-medium leading-normal text-left">
-                  Step {currentStep} of 4: {['Event Details', 'Event Information', 'Sponsorship', 'Review & Download'][currentStep - 1]}
+                  Step {currentStep} of 4: {['Event Details', 'Event Information', 'Sponsorship', 'Review & Copy'][currentStep - 1]}
                 </p>
               </div>
               <div className="rounded bg-[#dbe1e6]">
@@ -477,27 +476,23 @@ const AIPitchDeckGenerator: React.FC = () => {
             {/* STEP 4: Preview & Download */}
             {currentStep === 4 && pitchPreview && (
               <div className="px-4 py-5">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-                  <p className="text-[#111518] text-base font-medium mb-3">Generated Pitch Deck Preview</p>
-
-                  <div className="space-y-4">
-                    {pitchPreview.slides.map((slide, index) => (
-                      <div key={index} className="bg-white border border-[#dbe1e6] rounded p-4">
-                        <p className="text-[#118ee8] text-lg font-bold mb-2">Slide {index + 1}: {slide.title}</p>
-                        <p className="text-[#111518] text-sm whitespace-pre-wrap mb-2">{slide.content}</p>
-                        <p className="text-[#617989] text-xs italic">Speaker notes: {slide.notes}</p>
-                      </div>
-                    ))}
+                <div className="bg-white rounded-xl shadow-sm border border-[#dbe1e6] p-4 mb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-[#111518] text-base font-medium">Generated Pitch Card</p>
                   </div>
 
-                  <div className="mt-4 p-4 bg-white rounded border border-[#dbe1e6]">
-                    <p className="text-[#111518] text-sm font-medium mb-2">Executive Summary:</p>
-                    <p className="text-[#617989] text-sm">{pitchPreview.summary}</p>
-                  </div>
-
-                  <div className="mt-4 p-4 bg-white rounded border border-[#dbe1e6]">
-                    <p className="text-[#111518] text-base font-medium text-center text-lg">{pitchPreview.callToAction}</p>
-                  </div>
+                  <PitchCard
+                    ref={cardRef}
+                    pitchPreview={pitchPreview}
+                    onUpdate={handlePitchUpdate}
+                    formData={{
+                      eventName: formData.eventName,
+                      eventDate: formData.eventDate,
+                      location: formData.location,
+                      expectedAttendance: formData.expectedAttendance,
+                      sponsorshipTiers: formData.sponsorshipTiers
+                    }}
+                  />
                 </div>
               </div>
             )}
@@ -521,13 +516,28 @@ const AIPitchDeckGenerator: React.FC = () => {
                   <span className="truncate">{loading ? 'Generating...' : 'Next'}</span>
                 </button>
               ) : (
-                <button
-                  onClick={downloadPitchDeck}
-                  disabled={loading}
-                  className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-green-600 text-white text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-green-700"
-                >
-                  <span className="truncate">{loading ? 'Downloading...' : 'Download Deck'}</span>
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={copyToClipboard}
+                    disabled={loading}
+                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-6 bg-white border border-[#dbe1e6] text-[#111518] text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 shadow-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                    </svg>
+                    <span className="truncate">Copy Text</span>
+                  </button>
+                  <button
+                    onClick={downloadAsImage}
+                    disabled={loading}
+                    className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-6 bg-[#118ee8] text-white text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#0f7bc9] shadow-sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    <span className="truncate">{loading ? 'Downloading...' : 'Download Card'}</span>
+                  </button>
+                </div>
               )}
             </div>
           </div>

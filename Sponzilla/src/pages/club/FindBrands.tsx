@@ -101,7 +101,7 @@ const FindBrands: React.FC = () => {
     if (selectedEventType) {
       filtered = filtered.filter(brand => 
         brand.preferredEventTypes && brand.preferredEventTypes.length > 0 &&
-        brand.preferredEventTypes.some(type => 
+        brand.preferredEventTypes.some((type: string) => 
           type.toLowerCase().includes(selectedEventType.toLowerCase())
         )
       );

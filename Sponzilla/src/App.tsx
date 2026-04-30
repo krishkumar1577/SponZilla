@@ -51,7 +51,7 @@ function App() {
             <Route path="/ai-pitch-deck" element={<AIPitchDeckGeneratorPage />} />
             <Route path="/club-profile" element={<ClubProfilePage />} />
             <Route path="/club-profile/:clubId" element={<ClubProfilePage />} />
-            <Route path="/event-management" element={<EventManagementPage />} />
+            <Route path="/event-management/:eventId" element={<EventManagementPage />} />
             <Route path="/terms-of-service" element={<TermsOfServicePage />} />
             <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
             <Route path="/messages" element={<MessagesPage />} />

@@ -332,13 +332,11 @@ const ClubSettings: React.FC = () => {
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
               >
                 <option value="">Select category</option>
-                <option value="academic">Academic</option>
+                <option value="technical">Technical</option>
+                <option value="cultural">Cultural</option>
                 <option value="sports">Sports</option>
-                <option value="technology">Technology</option>
-                <option value="arts">Arts & Culture</option>
-                <option value="service">Community Service</option>
-                <option value="professional">Professional</option>
                 <option value="social">Social</option>
+                <option value="entrepreneurship">Entrepreneurship</option>
                 <option value="other">Other</option>
               </select>
             </div>
@@ -365,14 +363,47 @@ const ClubSettings: React.FC = () => {
               />
             </div>
             <div className="flex flex-col gap-3">
-              <label className="text-[#111518] text-base font-medium text-left">Campus Location</label>
+              <label className="text-[#111518] text-base font-medium text-left">University</label>
               <input
                 type="text"
-                name="campusLocation"
-                value={formData.campusLocation}
+                name="university"
+                value={formData.university}
                 onChange={handleInputChange}
                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
-                placeholder="Student Union Building, Room 201"
+                placeholder="E.g., Stanford University"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Contact Person Name</label>
+              <input
+                type="text"
+                name="contactName"
+                value={formData.contactName}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+                placeholder="John Doe"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Contact Person Email</label>
+              <input
+                type="email"
+                name="contactEmail"
+                value={formData.contactEmail}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+                placeholder="john.doe@university.edu"
+              />
+            </div>
+            <div className="flex flex-col gap-3">
+              <label className="text-[#111518] text-base font-medium text-left">Contact Person Phone</label>
+              <input
+                type="text"
+                name="phoneNumber"
+                value={formData.phoneNumber}
+                onChange={handleInputChange}
+                className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border border-[#dbe1e6] bg-white focus:border-[#dbe1e6] h-14 placeholder:text-[#617989] p-[15px] text-base font-normal leading-normal"
+                placeholder="+1 234 567 8900"
               />
             </div>
             <div className="flex flex-col gap-3">

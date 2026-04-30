@@ -2,29 +2,29 @@ import React from 'react';
 import { useUser } from '../../contexts/UserContext';
 
 const UserTypeSwitcher: React.FC = () => {
-  const { user, login, logout } = useUser();
+  const { user, setUser, logout } = useUser();
 
   const switchToGuest = () => {
     logout();
   };
 
   const switchToClub = () => {
-    login({
-      id: 'club1',
+    setUser({
       name: 'Tech Club',
       email: 'tech@club.com',
       type: 'club',
-      profileImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCanujA-hYauxn7UOxEnRuAOBOGGHlSFrhJUNhwNXcl5X95OIFQAZudPUYMixDbuQM8suLs726Zo_B5B1QA6nq5WY0hqUxLQeCYztr2UXCAGK4WjdagCfjo_3pcjfE7QWae-YqdfJcx7fqhXrpNP7tC82R7LlOUJkq_5PkLW_SkZ9NX5QMV14oPQiXITX2PeC9iJNRpjOrwDBZFxmlW3J2CTNSiLkkTeB3bhm_Fuy_i6YY2pxfYY8Qi_t8QXCwnh0fcZAr4X2fJg-U'
+      profileImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCanujA-hYauxn7UOxEnRuAOBOGGHlSFrhJUNhwNXcl5X95OIFQAZudPUYMixDbuQM8suLs726Zo_B5B1QA6nq5WY0hqUxLQeCYztr2UXCAGK4WjdagCfjo_3pcjfE7QWae-YqdfJcx7fqhXrpNP7tC82R7LlOUJkq_5PkLW_SkZ9NX5QMV14oPQiXITX2PeC9iJNRpjOrwDBZFxmlW3J2CTNSiLkkTeB3bhm_Fuy_i6YY2pxfYY8Qi_t8QXCwnh0fcZAr4X2fJg-U',
+      token: 'mock-token'
     });
   };
 
   const switchToBrand = () => {
-    login({
-      id: 'brand1',
+    setUser({
       name: 'Nike',
       email: 'partnerships@nike.com',
       type: 'brand',
-      profileImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCanujA-hYauxn7UOxEnRuAOBOGGHlSFrhJUNhwNXcl5X95OIFQAZudPUYMixDbuQM8suLs726Zo_B5B1QA6nq5WY0hqUxLQeCYztr2UXCAGK4WjdagCfjo_3pcjfE7QWae-YqdfJcx7fqhXrpNP7tC82R7LlOUJkq_5PkLW_SkZ9NX5QMV14oPQiXITX2PeC9iJNRpjOrwDBZFxmlW3J2CTNSiLkkTeB3bhm_Fuy_i6YY2pxfYY8Qi_t8QXCwnh0fcZAr4X2fJg-U'
+      profileImage: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCanujA-hYauxn7UOxEnRuAOBOGGHlSFrhJUNhwNXcl5X95OIFQAZudPUYMixDbuQM8suLs726Zo_B5B1QA6nq5WY0hqUxLQeCYztr2UXCAGK4WjdagCfjo_3pcjfE7QWae-YqdfJcx7fqhXrpNP7tC82R7LlOUJkq_5PkLW_SkZ9NX5QMV14oPQiXITX2PeC9iJNRpjOrwDBZFxmlW3J2CTNSiLkkTeB3bhm_Fuy_i6YY2pxfYY8Qi_t8QXCwnh0fcZAr4X2fJg-U',
+      token: 'mock-token'
     });
   };
 

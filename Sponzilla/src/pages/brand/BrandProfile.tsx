@@ -154,158 +154,12 @@ const BrandProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Current Sponsorships */}
-            <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Current Sponsorships</h2>
-            <div className="px-4 py-3 @container">
-              <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
-                <table className="flex-1">
-                  <thead>
-                    <tr className="bg-white">
-                      <th className="table-current-sponsorships-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
-                        Sponsorship
-                      </th>
-                      <th className="table-current-sponsorships-column-240 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
-                        University
-                      </th>
-                      <th className="table-current-sponsorships-column-360 px-4 py-3 text-left text-[#111518] w-60 text-sm font-medium leading-normal">Status</th>
-                      <th className="table-current-sponsorships-column-480 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
-                        Performance
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-t border-t-[#dbe1e6]">
-                      <td className="table-current-sponsorships-column-120 h-[72px] px-4 py-2 w-[400px] text-[#111518] text-sm font-normal leading-normal text-left">
-                        Hackathon 2023
-                      </td>
-                      <td className="table-current-sponsorships-column-240 h-[72px] px-4 py-2 w-[400px] text-[#617989] text-sm font-normal leading-normal text-left">
-                        State University
-                      </td>
-                      <td className="table-current-sponsorships-column-360 h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-medium leading-normal w-full">
-                          <span className="truncate">Active</span>
-                        </button>
-                      </td>
-                      <td className="table-current-sponsorships-column-480 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                        <div className="flex items-center gap-3">
-                          <div className="w-[88px] overflow-hidden rounded-sm bg-[#dbe1e6]">
-                            <div className="h-1 rounded-full bg-[#111518]" style={{ width: '85.2273%' }}></div>
-                          </div>
-                          <p className="text-[#111518] text-sm font-medium leading-normal text-left">75</p>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr className="border-t border-t-[#dbe1e6]">
-                      <td className="table-current-sponsorships-column-120 h-[72px] px-4 py-2 w-[400px] text-[#111518] text-sm font-normal leading-normal text-left">
-                        Innovation Challenge
-                      </td>
-                      <td className="table-current-sponsorships-column-240 h-[72px] px-4 py-2 w-[400px] text-[#617989] text-sm font-normal leading-normal text-left">
-                        City College
-                      </td>
-                      <td className="table-current-sponsorships-column-360 h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-medium leading-normal w-full">
-                          <span className="truncate">Active</span>
-                        </button>
-                      </td>
-                      <td className="table-current-sponsorships-column-480 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                        <div className="flex items-center gap-3">
-                          <div className="w-[88px] overflow-hidden rounded-sm bg-[#dbe1e6]">
-                            <div className="h-1 rounded-full bg-[#111518]" style={{ width: '56.8182%' }}></div>
-                          </div>
-                          <p className="text-[#111518] text-sm font-medium leading-normal text-left">50</p>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Past Sponsorships */}
-            <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Past Sponsorships</h2>
-            <div className="px-4 py-3 @container">
-              <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
-                <table className="flex-1">
-                  <thead>
-                    <tr className="bg-white">
-                      <th className="table-past-sponsorships-column-120 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
-                        Sponsorship
-                      </th>
-                      <th className="table-past-sponsorships-column-240 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
-                        University
-                      </th>
-                      <th className="table-past-sponsorships-column-360 px-4 py-3 text-left text-[#111518] w-60 text-sm font-medium leading-normal">Status</th>
-                      <th className="table-past-sponsorships-column-480 px-4 py-3 text-left text-[#111518] w-[400px] text-sm font-medium leading-normal">
-                        Performance
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-t border-t-[#dbe1e6]">
-                      <td className="table-past-sponsorships-column-120 h-[72px] px-4 py-2 w-[400px] text-[#111518] text-sm font-normal leading-normal text-left">
-                        Tech Fair 2022
-                      </td>
-                      <td className="table-past-sponsorships-column-240 h-[72px] px-4 py-2 w-[400px] text-[#617989] text-sm font-normal leading-normal text-left">
-                        State University
-                      </td>
-                      <td className="table-past-sponsorships-column-360 h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-medium leading-normal w-full">
-                          <span className="truncate">Completed</span>
-                        </button>
-                      </td>
-                      <td className="table-past-sponsorships-column-480 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                        <div className="flex items-center gap-3">
-                          <div className="w-[88px] overflow-hidden rounded-sm bg-[#dbe1e6]">
-                            <div className="h-1 rounded-full bg-[#111518]" style={{ width: '100%' }}></div>
-                          </div>
-                          <p className="text-[#111518] text-sm font-medium leading-normal text-left">90</p>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr className="border-t border-t-[#dbe1e6]">
-                      <td className="table-past-sponsorships-column-120 h-[72px] px-4 py-2 w-[400px] text-[#111518] text-sm font-normal leading-normal text-left">
-                        Coding Workshop
-                      </td>
-                      <td className="table-past-sponsorships-column-240 h-[72px] px-4 py-2 w-[400px] text-[#617989] text-sm font-normal leading-normal text-left">
-                        City College
-                      </td>
-                      <td className="table-past-sponsorships-column-360 h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-medium leading-normal w-full">
-                          <span className="truncate">Completed</span>
-                        </button>
-                      </td>
-                      <td className="table-past-sponsorships-column-480 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                        <div className="flex items-center gap-3">
-                          <div className="w-[88px] overflow-hidden rounded-sm bg-[#dbe1e6]">
-                            <div className="h-1 rounded-full bg-[#111518]" style={{ width: '90.9091%' }}></div>
-                          </div>
-                          <p className="text-[#111518] text-sm font-medium leading-normal text-left">80</p>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr className="border-t border-t-[#dbe1e6]">
-                      <td className="table-past-sponsorships-column-120 h-[72px] px-4 py-2 w-[400px] text-[#111518] text-sm font-normal leading-normal text-left">
-                        Startup Pitch Competition
-                      </td>
-                      <td className="table-past-sponsorships-column-240 h-[72px] px-4 py-2 w-[400px] text-[#617989] text-sm font-normal leading-normal text-left">
-                        Regional University
-                      </td>
-                      <td className="table-past-sponsorships-column-360 h-[72px] px-4 py-2 w-60 text-sm font-normal leading-normal">
-                        <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-[#f0f3f4] text-[#111518] text-sm font-medium leading-normal w-full">
-                          <span className="truncate">Completed</span>
-                        </button>
-                      </td>
-                      <td className="table-past-sponsorships-column-480 h-[72px] px-4 py-2 w-[400px] text-sm font-normal leading-normal">
-                        <div className="flex items-center gap-3">
-                          <div className="w-[88px] overflow-hidden rounded-sm bg-[#dbe1e6]">
-                            <div className="h-1 rounded-full bg-[#111518]" style={{ width: '68.1818%' }}></div>
-                          </div>
-                          <p className="text-[#111518] text-sm font-medium leading-normal text-left">60</p>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+            {/* Sponsorship History */}
+            <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Sponsorship History</h2>
+            <div className="px-4 py-6">
+              <div className="flex flex-col items-center justify-center py-12 border border-[#dbe1e6] rounded-xl bg-[#f8f9fa]">
+                <p className="text-[#617989] text-base font-medium">No sponsorship data available yet</p>
+                <p className="text-[#617989] text-sm mt-2">Sponsorship tracking is coming soon. Your active and past sponsorships will appear here.</p>
               </div>
             </div>
 
@@ -317,8 +171,8 @@ const BrandProfilePage: React.FC = () => {
                   <p className="text-[#111518] text-base font-medium leading-normal text-left">Preferred Event Types</p>
                   <div className="flex flex-wrap gap-2">
                     {brandData.preferredEventTypes && brandData.preferredEventTypes.length > 0 ? (
-                      brandData.preferredEventTypes.map((type, index) => (
-                        <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                      brandData.preferredEventTypes.map((type: string) => (
+                        <span key={type} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
                           {type}
                         </span>
                       ))
@@ -386,16 +240,6 @@ const BrandProfilePage: React.FC = () => {
         </div>
       </div>
 
-      <style>{`
-        @container(max-width:120px){.table-current-sponsorships-column-120{display: none;}}
-        @container(max-width:240px){.table-current-sponsorships-column-240{display: none;}}
-        @container(max-width:360px){.table-current-sponsorships-column-360{display: none;}}
-        @container(max-width:480px){.table-current-sponsorships-column-480{display: none;}}
-        @container(max-width:120px){.table-past-sponsorships-column-120{display: none;}}
-        @container(max-width:240px){.table-past-sponsorships-column-240{display: none;}}
-        @container(max-width:360px){.table-past-sponsorships-column-360{display: none;}}
-        @container(max-width:480px){.table-past-sponsorships-column-480{display: none;}}
-      `}</style>
     </div>
   );
 };

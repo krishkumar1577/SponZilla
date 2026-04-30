@@ -53,7 +53,7 @@ const SettingsPage: React.FC = () => {
 
   const handleSaveChanges = () => {
     // Handle save changes logic here
-    console.log('Saving changes:', formData);
+    if (import.meta.env.DEV) console.log('Saving changes');
   };
 
   const tabs = ['Account', 'Profile Information', 'Notifications', 'Security'];
