@@ -3,7 +3,9 @@ import { apiRequest } from './base';
 export interface Message {
   _id: string;
   sender: string;
+  senderId?: string;
   recipient: string;
+  recipientId?: string;
   content: string;
   read: boolean;
   eventId?: any;
@@ -15,6 +17,7 @@ export interface Conversation {
   participants: any[];
   lastMessage: Message;
   updatedAt: string;
+  eventId?: string;
   otherParticipant: {
     _id: string;
     name: string;

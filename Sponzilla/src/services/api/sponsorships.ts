@@ -12,4 +12,10 @@ export const sponsorshipAPI = {
       method: 'PUT',
       body: JSON.stringify({ status }),
     }),
+
+  apply: (data: { eventId: string; tierName: string; message: string }): Promise<{ success: boolean; request: any }> =>
+    apiRequest('/sponsorships/apply', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };

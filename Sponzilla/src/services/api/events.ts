@@ -92,12 +92,13 @@ export interface EventsResponse {
 }
 
 export const eventsAPI = {
-  getAllEvents: (params?: { category?: string; search?: string }): Promise<EventsResponse> => {
+  getAllEvents: (params?: { category?: string; search?: string; limit?: number }): Promise<EventsResponse> => {
     let query = '';
     if (params) {
       const searchParams = new URLSearchParams();
       if (params.category) searchParams.append('category', params.category);
       if (params.search) searchParams.append('search', params.search);
+      if (params.limit) searchParams.append('limit', params.limit.toString());
       query = `?${searchParams.toString()}`;
     }
     return apiRequest(`/events${query}`);
@@ -122,4 +123,7 @@ export const eventsAPI = {
     apiRequest(`/events/${id}`, {
       method: 'DELETE',
     }),
+
+  getPitchContentPreview: (eventId: string): Promise<{ success: boolean; content: any }> =>
+    apiRequest(`/events/${eventId}/pitch-preview`),
 };

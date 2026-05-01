@@ -89,9 +89,21 @@ export const profilesAPI = {
       body: JSON.stringify(data),
     }),
 
-  getAllClubs: (): Promise<{ profiles: ClubProfile[] }> =>
+  createClubProfile: (data: Partial<ClubProfile>): Promise<{ profile: ClubProfile }> =>
+    apiRequest('/profiles/club', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  createBrandProfile: (data: Partial<BrandProfile>): Promise<{ profile: BrandProfile }> =>
+    apiRequest('/profiles/brand', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getAllClubs: (): Promise<{ success: boolean; clubs: ClubProfile[] }> =>
     apiRequest('/profiles/clubs'),
 
-  getAllBrands: (): Promise<{ profiles: BrandProfile[] }> =>
+  getAllBrands: (): Promise<{ success: boolean; brands: BrandProfile[] }> =>
     apiRequest('/profiles/brands'),
 };
