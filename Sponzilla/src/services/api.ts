@@ -232,6 +232,7 @@ export interface Event {
 
 export interface ClubProfile {
   _id: string;
+  userId: string;
   clubName: string;
   university: string;
   description: string;
@@ -596,6 +597,58 @@ export const analyticsAPI = {
   // Platform overview (admin only)
   getPlatformAnalytics: (): Promise<{ success: boolean; data: any }> =>
     apiRequest('/analytics/platform'),
+};
+export interface Message {
+  _id: string;
+  conversationId: string;
+  senderId: {
+    _id: string;
+    name: string;
+    role: string;
+  };
+  content: string;
+  isRead: boolean;
+  createdAt: string;
+}
+
+export interface Conversation {
+  _id: string;
+  participants: Array<{
+    _id: string;
+    name: string;
+    email: string;
+    role: string;
+  }>;
+  lastMessage?: Message;
+  eventId?: {
+    _id: string;
+    title: string;
+  };
+  updatedAt: string;
+}
+
+export const chatAPI = {
+  getConversations: (): Promise<{ success: boolean; conversations: Conversation[] }> =>
+    apiRequest('/chat/conversations'),
+  getMessages: (conversationId: string): Promise<{ success: boolean; messages: Message[] }> =>
+    apiRequest(`/chat/messages/${conversationId}`),
+  sendMessage: (data: { recipientId: string; content: string; eventId?: string }): Promise<{ success: boolean; message: Message }> =>
+    apiRequest('/chat/send', { method: 'POST', body: JSON.stringify(data) }),
+  getUnreadCount: (): Promise<{ success: boolean; count: number }> =>
+    apiRequest('/chat/unread-count'),
+  markAsRead: (conversationId: string): Promise<{ success: boolean }> =>
+    apiRequest(`/chat/read/${conversationId}`, { method: 'PUT' }),
+};
+
+export const sponsorshipAPI = {
+  apply: (data: { eventId: string; tierName: string; amount: number; message: string }): Promise<{ success: boolean; request: any }> =>
+    apiRequest('/sponsorships/apply', { method: 'POST', body: JSON.stringify(data) }),
+  getClubRequests: (): Promise<{ success: boolean; requests: any[] }> =>
+    apiRequest('/sponsorships/club-requests'),
+  getBrandRequests: (): Promise<{ success: boolean; requests: any[] }> =>
+    apiRequest('/sponsorships/brand-requests'),
+  updateStatus: (requestId: string, status: 'accepted' | 'rejected'): Promise<{ success: boolean; request: any }> =>
+    apiRequest(`/sponsorships/status/${requestId}`, { method: 'PUT', body: JSON.stringify({ status }) }),
 };
 
 // ============================================

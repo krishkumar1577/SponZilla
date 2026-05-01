@@ -1,14 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { profilesAPI, chatAPI, eventsAPI, type BrandProfile, type Event } from '../../services/api';
+import { useUser } from '../../contexts/UserContext';
+import { useNavigate, useParams } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { SmartNavbar } from '../../components/layout/Navbar';
-import { profilesAPI } from '../../services/api';
-import type { BrandProfile } from '../../services/api';
 
 const BrandProfilePage: React.FC = () => {
   const { brandId } = useParams<{ brandId: string }>();
+  const navigate = useNavigate();
+  const { user } = useUser();
   const [brandData, setBrandData] = useState<BrandProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isPitchModalOpen, setIsPitchModalOpen] = useState(false);
+  const [myEvents, setMyEvents] = useState<Event[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>('');
+  const [isPitching, setIsPitching] = useState(false);
 
   useEffect(() => {
     const fetchBrandData = async () => {
@@ -42,7 +49,43 @@ const BrandProfilePage: React.FC = () => {
     };
 
     fetchBrandData();
-  }, [brandId]);
+    if (user?.type === 'club') {
+      fetchMyEvents();
+    }
+  }, [brandId, user?.type]);
+
+  const fetchMyEvents = async () => {
+    try {
+      const response = await eventsAPI.getAllEvents();
+      // Filter for current user's club events if possible
+      // For now, just show all events (in a real app, backend should filter)
+      setMyEvents(response.events || []);
+    } catch (err) {
+      console.error('Error fetching my events:', err);
+    }
+  };
+
+  const handlePitchEvent = async () => {
+    if (!selectedEventId || !brandData) return;
+
+    try {
+      setIsPitching(true);
+      const event = myEvents.find(e => e._id === selectedEventId);
+      await chatAPI.sendMessage({
+        recipientId: brandData.userId,
+        content: `Hi ${brandData.brandName}, I would like to pitch our event "${event?.title}" for sponsorship. Are you interested?`,
+        eventId: selectedEventId
+      });
+      toast.success('Pitch sent successfully!');
+      setIsPitchModalOpen(false);
+      navigate('/messages');
+    } catch (err) {
+      console.error('Failed to pitch event:', err);
+      toast.error('Failed to send pitch.');
+    } finally {
+      setIsPitching(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -96,17 +139,17 @@ const BrandProfilePage: React.FC = () => {
 
             {/* Company Info */}
             <div className="flex p-4 @container">
-              <div className="flex w-full flex-col gap-4 items-start">
-                <div className="flex gap-4 flex-col items-start">
+              <div className="flex w-full flex-col gap-4 items-start @[520px]:flex-row @[520px]:justify-between @[520px]:items-start">
+                <div className="flex gap-4 flex-col items-start @[480px]:flex-row flex-1">
                   <div
-                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl min-h-32 w-32"
+                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-xl min-h-32 w-32 shrink-0"
                     style={{
                       backgroundImage: `url("${brandData.logo || `https://placehold.co/200x200/f0f3f4/617989?text=${encodeURIComponent(brandData.brandName.charAt(0))}`}")`
                     }}
                   ></div>
-                  <div className="flex flex-col">
+                  <div className="flex flex-col text-left">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] text-left">{brandData.brandName}</p>
+                      <p className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em]">{brandData.brandName}</p>
                       {brandData.verified && (
                         <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
                           <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
@@ -114,8 +157,8 @@ const BrandProfilePage: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    <p className="text-[#617989] text-base font-normal leading-normal text-left">Industry: {brandData.industry || 'Not specified'}</p>
-                    <p className="text-[#617989] text-base font-normal leading-normal text-left">
+                    <p className="text-[#617989] text-base font-normal leading-normal">Industry: {brandData.industry || 'Not specified'}</p>
+                    <p className="text-[#617989] text-base font-normal leading-normal">
                       {brandData.description || 'No description available'}
                     </p>
                     <div className="mt-3 space-y-2">
@@ -123,7 +166,7 @@ const BrandProfilePage: React.FC = () => {
                         <span className="text-sm font-medium text-[#111518]">Sponsorship Budget:</span>
                         <span className="text-sm text-[#617989]">
                           {brandData.sponsorshipBudget && brandData.sponsorshipBudget.min && brandData.sponsorshipBudget.max
-                            ? `$${brandData.sponsorshipBudget.min.toLocaleString()} - $${brandData.sponsorshipBudget.max.toLocaleString()}`
+                            ? `₹${brandData.sponsorshipBudget.min.toLocaleString()} - ₹${brandData.sponsorshipBudget.max.toLocaleString()}`
                             : 'Available upon request'
                           }
                         </span>
@@ -151,6 +194,35 @@ const BrandProfilePage: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                {brandId && (
+                  <div className="flex gap-2 shrink-0 mt-4 @[520px]:mt-0">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await chatAPI.sendMessage({
+                            recipientId: brandData.userId,
+                            content: `Hi ${brandData.brandName}, I am from a club and interested in your sponsorship. Can we discuss?`
+                          });
+                          navigate('/messages');
+                        } catch (err) {
+                          console.error('Failed to start chat:', err);
+                        }
+                      }}
+                      className="px-6 h-10 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-sm"
+                    >
+                      Chat Now
+                    </button>
+                    {user?.type === 'club' && (
+                      <button
+                        onClick={() => setIsPitchModalOpen(true)}
+                        className="px-6 h-10 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+                      >
+                        Pitch Event
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -240,6 +312,46 @@ const BrandProfilePage: React.FC = () => {
         </div>
       </div>
 
+      {/* Pitch Event Modal */}
+      {isPitchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in duration-300">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-900">Pitch Your Event</h3>
+              <button onClick={() => setIsPitchModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>
+            </div>
+            <div className="p-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">Select Event to Pitch</label>
+              <select
+                value={selectedEventId}
+                onChange={(e) => setSelectedEventId(e.target.value)}
+                className="w-full p-3 border border-gray-200 rounded-xl mb-6 focus:ring-2 focus:ring-blue-500 outline-none"
+              >
+                <option value="">Choose an event...</option>
+                {myEvents.map(event => (
+                  <option key={event._id} value={event._id}>{event.title}</option>
+                ))}
+              </select>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setIsPitchModalOpen(false)}
+                  className="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handlePitchEvent}
+                  disabled={!selectedEventId || isPitching}
+                  className="flex-[2] py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                >
+                  {isPitching ? 'Sending...' : 'Send Pitch'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

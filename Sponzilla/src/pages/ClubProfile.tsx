@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { SmartNavbar } from '../components/layout/Navbar';
-import { profilesAPI, eventsAPI } from '../services/api';
+import { profilesAPI, eventsAPI, chatAPI } from '../services/api';
 import type { ClubProfile as ClubProfileType, Event } from '../services/api';
 
 const ClubProfile: React.FC = () => {
@@ -127,17 +127,17 @@ const ClubProfile: React.FC = () => {
             ></div>
             
             <div className="flex p-4 @container">
-              <div className="flex w-full flex-col gap-4 @[520px]:flex-row @[520px]:justify-between @[520px]:items-center">
-                <div className="flex gap-4">
+              <div className="flex w-full flex-col gap-4 @[520px]:flex-row @[520px]:justify-between @[520px]:items-start">
+                <div className="flex gap-4 flex-1">
                   <div
-                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32"
+                    className="bg-center bg-no-repeat aspect-square bg-cover rounded-full min-h-32 w-32 shrink-0"
                     style={{ 
                       backgroundImage: `url("${club.logo || `https://placehold.co/128x128?text=${encodeURIComponent(club.clubName.charAt(0))}`}")`
                     }}
                   ></div>
-                  <div className="flex flex-col justify-center">
-                    <div className="flex items-center gap-2">
-                      <p className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] text-left">{club.clubName}</p>
+                  <div className="flex flex-col justify-center text-left">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em]">{club.clubName}</p>
                       {club.verified && (
                         <div className="flex items-center gap-1 px-2 py-1 bg-green-100 rounded-full">
                           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -145,7 +145,7 @@ const ClubProfile: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    <p className="text-[#617989] text-base font-normal leading-normal text-left">
+                    <p className="text-[#617989] text-base font-normal leading-normal">
                       {club.description || 'Empowering students to explore and innovate in technology.'}
                     </p>
                     <div className="flex items-center gap-1 mt-2">
@@ -156,6 +156,36 @@ const ClubProfile: React.FC = () => {
                     </div>
                   </div>
                 </div>
+
+                {clubId && (
+                  <div className="flex gap-2 shrink-0 mt-4 @[520px]:mt-0">
+                    <button
+                      onClick={async () => {
+                        try {
+                          await chatAPI.sendMessage({
+                            recipientId: club.userId,
+                            content: `Hi ${club.clubName}, I am interested in collaborating with your club. Can we discuss?`
+                          });
+                          navigate('/messages');
+                        } catch (err) {
+                          console.error('Failed to start chat:', err);
+                        }
+                      }}
+                      className="px-6 h-10 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-all active:scale-95 shadow-sm"
+                    >
+                      Chat Now
+                    </button>
+                    <button
+                      onClick={() => {
+                        const el = document.getElementById('upcoming-events');
+                        el?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="px-6 h-10 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+                    >
+                      View Events
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
             <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">About Us</h2>
@@ -214,7 +244,7 @@ const ClubProfile: React.FC = () => {
                 </div>
               </div>
             </div>
-            <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Upcoming Events</h2>
+            <h2 id="upcoming-events" className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Upcoming Events</h2>
             {events.filter(event => new Date(event.eventDate) > new Date()).length > 0 ? (
               events
                 .filter(event => new Date(event.eventDate) > new Date())

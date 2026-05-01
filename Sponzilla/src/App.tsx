@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import HomePage from './pages/home';
 import ListEventPage from './pages/ListEvent';
 import BrowseEventsWithSearchPage from './pages/BrowseEvents';
@@ -25,49 +26,48 @@ import ClubLanding from './pages/club/ClubLanding';
 import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
-// import ApiTestPage from './pages/ApiTest';
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
 function App() {
   return (
     <UserProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/list-event" element={<ListEventPage />} />
-            <Route path="/browse-events" element={<BrowseEventsWithSearchPage />} />
-            <Route path="/view-event/:eventId" element={<ViewEvent />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/contact-with-header" element={<ContactWithHeaderPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/brand-dashboard" element={<BrandDashboardPage />} />
-            <Route path="/club-dashboard" element={<ClubDashboardPage />} />
-            <Route path="/find-clubs" element={<FindClubsPage />} />
-            <Route path="/find-brands" element={<FindBrandsPage />} />
-            <Route path="/ai-pitch-deck" element={<AIPitchDeckGeneratorPage />} />
-            <Route path="/club-profile" element={<ClubProfilePage />} />
-            <Route path="/club-profile/:clubId" element={<ClubProfilePage />} />
-            <Route path="/event-management/:eventId" element={<EventManagementPage />} />
-            <Route path="/terms-of-service" element={<TermsOfServicePage />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-            <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/help" element={<HelpPage />} />
-            <Route path="/brand-profile" element={<BrandProfilePage />} />
-            <Route path="/brand-profile/:brandId" element={<BrandProfilePage />} />
-            <Route path="/brand-landing" element={<BrandLanding />} />
-            <Route path="/club-landing" element={<ClubLanding />} />
-            <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/club-settings" element={<ClubSettings />} />
-            <Route path="/brand-settings" element={<BrandSettings />} />
-            {/* <Route path="/api-test" element={<ApiTestPage />} /> */}
-          </Routes>
-          
-        </div>
-        <Analytics />
-      </Router>
+      <NotificationProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/list-event" element={<ListEventPage />} />
+              <Route path="/browse-events" element={<BrowseEventsWithSearchPage />} />
+              <Route path="/view-event/:eventId" element={<ViewEvent />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/contact-with-header" element={<ContactWithHeaderPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/brand-dashboard" element={<BrandDashboardPage />} />
+              <Route path="/club-dashboard" element={<ClubDashboardPage />} />
+              <Route path="/find-clubs" element={<FindClubsPage />} />
+              <Route path="/find-brands" element={<FindBrandsPage />} />
+              <Route path="/ai-pitch-deck" element={<AIPitchDeckGeneratorPage />} />
+              <Route path="/club-profile" element={<ClubProfilePage />} />
+              <Route path="/club-profile/:clubId" element={<ClubProfilePage />} />
+              <Route path="/event-management/:eventId" element={<EventManagementPage />} />
+              <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+              <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+              <Route path="/messages" element={<MessagesPage />} />
+              <Route path="/help" element={<HelpPage />} />
+              <Route path="/brand-profile" element={<BrandProfilePage />} />
+              <Route path="/brand-profile/:brandId" element={<BrandProfilePage />} />
+              <Route path="/brand-landing" element={<BrandLanding />} />
+              <Route path="/club-landing" element={<ClubLanding />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/club-settings" element={<ClubSettings />} />
+              <Route path="/brand-settings" element={<BrandSettings />} />
+            </Routes>
+          </div>
+          <Analytics />
+        </Router>
+      </NotificationProvider>
     </UserProvider>
   );
 }

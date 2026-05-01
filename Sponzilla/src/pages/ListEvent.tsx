@@ -86,6 +86,7 @@ const ListEventPage: React.FC = () => {
         sponsorshipNeeded: Number(sponsorshipNeeded),
       },
       sponsorshipTiers: tiers,
+      status: 'published',
     };
 
     try {

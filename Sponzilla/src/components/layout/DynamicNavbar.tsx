@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ProfileDropdown } from '../ui';
+import { useNotifications } from '../../contexts/NotificationContext';
 
 export type UserType = 'guest' | 'club' | 'brand';
 
@@ -17,6 +18,7 @@ interface NavLink {
 
 const DynamicNavbar: React.FC<DynamicNavbarProps> = ({ userType, className = "" }) => {
   const location = useLocation();
+  const { unreadCount } = useNotifications();
 
   // Define navigation links for each user type
   const getNavigationLinks = (type: UserType): NavLink[] => {
@@ -52,13 +54,16 @@ const DynamicNavbar: React.FC<DynamicNavbarProps> = ({ userType, className = "" 
           <div className="flex gap-2">
             <Link
               to="/messages"
-              className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 bg-[#f0f3f4] text-[#111518] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5"
+              className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 bg-[#f0f3f4] text-[#111518] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5 relative"
             >
               <div className="text-[#111518]" data-icon="ChatCircleDots" data-size="20px" data-weight="regular">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
                   <path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"></path>
                 </svg>
               </div>
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
+              )}
             </Link>
             <Link
               to="/help"
@@ -97,12 +102,12 @@ const DynamicNavbar: React.FC<DynamicNavbarProps> = ({ userType, className = "" 
       {/* Logo Section */}
       <div className="flex items-center gap-4 text-[#111518]">
         <Link to="/" className="flex items-center gap-4 cursor-pointer">
-          <div className="size-8 flex items-center justify-center bg-gradient-to-br from-blue-600 to-indigo-700 rounded-lg shadow-sm">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 17L12 22L22 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M2 12L12 17L22 12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+          <div className="size-8 overflow-hidden rounded-lg">
+            <img 
+              src="/sponzilla_favicon.ico" 
+              alt="SponZilla Logo" 
+              className="size-full object-cover"
+            />
           </div>
           <h2 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em]">SponZilla</h2>
         </Link>
