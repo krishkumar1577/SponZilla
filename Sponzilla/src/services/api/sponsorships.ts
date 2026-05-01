@@ -13,7 +13,7 @@ export const sponsorshipAPI = {
       body: JSON.stringify({ status }),
     }),
 
-  apply: (data: { eventId: string; tierName: string; message: string }): Promise<{ success: boolean; request: any }> =>
+  apply: (data: { eventId: string; tierName: string; amount: number; message: string }): Promise<{ success: boolean; request: any }> =>
     apiRequest('/sponsorships/apply', {
       method: 'POST',
       body: JSON.stringify(data),

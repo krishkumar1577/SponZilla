@@ -27,7 +27,7 @@ const BrandDashboardPage: React.FC = () => {
     fetchAnalytics();
   }, []);
 
-  // Format numbers for display
+  // Format numbers for displayw
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(0)}K`;
@@ -84,7 +84,7 @@ const BrandDashboardPage: React.FC = () => {
                     <h3 className="text-xl font-bold mb-1">Welcome to Sponzilla! 🚀</h3>
                     <p className="text-blue-100 text-sm">Your brand profile is currently empty. Complete it to start discovering top university clubs and tracking your ROI.</p>
                   </div>
-                  <button 
+                  <button
                     onClick={() => navigate('/brand-settings')}
                     className="px-6 py-2.5 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition-colors shadow-sm"
                   >
@@ -93,7 +93,7 @@ const BrandDashboardPage: React.FC = () => {
                 </div>
               </div>
             )}
-            
+
             {/* Dashboard Header */}
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <div className="flex min-w-72 flex-col gap-3">
@@ -219,8 +219,8 @@ const BrandDashboardPage: React.FC = () => {
                 <div className="grid min-h-[180px] grid-flow-col gap-6 grid-rows-[1fr_auto] items-end justify-items-center px-3">
                   {analytics.categories.slice(0, 3).map((category) => (
                     <React.Fragment key={category.name}>
-                      <div 
-                        className="border-[#617989] bg-[#f0f3f4] border-t-2 w-full" 
+                      <div
+                        className="border-[#617989] bg-[#f0f3f4] border-t-2 w-full"
                         style={{ height: `${category.performance}%` }}
                       ></div>
                       <p className="text-[#617989] text-[13px] font-bold leading-normal tracking-[0.015em] text-left truncate max-w-full">
@@ -246,8 +246,8 @@ const BrandDashboardPage: React.FC = () => {
                           <span className="text-[#617989] text-sm">{group.percentage}%</span>
                         </div>
                         <div className="w-full bg-[#f0f3f4] rounded-full h-2">
-                          <div 
-                            className="bg-[#617989] h-2 rounded-full" 
+                          <div
+                            className="bg-[#617989] h-2 rounded-full"
                             style={{ width: `${group.percentage}%` }}
                           ></div>
                         </div>
@@ -256,7 +256,7 @@ const BrandDashboardPage: React.FC = () => {
                   ))}
                 </div>
               </div>
-              
+
               <div className="flex min-w-72 flex-1 flex-col gap-2 rounded-xl border border-[#dbe1e6] p-6">
                 <p className="text-[#111518] text-base font-medium leading-normal text-left">Target Audience</p>
                 <div className="flex flex-col gap-3 py-4">

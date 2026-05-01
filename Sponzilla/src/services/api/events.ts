@@ -124,6 +124,9 @@ export const eventsAPI = {
       method: 'DELETE',
     }),
 
-  getPitchContentPreview: (eventId: string): Promise<{ success: boolean; content: any }> =>
-    apiRequest(`/events/${eventId}/pitch-preview`),
+  getPitchContentPreview: (data: any): Promise<{ success: boolean; data: any }> =>
+    apiRequest('/events/pitch-preview', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
