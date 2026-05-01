@@ -3,9 +3,9 @@ import { apiRequest } from './base';
 export interface Message {
   _id: string;
   sender: string;
-  senderId?: string;
+  senderId?: any;
   recipient: string;
-  recipientId?: string;
+  recipientId?: any;
   content: string;
   read: boolean;
   eventId?: any;
@@ -17,7 +17,7 @@ export interface Conversation {
   participants: any[];
   lastMessage: Message;
   updatedAt: string;
-  eventId?: string;
+  eventId?: any;
   otherParticipant: {
     _id: string;
     name: string;
@@ -44,4 +44,7 @@ export const chatAPI = {
     apiRequest(`/chat/read/${conversationId}`, {
       method: 'PUT',
     }),
+
+  getUnreadCount: (): Promise<{ success: boolean; count: number }> =>
+    apiRequest('/chat/unread-count'),
 };

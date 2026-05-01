@@ -162,7 +162,7 @@ const Messages: React.FC = () => {
                   ) : (
                     messages.map((msg) => {
                       // Robust check if message was sent by the current user
-                      const isMe = (typeof msg.senderId === 'string' 
+                      const isMe = msg.senderId && (typeof msg.senderId === 'string' 
                         ? msg.senderId === user?.id 
                         : msg.senderId._id === user?.id);
                         
