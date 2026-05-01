@@ -56,6 +56,7 @@ const corsOptions = {
     const isAllowed = allowedOrigins.includes(origin) ||
       origin.includes('github.dev') ||
       origin.includes('githubpreview.dev') ||
+      origin.includes('vercel.app') ||
       origin.startsWith('http://localhost:') ||
       origin.startsWith('http://127.0.0.1:');
 
