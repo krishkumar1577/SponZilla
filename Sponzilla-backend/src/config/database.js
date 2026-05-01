@@ -7,15 +7,15 @@ const connectDB = async () => {
       console.error('❌ MONGODB_URI is not defined in environment variables!');
       return;
     }
-    
+
     console.log(`🔌 Attempting to connect to MongoDB... (URI starts with: ${uri.substring(0, 15)}...)`);
-    
+
     // Connect to MongoDB with timeout options
     await mongoose.connect(uri, {
       serverSelectionTimeoutMS: 5000,
       connectTimeoutMS: 10000,
     });
-    
+
     console.log('✅ MongoDB Connected Successfully!');
     console.log(`📍 Database: ${mongoose.connection.name}`);
 

@@ -123,7 +123,7 @@ class AuthController {
   // ===== GET SETTINGS =====
   async getSettings(req, res) {
     try {
-      const settings = await authService.getUserSettings(req.userId);
+      const settings = await authService.getSettings(req.userId);
       
       res.json(settings);
       
@@ -137,7 +137,7 @@ class AuthController {
     try {
       const { notifications, security } = req.body;
       
-      await authService.updateUserSettings(req.userId, { notifications, security });
+      await authService.updateSettings(req.userId, { notifications, security });
       
       res.json({ message: 'Settings updated successfully' });
       

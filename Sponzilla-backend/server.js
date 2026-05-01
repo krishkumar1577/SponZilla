@@ -41,20 +41,29 @@ connectDB();
 // };
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
+    // Allow requests with no origin
     if (!origin) return callback(null, true);
 
     const allowedOrigins = [
-      'https://sponzilla.vercel.app', // Your Vercel frontend
-      'http://localhost:5173',       // Local development
-      'http://localhost:3000'
+      'https://sponzilla.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      'http://127.0.0.1:3000'
     ];
 
-    // Check if origin matches allowed origins or is a GitHub Codespace
-    if (allowedOrigins.includes(origin) || origin.includes('github.dev') || origin.includes('githubpreview.dev')) {
+    // Check if origin is allowed
+    const isAllowed = allowedOrigins.includes(origin) ||
+      origin.includes('github.dev') ||
+      origin.includes('githubpreview.dev') ||
+      origin.startsWith('http://localhost:') ||
+      origin.startsWith('http://127.0.0.1:');
+
+    if (isAllowed) {
       return callback(null, true);
     }
 
+    console.log('❌ CORS blocked origin:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -128,6 +137,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profiles', profileRoutes);
 app.use('/api/events', eventRoutes); // Add event routes
 app.use('/api/analytics', analyticsRoutes); // Add analytics routes
+app.use('/api/chat', require('./src/routes/chatRoutes'));
+app.use('/api/sponsorships', require('./src/routes/sponsorshipRoutes'));
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {

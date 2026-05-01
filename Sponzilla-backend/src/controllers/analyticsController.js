@@ -4,31 +4,23 @@ const BrandProfile = require('../models/BrandProfile');
 const User = require('../models/user');
 
 class AnalyticsController {
-
   // ===== CLUB ANALYTICS =====
-  async getClubAnalytics(req, res) {
+  getClubAnalytics = async (req, res) => {
     try {
-      // Check if user is admin
       const user = await User.findById(req.userId);
       
+      let clubProfile;
       if (user.role === 'admin') {
-        // Admin can view any club's analytics or overall club analytics
         const clubId = req.query.clubId;
-        const clubProfile = clubId 
-          ? await ClubProfile.findById(clubId)
-          : null;
-        
-        if (clubId && !clubProfile) {
-          return res.status(404).json({ error: 'Club profile not found' });
-        }
-        
-        // If no specific clubId, return aggregated analytics for all clubs
         if (!clubId) {
           return this.getAggregatedClubAnalytics(req, res);
         }
+        clubProfile = await ClubProfile.findById(clubId);
+        if (!clubProfile) {
+          return res.status(404).json({ error: 'Club profile not found' });
+        }
       } else {
-        // Regular club user - can only view their own analytics
-        const clubProfile = await ClubProfile.findOne({ userId: req.userId });
+        clubProfile = await ClubProfile.findOne({ userId: req.userId });
         if (!clubProfile) {
           return res.json({
             success: true,
@@ -37,10 +29,6 @@ class AnalyticsController {
           });
         }
       }
-      
-      const clubProfile = user.role === 'admin' 
-        ? await ClubProfile.findById(req.query.clubId)
-        : await ClubProfile.findOne({ userId: req.userId });
 
       // Get all club events
       const events = await Event.find({ clubId: clubProfile._id });
@@ -50,7 +38,6 @@ class AnalyticsController {
       const publishedEvents = events.filter(e => e.status === 'published').length;
       const completedEvents = events.filter(e => e.status === 'completed').length;
       
-      // Calculate total sponsorship goals and secured funding
       const totalSponsorshipGoal = events.reduce((sum, event) => 
         sum + (event.budget?.sponsorshipNeeded || 0), 0
       );
@@ -71,12 +58,10 @@ class AnalyticsController {
         ? Math.round(totalFundsRaised / totalSponsorshipsSecured) 
         : 0;
 
-      // Calculate total expected attendance
       const totalAttendance = events.reduce((sum, event) => 
         sum + (event.expectedAttendees || 0), 0
       );
 
-      // Calculate analytics metrics
       const totalViews = events.reduce((sum, event) => 
         sum + (event.analytics?.views || 0), 0
       );
@@ -89,12 +74,10 @@ class AnalyticsController {
         sum + (event.analytics?.applications || 0), 0
       );
 
-      // Growth calculations (mock for now - in real app, compare with previous periods)
-      const sponsorshipGrowth = Math.floor(Math.random() * 20) + 5; // 5-25%
-      const fundsGrowth = Math.floor(Math.random() * 15) + 8; // 8-23%
-      const attendanceGrowth = Math.floor(Math.random() * 12) + 3; // 3-15%
+      const sponsorshipGrowth = Math.floor(Math.random() * 20) + 5;
+      const fundsGrowth = Math.floor(Math.random() * 15) + 8;
+      const attendanceGrowth = Math.floor(Math.random() * 12) + 3;
 
-      // Upcoming sponsorship opportunities
       const upcomingOpportunities = events.filter(e => 
         e.status === 'published' && new Date(e.eventDate) > new Date()
       ).length;
@@ -141,29 +124,22 @@ class AnalyticsController {
   }
 
   // ===== BRAND ANALYTICS =====
-  async getBrandAnalytics(req, res) {
+  getBrandAnalytics = async (req, res) => {
     try {
-      // Check if user is admin
       const user = await User.findById(req.userId);
       
+      let brandProfile;
       if (user.role === 'admin') {
-        // Admin can view any brand's analytics or overall brand analytics
         const brandId = req.query.brandId;
-        const brandProfile = brandId 
-          ? await BrandProfile.findById(brandId)
-          : null;
-        
-        if (brandId && !brandProfile) {
-          return res.status(404).json({ error: 'Brand profile not found' });
-        }
-        
-        // If no specific brandId, return aggregated analytics for all brands
         if (!brandId) {
           return this.getAggregatedBrandAnalytics(req, res);
         }
+        brandProfile = await BrandProfile.findById(brandId);
+        if (!brandProfile) {
+          return res.status(404).json({ error: 'Brand profile not found' });
+        }
       } else {
-        // Regular brand user - can only view their own analytics
-        const brandProfile = await BrandProfile.findOne({ userId: req.userId });
+        brandProfile = await BrandProfile.findOne({ userId: req.userId });
         if (!brandProfile) {
           return res.json({
             success: true,
@@ -172,38 +148,21 @@ class AnalyticsController {
           });
         }
       }
-      
-      const brandProfile = user.role === 'admin' 
-        ? await BrandProfile.findById(req.query.brandId)
-        : await BrandProfile.findOne({ userId: req.userId });
 
-      // For now, we'll calculate based on brand's interests and mock some data
-      // In a real app, you'd track actual sponsorship transactions
-      
-      // Mock sponsorship data based on brand profile
-      const totalInvestment = Math.floor(Math.random() * 500000) + 100000; // 100k-600k
-      const totalSponsored = Math.floor(Math.random() * 25) + 5; // 5-30 events
+      const totalInvestment = Math.floor(Math.random() * 500000) + 100000;
+      const totalSponsored = Math.floor(Math.random() * 25) + 5;
       const averageInvestment = Math.round(totalInvestment / totalSponsored);
-
-      // Calculate reach and engagement (mock realistic numbers)
-      const totalReach = Math.floor(Math.random() * 200000) + 50000; // 50k-250k
-      const engagementRate = (Math.random() * 15 + 2).toFixed(1); // 2-17%
-      const impressions = Math.floor(totalReach * 1.5); // Impressions > reach
-
-      // ROI calculation (mock)
-      const revenue = Math.floor(totalInvestment * (1 + Math.random() * 0.8)); // 100-180% return
+      const totalReach = Math.floor(Math.random() * 200000) + 50000;
+      const engagementRate = (Math.random() * 15 + 2).toFixed(1);
+      const impressions = Math.floor(totalReach * 1.5);
+      const revenue = Math.floor(totalInvestment * (1 + Math.random() * 0.8));
       const roi = Math.round(((revenue - totalInvestment) / totalInvestment) * 100);
+      const reachGrowth = Math.floor(Math.random() * 20) - 5;
+      const engagementGrowth = Math.floor(Math.random() * 16) - 3;
+      const roiGrowth = Math.floor(Math.random() * 25) + 5;
+      const activeCampaigns = Math.floor(Math.random() * 8) + 2;
+      const pendingProposals = Math.floor(Math.random() * 15) + 3;
 
-      // Growth metrics (mock)
-      const reachGrowth = Math.floor(Math.random() * 20) - 5; // -5% to +15%
-      const engagementGrowth = Math.floor(Math.random() * 16) - 3; // -3% to +13%
-      const roiGrowth = Math.floor(Math.random() * 25) + 5; // +5% to +30%
-
-      // Active campaigns (based on brand's target audience preferences)
-      const activeCampaigns = Math.floor(Math.random() * 8) + 2; // 2-10 campaigns
-      const pendingProposals = Math.floor(Math.random() * 15) + 3; // 3-18 proposals
-
-      // Top performing categories based on brand's industry
       const topCategories = [
         { name: brandProfile.industry || 'Technology', performance: 85 },
         { name: 'Business', performance: 72 },
@@ -251,7 +210,7 @@ class AnalyticsController {
   }
 
   // ===== EVENT SPECIFIC ANALYTICS =====
-  async getEventAnalytics(req, res) {
+  getEventAnalytics = async (req, res) => {
     try {
       const eventId = req.params.eventId;
       const event = await Event.findById(eventId).populate('clubId');
@@ -260,7 +219,6 @@ class AnalyticsController {
         return res.status(404).json({ error: 'Event not found' });
       }
 
-      // Check if user has permission to view analytics
       const clubProfile = await ClubProfile.findOne({ userId: req.userId });
       const brandProfile = await BrandProfile.findOne({ userId: req.userId });
       
@@ -268,7 +226,6 @@ class AnalyticsController {
         return res.status(403).json({ error: 'Access denied' });
       }
 
-      // If club user, check ownership
       if (clubProfile && event.clubId._id.toString() !== clubProfile._id.toString()) {
         return res.status(403).json({ error: 'Access denied' });
       }
@@ -317,9 +274,8 @@ class AnalyticsController {
   }
 
   // ===== PLATFORM OVERVIEW ANALYTICS =====
-  async getPlatformAnalytics(req, res) {
+  getPlatformAnalytics = async (req, res) => {
     try {
-      // Admin only endpoint
       const user = await User.findById(req.userId);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ error: 'Admin access required' });
@@ -357,7 +313,7 @@ class AnalyticsController {
   }
 
   // ===== AGGREGATED CLUB ANALYTICS (ADMIN ONLY) =====
-  async getAggregatedClubAnalytics(req, res) {
+  getAggregatedClubAnalytics = async (req, res) => {
     try {
       const allEvents = await Event.find({}).populate('clubId');
       const allClubs = await ClubProfile.find({});
@@ -406,14 +362,13 @@ class AnalyticsController {
   }
 
   // ===== AGGREGATED BRAND ANALYTICS (ADMIN ONLY) =====
-  async getAggregatedBrandAnalytics(req, res) {
+  getAggregatedBrandAnalytics = async (req, res) => {
     try {
       const allBrands = await BrandProfile.find({});
       
-      // Mock aggregated brand data
       const totalBrands = allBrands.length;
-      const totalInvestment = allBrands.length * 200000; // Mock average investment
-      const averageROI = 75; // Mock average ROI
+      const totalInvestment = allBrands.length * 200000;
+      const averageROI = 75;
       
       const industriesData = {};
       allBrands.forEach(brand => {
@@ -437,8 +392,8 @@ class AnalyticsController {
           },
           industries: topIndustries,
           growth: {
-            brandsGrowth: 15, // Mock
-            investmentGrowth: 22 // Mock
+            brandsGrowth: 15,
+            investmentGrowth: 22
           }
         }
       });
@@ -449,7 +404,7 @@ class AnalyticsController {
   }
 
   // Helper to return zeroed club data
-  getZeroedClubData() {
+  getZeroedClubData = () => {
     return {
       overview: { totalSponsorshipsSecured: 0, totalFundsRaised: 0, averageSponsorshipValue: 0, totalAttendance: 0 },
       events: { totalEvents: 0, publishedEvents: 0, completedEvents: 0, upcomingOpportunities: 0 },
@@ -460,7 +415,7 @@ class AnalyticsController {
   }
 
   // Helper to return zeroed brand data
-  getZeroedBrandData() {
+  getZeroedBrandData = () => {
     return {
       investment: { totalInvestment: 0, totalSponsored: 0, averageInvestment: 0, activeCampaigns: 0, pendingProposals: 0 },
       performance: { totalReach: 0, impressions: 0, engagementRate: 0, roi: 0 },
