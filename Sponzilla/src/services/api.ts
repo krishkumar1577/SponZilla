@@ -326,6 +326,7 @@ export interface CreateEventData {
     benefits: string[];
     spotsAvailable: number;
   }>;
+  status?: 'draft' | 'published';
 }
 
 export const eventsAPI = {
