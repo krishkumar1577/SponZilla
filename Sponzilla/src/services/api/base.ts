@@ -1,7 +1,7 @@
 // API Base URL Configuration
 // In development, use empty string to leverage Vite proxy (/api -> backend:5000)
 // In production, use your actual backend domain
-const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '';
 
 // Generic API function with error handling
 export async function apiRequest<T>(

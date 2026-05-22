@@ -9,6 +9,7 @@ import AboutPage from './pages/About';
 import ContactPage from './pages/Contact';
 import ContactWithHeaderPage from './pages/ContactWithHeader';
 import LoginPage from './pages/Login';
+import OAuthSuccessPage from './pages/OAuthSuccess';
 import BrandDashboardPage from './pages/brand/BrandDashboard';
 import ClubDashboardPage from './pages/club/ClubDashboard';
 import FindClubsPage from './pages/brand/FindClubs';
@@ -44,6 +45,7 @@ function App() {
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/contact-with-header" element={<ContactWithHeaderPage />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/oauth-success" element={<OAuthSuccessPage />} />
               <Route path="/brand-dashboard" element={<BrandDashboardPage />} />
               <Route path="/club-dashboard" element={<ClubDashboardPage />} />
               <Route path="/find-clubs" element={<FindClubsPage />} />
