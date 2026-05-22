@@ -145,6 +145,70 @@ class AuthController {
       res.status(400).json({ error: error.message });
     }
   }
+
+  // ===== GOOGLE LOGIN =====
+  async googleLogin(req, res) {
+    try {
+      const { role } = req.query;
+      if (!process.env.GOOGLE_CLIENT_ID) {
+        return res.status(500).json({ error: 'Google OAuth is not configured on the server. Please set GOOGLE_CLIENT_ID in the backend environment variables.' });
+      }
+      const url = authService.getGoogleAuthUrl(role);
+      res.redirect(url);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ===== GOOGLE CALLBACK =====
+  async googleCallback(req, res) {
+    try {
+      const { code, state } = req.query;
+      const result = await authService.handleGoogleCallback(code, state);
+      
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const userString = encodeURIComponent(JSON.stringify(result.user));
+      const token = result.token;
+      
+      res.redirect(`${frontendUrl}/oauth-success?token=${token}&user=${userString}`);
+    } catch (error) {
+      console.error('Google Auth Callback Error:', error);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
+    }
+  }
+
+  // ===== GITHUB LOGIN =====
+  async githubLogin(req, res) {
+    try {
+      const { role } = req.query;
+      if (!process.env.GITHUB_CLIENT_ID) {
+        return res.status(500).json({ error: 'GitHub OAuth is not configured on the server. Please set GITHUB_CLIENT_ID in the backend environment variables.' });
+      }
+      const url = authService.getGithubAuthUrl(role);
+      res.redirect(url);
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ===== GITHUB CALLBACK =====
+  async githubCallback(req, res) {
+    try {
+      const { code, state } = req.query;
+      const result = await authService.handleGithubCallback(code, state);
+      
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const userString = encodeURIComponent(JSON.stringify(result.user));
+      const token = result.token;
+      
+      res.redirect(`${frontendUrl}/oauth-success?token=${token}&user=${userString}`);
+    } catch (error) {
+      console.error('GitHub Auth Callback Error:', error);
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
+    }
+  }
 }
 
 // Export single instance

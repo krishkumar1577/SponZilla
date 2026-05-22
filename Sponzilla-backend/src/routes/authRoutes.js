@@ -7,6 +7,14 @@ const { verifyToken } = require('../middleware/auth');
 router.post('/register', authController.register);
 router.post('/login', authController.login);
 
+// Google OAuth Routes
+router.get('/google', authController.googleLogin);
+router.get('/google/callback', authController.googleCallback);
+
+// GitHub OAuth Routes
+router.get('/github', authController.githubLogin);
+router.get('/github/callback', authController.githubCallback);
+
 // Protected routes (login required)
 router.get('/me', verifyToken, authController.getProfile);
 router.put('/change-password', verifyToken, authController.changePassword);

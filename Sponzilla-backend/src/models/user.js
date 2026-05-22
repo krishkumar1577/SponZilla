@@ -20,14 +20,23 @@ const userSchema = new mongoose.Schema({
 
   password: {
     type: String,
-    required: [true, "Password is required"],
-    minlength: [ 6, "password must be at least 6 characters long"],
+    required: false,
   },
 
   role: {
     type: String,
     enum: ["club", "brand", "admin"],
     required: [true, "Role is required"],
+  },
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  githubId: {
+    type: String,
+    unique: true,
+    sparse: true,
   },
   verified: {
     type: Boolean,
