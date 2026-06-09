@@ -125,7 +125,7 @@ export const eventsAPI = {
     }),
 
   getPitchContentPreview: (data: any): Promise<{ success: boolean; data: any }> =>
-    apiRequest('/events/pitch-preview', {
+    apiRequest('/events/pitch-deck/preview', {
       method: 'POST',
       body: JSON.stringify(data),
     }),

@@ -73,12 +73,14 @@ class ProfileController {
       }
       
       if (!profile) {
-        return res.status(404).json({ 
-          error: 'Profile not found. Please create one first.' 
+        return res.json({ 
+          success: true,
+          profileExists: false,
+          profile: null
         });
       }
       
-      res.json({ profile });
+      res.json({ success: true, profileExists: true, profile });
       
     } catch (error) {
       res.status(500).json({ error: error.message });

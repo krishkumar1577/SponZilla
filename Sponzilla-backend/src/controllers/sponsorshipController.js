@@ -73,7 +73,7 @@ class SponsorshipController {
     try {
       const clubProfile = await ClubProfile.findOne({ userId: req.userId });
       if (!clubProfile) {
-        return res.status(403).json({ error: 'Access denied' });
+        return res.json({ success: true, requests: [] });
       }
 
       const requests = await SponsorshipRequest.find({ clubId: clubProfile._id })
@@ -92,7 +92,7 @@ class SponsorshipController {
     try {
       const brandProfile = await BrandProfile.findOne({ userId: req.userId });
       if (!brandProfile) {
-        return res.status(403).json({ error: 'Access denied' });
+        return res.json({ success: true, requests: [] });
       }
 
       const requests = await SponsorshipRequest.find({ brandId: brandProfile._id })
