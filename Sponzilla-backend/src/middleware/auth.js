@@ -43,9 +43,20 @@ const isBrand = (req, res, next) => {
   next();
 };
 
+// Check if user is an admin
+const isAdmin = (req, res, next) => {
+  if (req.userRole !== 'admin') {
+    return res.status(403).json({ 
+      error: 'Access denied. Only administrators can perform this action.' 
+    });
+  }
+  next();
+};
+
 // Export middleware
 module.exports = {
   verifyToken,
   isClub,
-  isBrand
+  isBrand,
+  isAdmin
 };

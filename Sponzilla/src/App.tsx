@@ -27,6 +27,7 @@ import ClubLanding from './pages/club/ClubLanding';
 import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
@@ -65,6 +66,7 @@ function App() {
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/club-settings" element={<ClubSettings />} />
               <Route path="/brand-settings" element={<BrandSettings />} />
+              <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
           </div>
           <Analytics />

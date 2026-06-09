@@ -140,6 +140,7 @@ app.use('/api/events', eventRoutes); // Add event routes
 app.use('/api/analytics', analyticsRoutes); // Add analytics routes
 app.use('/api/chat', require('./src/routes/chatRoutes'));
 app.use('/api/sponsorships', require('./src/routes/sponsorshipRoutes'));
+app.use('/api/admin', require('./src/routes/adminRoutes'));
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {

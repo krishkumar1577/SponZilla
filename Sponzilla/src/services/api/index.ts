@@ -5,3 +5,4 @@ export * from './profiles';
 export * from './analytics';
 export * from './chat';
 export * from './sponsorships';
+export * from './admin';
