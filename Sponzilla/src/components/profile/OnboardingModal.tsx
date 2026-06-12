@@ -17,6 +17,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ role, onComple
   const [industryOrUniv, setIndustryOrUniv] = useState('');
   const [typeOrAudience, setTypeOrAudience] = useState('');
   const [description, setDescription] = useState('');
+  const [phone, setPhone] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +37,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ role, onComple
           contactPerson: {
             name: user?.name || '',
             email: user?.email || '',
-            phone: ''
+            phone: phone
           }
         });
       } else {
@@ -53,7 +54,7 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ role, onComple
           contactPerson: {
             name: user?.name || '',
             email: user?.email || '',
-            phone: ''
+            phone: phone
           },
           socialMedia: {}
         });
@@ -110,16 +111,48 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ role, onComple
               />
             </label>
 
+            {role === 'club' ? (
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[#111518] text-sm font-semibold">Club Category</span>
+                <select
+                  required
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors bg-white"
+                  value={typeOrAudience}
+                  onChange={(e) => setTypeOrAudience(e.target.value)}
+                >
+                  <option value="">Select a category...</option>
+                  <option value="technical">Technical</option>
+                  <option value="cultural">Cultural</option>
+                  <option value="sports">Sports</option>
+                  <option value="social">Social</option>
+                  <option value="entrepreneurship">Entrepreneurship</option>
+                  <option value="other">Other</option>
+                </select>
+              </label>
+            ) : (
+              <label className="flex flex-col gap-1.5">
+                <span className="text-[#111518] text-sm font-semibold">Target Audience (comma separated)</span>
+                <input
+                  required
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
+                  placeholder="e.g. Students, Tech Enthusiasts"
+                  value={typeOrAudience}
+                  onChange={(e) => setTypeOrAudience(e.target.value)}
+                />
+              </label>
+            )}
+
             <label className="flex flex-col gap-1.5">
               <span className="text-[#111518] text-sm font-semibold">
-                {role === 'club' ? 'Club Category' : 'Target Audience (comma separated)'}
+                Contact Phone
               </span>
               <input
                 required
+                type="tel"
                 className="w-full rounded-xl border border-gray-300 px-4 py-3 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-colors"
-                placeholder={role === 'club' ? 'e.g. Engineering, Arts, Sports' : 'e.g. Students, Tech Enthusiasts'}
-                value={typeOrAudience}
-                onChange={(e) => setTypeOrAudience(e.target.value)}
+                placeholder="e.g. +1 234 567 8900"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
               />
             </label>
 
