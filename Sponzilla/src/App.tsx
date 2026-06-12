@@ -29,6 +29,7 @@ import SettingsPage from './pages/Settings';
 import ClubSettings from './pages/club/ClubSettings';
 import BrandSettings from './pages/brand/BrandSettings';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import ProtectedRoute from './components/layout/ProtectedRoute';
 import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
@@ -39,6 +40,7 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
+              {/* Public Routes */}
               <Route path="/" element={<HomePage />} />
               <Route path="/list-event" element={<ListEventPage />} />
               <Route path="/browse-events" element={<BrowseEventsWithSearchPage />} />
@@ -49,25 +51,35 @@ function App() {
               <Route path="/contact-with-header" element={<ContactWithHeaderPage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/oauth-success" element={<OAuthSuccessPage />} />
-              <Route path="/brand-dashboard" element={<BrandDashboardPage />} />
-              <Route path="/club-dashboard" element={<ClubDashboardPage />} />
-              <Route path="/find-clubs" element={<FindClubsPage />} />
-              <Route path="/find-brands" element={<FindBrandsPage />} />
-              <Route path="/ai-pitch-deck" element={<AIPitchDeckGeneratorPage />} />
-              <Route path="/club-profile" element={<ClubProfilePage />} />
-              <Route path="/club-profile/:clubId" element={<ClubProfilePage />} />
-              <Route path="/event-management/:eventId" element={<EventManagementPage />} />
               <Route path="/terms-of-service" element={<TermsOfServicePage />} />
               <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
-              <Route path="/messages" element={<MessagesPage />} />
               <Route path="/help" element={<HelpPage />} />
-              <Route path="/brand-profile" element={<BrandProfilePage />} />
-              <Route path="/brand-profile/:brandId" element={<BrandProfilePage />} />
               <Route path="/brand-landing" element={<BrandLanding />} />
               <Route path="/club-landing" element={<ClubLanding />} />
-              <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/club-settings" element={<ClubSettings />} />
-              <Route path="/brand-settings" element={<BrandSettings />} />
+              
+              {/* Profile views (could be public or authenticated, keeping them public for now) */}
+              <Route path="/club-profile" element={<ClubProfilePage />} />
+              <Route path="/club-profile/:clubId" element={<ClubProfilePage />} />
+              <Route path="/brand-profile" element={<BrandProfilePage />} />
+              <Route path="/brand-profile/:brandId" element={<BrandProfilePage />} />
+
+              {/* Protected Routes: Brand Only */}
+              <Route path="/brand-dashboard" element={<ProtectedRoute allowedRoles={['brand']}><BrandDashboardPage /></ProtectedRoute>} />
+              <Route path="/find-clubs" element={<ProtectedRoute allowedRoles={['brand']}><FindClubsPage /></ProtectedRoute>} />
+              <Route path="/brand-settings" element={<ProtectedRoute allowedRoles={['brand']}><BrandSettings /></ProtectedRoute>} />
+
+              {/* Protected Routes: Club Only */}
+              <Route path="/club-dashboard" element={<ProtectedRoute allowedRoles={['club']}><ClubDashboardPage /></ProtectedRoute>} />
+              <Route path="/find-brands" element={<ProtectedRoute allowedRoles={['club']}><FindBrandsPage /></ProtectedRoute>} />
+              <Route path="/ai-pitch-deck" element={<ProtectedRoute allowedRoles={['club']}><AIPitchDeckGeneratorPage /></ProtectedRoute>} />
+              <Route path="/event-management/:eventId" element={<ProtectedRoute allowedRoles={['club']}><EventManagementPage /></ProtectedRoute>} />
+              <Route path="/club-settings" element={<ProtectedRoute allowedRoles={['club']}><ClubSettings /></ProtectedRoute>} />
+
+              {/* Protected Routes: Authenticated Only (Brand or Club) */}
+              <Route path="/messages" element={<ProtectedRoute allowedRoles={['brand', 'club']}><MessagesPage /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={['brand', 'club']}><SettingsPage /></ProtectedRoute>} />
+              
+              {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />
             </Routes>
           </div>

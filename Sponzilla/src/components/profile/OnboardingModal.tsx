@@ -70,9 +70,9 @@ export const OnboardingModal: React.FC<OnboardingModalProps> = ({ role, onComple
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300">
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
-          <h2 className="text-2xl font-bold mb-1">Welcome to SponZilla! 🚀</h2>
-          <p className="text-blue-100 text-sm">
+        <div className="bg-[#f8f9fa] border-b border-[#dbe1e6] p-6">
+          <h2 className="text-[#111518] text-2xl font-bold mb-1">Welcome to SponZilla! 🚀</h2>
+          <p className="text-[#617989] text-sm">
             Let's get your {role === 'club' ? 'Club' : 'Brand'} set up so you can start {role === 'club' ? 'raising sponsorships' : 'finding events'}.
           </p>
         </div>

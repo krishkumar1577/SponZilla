@@ -2,9 +2,12 @@
 import React from 'react';
 import DynamicNavbar from './DynamicNavbar';
 
-// Backward compatibility - renders guest navbar by default
+import { useUserType } from '../../contexts/UserContext';
+
+// Backward compatibility - uses SmartNavbar logic
 const Navbar: React.FC = () => {
-    return <DynamicNavbar userType="guest" />;
+    const userType = useUserType();
+    return <DynamicNavbar userType={userType} />;
 };
 
 export default Navbar;

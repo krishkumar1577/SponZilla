@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import Navbar from '../components/layout/Navbar';
 
 const AboutWithHeaderPage: React.FC = () => {
 
@@ -7,27 +8,7 @@ const AboutWithHeaderPage: React.FC = () => {
     <div className="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
       <div className="layout-container flex h-full grow flex-col">
         {/* Header matching the original design */}
-        <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f4] px-10 py-3">
-          <div className="flex items-center gap-4 text-[#111518]">
-            <div className="size-4">
-              <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 6H42L36 24L42 42H6L12 24L6 6Z" fill="currentColor"></path>
-              </svg>
-            </div>
-            <h2 className="text-[#111518] text-lg font-bold leading-tight tracking-[-0.015em]">SponZilla</h2>
-          </div>
-          <div className="flex flex-1 justify-end gap-8">
-            <div className="flex items-center gap-9">
-              <a className="text-[#111518] text-sm font-medium leading-normal" href="#">Home</a>
-              <a className="text-[#111518] text-sm font-medium leading-normal" href="#">Browse</a>
-              <a className="text-[#111518] text-sm font-medium leading-normal" href="#">Resources</a>
-              <a className="text-[#111518] text-sm font-medium leading-normal" href="#">About Us</a>
-            </div>
-            <button className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-10 px-4 bg-[#1383eb] text-white text-sm font-bold leading-normal tracking-[0.015em]">
-              <span className="truncate">Get Started</span>
-            </button>
-          </div>
-        </header>
+        <Navbar />
         
         <div className="px-40 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">

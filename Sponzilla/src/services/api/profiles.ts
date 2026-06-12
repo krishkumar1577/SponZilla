@@ -69,10 +69,10 @@ export interface BrandProfile {
 
 export const profilesAPI = {
   getClubProfile: (id: string): Promise<{ profile: ClubProfile }> =>
-    apiRequest(`/profiles/club/${id}`),
+    apiRequest(`/profiles/clubs/${id}`),
 
   getBrandProfile: (id: string): Promise<{ profile: BrandProfile }> =>
-    apiRequest(`/profiles/brand/${id}`),
+    apiRequest(`/profiles/brands/${id}`),
 
   getMyProfile: (): Promise<{ profile: ClubProfile | BrandProfile }> =>
     apiRequest('/profiles/me'),
