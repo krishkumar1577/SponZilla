@@ -18,7 +18,7 @@ const BrandDashboardPage: React.FC = () => {
         setLoading(true);
         setError('');
         const response = await analyticsAPI.getBrandAnalytics();
-        setAnalytics(response.data);
+        setAnalytics({ ...response.data, profileExists: response.profileExists });
       } catch (err) {
         setError('Failed to load analytics data');
         console.error('Analytics error:', err);

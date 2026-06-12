@@ -82,6 +82,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const profileRoutes = require('./src/routes/profileRoutes');
 const eventRoutes = require('./src/routes/eventRoutes'); // Add this new route
 const analyticsRoutes = require('./src/routes/analyticsRoutes'); // Add analytics routes
+const contactRoutes = require('./src/routes/contactRoutes'); // Add this new route
 
 
 
@@ -142,6 +143,7 @@ app.use('/api/chat', require('./src/routes/chatRoutes'));
 app.use('/api/sponsorships', require('./src/routes/sponsorshipRoutes'));
 app.use('/api/admin', require('./src/routes/adminRoutes'));
 app.use('/api/proof-of-work', require('./src/routes/proofOfWorkRoutes'));
+app.use('/api/contact', require('./src/routes/contactRoutes'));
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {

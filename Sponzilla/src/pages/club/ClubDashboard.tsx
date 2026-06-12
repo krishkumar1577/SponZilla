@@ -55,7 +55,7 @@ const ClubDashboard: React.FC = () => {
       try {
         setLoading(true);
         const response = await analyticsAPI.getClubAnalytics();
-        setAnalytics(response.data);
+        setAnalytics({ ...response.data, profileExists: response.profileExists });
         setError(null);
       } catch (err) {
         console.error('Failed to fetch club analytics:', err);

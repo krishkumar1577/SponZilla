@@ -6,6 +6,7 @@ import ListEventPage from './pages/ListEvent';
 import BrowseEventsWithSearchPage from './pages/BrowseEvents';
 import ViewEvent from './pages/ViewEvent';
 import AboutPage from './pages/About';
+import PricingPage from './pages/Pricing';
 import ContactPage from './pages/Contact';
 import ContactWithHeaderPage from './pages/ContactWithHeader';
 import LoginPage from './pages/Login';
@@ -43,6 +44,7 @@ function App() {
               <Route path="/browse-events" element={<BrowseEventsWithSearchPage />} />
               <Route path="/view-event/:eventId" element={<ViewEvent />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/pricing" element={<PricingPage />} />
               <Route path="/contact" element={<ContactPage />} />
               <Route path="/contact-with-header" element={<ContactWithHeaderPage />} />
               <Route path="/login" element={<LoginPage />} />

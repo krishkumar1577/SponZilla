@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Navbar from '../components/layout/Navbar';
+import { contactAPI } from '../services/api';
 
 const ContactPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -9,18 +10,33 @@ const ContactPage: React.FC = () => {
     message: ''
   });
 
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
+    setError('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    if (import.meta.env.DEV) console.log('Form submitted');
+    setLoading(true);
+    setError('');
+    
+    try {
+      await contactAPI.submitContactForm(formData);
+      setSuccess(true);
+      setFormData({ name: '', email: '', subject: '', message: '' });
+    } catch (err: any) {
+      setError(err.message || 'Failed to send message. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -46,6 +62,16 @@ const ContactPage: React.FC = () => {
             </div>
             
             <form onSubmit={handleSubmit}>
+              {success && (
+                <div className="mx-4 mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                  <p className="text-green-700 font-medium">Thanks for reaching out! We'll get back to you soon.</p>
+                </div>
+              )}
+              {error && (
+                <div className="mx-4 mb-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                  <p className="text-red-700 font-medium">{error}</p>
+                </div>
+              )}
               <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                 <label className="flex flex-col min-w-40 flex-1">
                   <input
@@ -94,9 +120,10 @@ const ContactPage: React.FC = () => {
               <div className="flex px-4 py-3 justify-start">
                 <button
                   type="submit"
-                  className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1383eb] text-white text-sm font-bold leading-normal tracking-[0.015em]"
+                  disabled={loading}
+                  className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 bg-[#1383eb] hover:bg-[#0f6bbd] transition-colors text-white text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50"
                 >
-                  <span className="truncate">Send Message</span>
+                  <span className="truncate">{loading ? 'Sending...' : 'Send Message'}</span>
                 </button>
               </div>
             </form>
@@ -110,7 +137,7 @@ const ContactPage: React.FC = () => {
                   ></path>
                 </svg>
               </div>
-              <p className="text-[#111518] text-base font-normal leading-normal flex-1 truncate text-left">Email: support@sponzilla.com</p>
+              <p className="text-[#111518] text-base font-normal leading-normal flex-1 truncate text-left">Email: Sponzilla.k@gmail.com</p>
             </div>
             <div className="flex items-center gap-4 bg-white px-4 min-h-14">
               <div className="text-[#111518] flex items-center justify-center rounded-lg bg-[#f0f2f4] shrink-0 size-10" data-icon="Phone" data-size="24px" data-weight="regular">
