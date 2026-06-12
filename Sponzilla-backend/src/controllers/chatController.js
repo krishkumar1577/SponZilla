@@ -2,6 +2,7 @@
 const Conversation = require('../models/Conversation');
 const Message = require('../models/Message');
 const User = require('../models/user');
+const notificationService = require('../services/notificationService');
 
 class ChatController {
   // Get all conversations for a user
@@ -88,6 +89,17 @@ class ChatController {
       // Update conversation with last message
       conversation.lastMessage = message._id;
       await conversation.save();
+
+      // Trigger notification asynchronously
+      Promise.all([
+        User.findById(recipientId),
+        User.findById(req.userId)
+      ]).then(([recipientUser, senderUser]) => {
+        if (recipientUser && senderUser) {
+          notificationService.sendNewMessageEmail(recipientUser, senderUser.name)
+            .catch(err => console.error('Failed to send message email:', err));
+        }
+      }).catch(err => console.error('Failed to fetch users for email:', err));
 
       res.status(201).json({ success: true, message });
     } catch (error) {

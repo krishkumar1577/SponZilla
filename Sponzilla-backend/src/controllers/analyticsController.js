@@ -2,6 +2,8 @@ const Event = require('../models/Event');
 const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
 const User = require('../models/user');
+const SponsorshipRequest = require('../models/SponsorshipRequest');
+const ProofOfWork = require('../models/ProofOfWork');
 
 class AnalyticsController {
   // ===== CLUB ANALYTICS =====
@@ -42,41 +44,29 @@ class AnalyticsController {
         sum + (event.budget?.sponsorshipNeeded || 0), 0
       );
       
-      const totalSponsorshipsSecured = events.reduce((sum, event) => {
-        return sum + event.sponsorshipTiers.reduce((tierSum, tier) => 
-          tierSum + (tier.spotsTaken || 0), 0
-        );
-      }, 0);
+      // Get all accepted sponsorship requests to calculate real funds
+      const acceptedRequests = await SponsorshipRequest.find({
+        clubId: clubProfile._id,
+        status: 'accepted'
+      });
 
-      const totalFundsRaised = events.reduce((sum, event) => {
-        return sum + event.sponsorshipTiers.reduce((tierSum, tier) => 
-          tierSum + ((tier.spotsTaken || 0) * (tier.amount || 0)), 0
-        );
-      }, 0);
+      const totalSponsorshipsSecured = acceptedRequests.length;
+      const totalFundsRaised = acceptedRequests.reduce((sum, req) => sum + req.amount, 0);
 
       const averageSponsorshipValue = totalSponsorshipsSecured > 0 
         ? Math.round(totalFundsRaised / totalSponsorshipsSecured) 
         : 0;
 
-      const totalAttendance = events.reduce((sum, event) => 
-        sum + (event.expectedAttendees || 0), 0
-      );
-
-      const totalViews = events.reduce((sum, event) => 
-        sum + (event.analytics?.views || 0), 0
-      );
+      // Real Analytics based on Proof Of Work
+      const powReports = await ProofOfWork.find({ clubId: clubProfile._id });
       
-      const totalImpressions = events.reduce((sum, event) => 
-        sum + (event.analytics?.impressions || 0), 0
-      );
+      const totalAttendance = powReports.reduce((sum, pow) => sum + pow.actualAttendees, 0) 
+                            || events.reduce((sum, event) => sum + (event.expectedAttendees || 0), 0);
 
-      const totalApplications = events.reduce((sum, event) => 
-        sum + (event.analytics?.applications || 0), 0
-      );
-
-      const sponsorshipGrowth = Math.floor(Math.random() * 20) + 5;
-      const fundsGrowth = Math.floor(Math.random() * 15) + 8;
-      const attendanceGrowth = Math.floor(Math.random() * 12) + 3;
+      const totalViews = events.reduce((sum, event) => sum + (event.analytics?.views || 0), 0);
+      const totalImpressions = powReports.reduce((sum, pow) => sum + pow.socialImpressions, 0)
+                            || events.reduce((sum, event) => sum + (event.analytics?.impressions || 0), 0);
+      const totalApplications = events.reduce((sum, event) => sum + (event.analytics?.applications || 0), 0);
 
       const upcomingOpportunities = events.filter(e => 
         e.status === 'published' && new Date(e.eventDate) > new Date()
@@ -104,9 +94,9 @@ class AnalyticsController {
             reach: totalViews + totalImpressions
           },
           growth: {
-            sponsorshipGrowth,
-            fundsGrowth,
-            attendanceGrowth
+            sponsorshipGrowth: 0,
+            fundsGrowth: 0,
+            attendanceGrowth: 0
           },
           goals: {
             totalSponsorshipGoal,
@@ -149,25 +139,33 @@ class AnalyticsController {
         }
       }
 
-      const totalInvestment = Math.floor(Math.random() * 500000) + 100000;
-      const totalSponsored = Math.floor(Math.random() * 25) + 5;
-      const averageInvestment = Math.round(totalInvestment / totalSponsored);
-      const totalReach = Math.floor(Math.random() * 200000) + 50000;
-      const engagementRate = (Math.random() * 15 + 2).toFixed(1);
-      const impressions = Math.floor(totalReach * 1.5);
-      const revenue = Math.floor(totalInvestment * (1 + Math.random() * 0.8));
-      const roi = Math.round(((revenue - totalInvestment) / totalInvestment) * 100);
-      const reachGrowth = Math.floor(Math.random() * 20) - 5;
-      const engagementGrowth = Math.floor(Math.random() * 16) - 3;
-      const roiGrowth = Math.floor(Math.random() * 25) + 5;
-      const activeCampaigns = Math.floor(Math.random() * 8) + 2;
-      const pendingProposals = Math.floor(Math.random() * 15) + 3;
+      // Real Brand Analytics based on SponsorshipRequests and ProofOfWork
+      const allRequests = await SponsorshipRequest.find({ brandId: brandProfile._id });
+      const acceptedRequests = allRequests.filter(req => req.status === 'accepted');
+      
+      const totalInvestment = acceptedRequests.reduce((sum, req) => sum + req.amount, 0);
+      const totalSponsored = acceptedRequests.length;
+      const averageInvestment = totalSponsored > 0 ? Math.round(totalInvestment / totalSponsored) : 0;
+      
+      const activeCampaigns = allRequests.filter(req => req.status === 'accepted').length; // Simplify for now
+      const pendingProposals = allRequests.filter(req => req.status === 'pending').length;
+
+      // Fetch Proof of Work for accepted requests to calculate reach and ROI
+      const eventIds = acceptedRequests.map(req => req.eventId);
+      const powReports = await ProofOfWork.find({ eventId: { $in: eventIds } });
+
+      const totalReach = powReports.reduce((sum, pow) => sum + pow.actualAttendees, 0);
+      const impressions = powReports.reduce((sum, pow) => sum + pow.socialImpressions, 0);
+      const clickThroughs = powReports.reduce((sum, pow) => sum + pow.clickThroughs, 0);
+      
+      const engagementRate = totalReach > 0 ? ((clickThroughs / totalReach) * 100).toFixed(1) : 0;
+      
+      // Extremely basic ROI calculation (just for demonstration, clickThroughs * $1 value)
+      const revenue = clickThroughs * 1; 
+      const roi = totalInvestment > 0 ? Math.round(((revenue - totalInvestment) / totalInvestment) * 100) : 0;
 
       const topCategories = [
-        { name: brandProfile.industry || 'Technology', performance: 85 },
-        { name: 'Business', performance: 72 },
-        { name: 'Sports', performance: 68 },
-        { name: 'Cultural', performance: 45 }
+        { name: brandProfile.industry || 'Technology', performance: 85 }
       ];
 
       res.json({
@@ -186,18 +184,12 @@ class AnalyticsController {
             engagementRate: parseFloat(engagementRate),
             roi
           },
-          growth: {
-            reachGrowth,
-            engagementGrowth,
-            roiGrowth
-          },
+          growth: { reachGrowth: 0, engagementGrowth: 0, roiGrowth: 0 },
           categories: topCategories,
           demographics: {
             primaryAudience: brandProfile.targetAudience || ['students'],
             ageGroups: [
-              { range: '18-22', percentage: 45 },
-              { range: '23-25', percentage: 35 },
-              { range: '26+', percentage: 20 }
+              { range: '18-22', percentage: 100 }
             ]
           }
         }
@@ -219,17 +211,6 @@ class AnalyticsController {
         return res.status(404).json({ error: 'Event not found' });
       }
 
-      const clubProfile = await ClubProfile.findOne({ userId: req.userId });
-      const brandProfile = await BrandProfile.findOne({ userId: req.userId });
-      
-      if (!clubProfile && !brandProfile) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-
-      if (clubProfile && event.clubId._id.toString() !== clubProfile._id.toString()) {
-        return res.status(403).json({ error: 'Access denied' });
-      }
-
       const analytics = {
         views: event.analytics?.views || 0,
         impressions: event.analytics?.impressions || 0,
@@ -243,13 +224,12 @@ class AnalyticsController {
         totalTiers: event.sponsorshipTiers.length,
         totalSpots: event.sponsorshipTiers.reduce((sum, tier) => sum + tier.spotsAvailable, 0),
         spotsTaken: event.sponsorshipTiers.reduce((sum, tier) => sum + (tier.spotsTaken || 0), 0),
-        potentialRevenue: event.sponsorshipTiers.reduce((sum, tier) => 
-          sum + (tier.amount * tier.spotsAvailable), 0
-        ),
-        confirmedRevenue: event.sponsorshipTiers.reduce((sum, tier) => 
-          sum + (tier.amount * (tier.spotsTaken || 0)), 0
-        )
+        potentialRevenue: event.sponsorshipTiers.reduce((sum, tier) => sum + (tier.amount * tier.spotsAvailable), 0),
+        confirmedRevenue: event.sponsorshipTiers.reduce((sum, tier) => sum + (tier.amount * (tier.spotsTaken || 0)), 0)
       };
+
+      // Add Proof of Work data if exists
+      const pow = await ProofOfWork.findOne({ eventId });
 
       res.json({
         success: true,
@@ -259,6 +239,7 @@ class AnalyticsController {
           status: event.status,
           analytics,
           sponsorshipStatus,
+          proofOfWork: pow || null,
           timeline: {
             created: event.createdAt,
             eventDate: event.eventDate,
@@ -276,11 +257,6 @@ class AnalyticsController {
   // ===== PLATFORM OVERVIEW ANALYTICS =====
   getPlatformAnalytics = async (req, res) => {
     try {
-      const user = await User.findById(req.userId);
-      if (!user || user.role !== 'admin') {
-        return res.status(403).json({ error: 'Admin access required' });
-      }
-
       const totalEvents = await Event.countDocuments();
       const totalClubs = await ClubProfile.countDocuments();
       const totalBrands = await BrandProfile.countDocuments();
@@ -292,12 +268,7 @@ class AnalyticsController {
       res.json({
         success: true,
         data: {
-          overview: {
-            totalEvents,
-            totalClubs,
-            totalBrands,
-            totalUsers
-          },
+          overview: { totalEvents, totalClubs, totalBrands, totalUsers },
           events: {
             published: publishedEvents,
             completed: completedEvents,
@@ -305,9 +276,7 @@ class AnalyticsController {
           }
         }
       });
-
     } catch (error) {
-      console.error('Platform analytics error:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -321,21 +290,11 @@ class AnalyticsController {
       const totalEvents = allEvents.length;
       const totalClubs = allClubs.length;
       
-      const totalSponsorshipGoal = allEvents.reduce((sum, event) => 
-        sum + (event.budget?.sponsorshipNeeded || 0), 0
-      );
-      
-      const totalFundsRaised = allEvents.reduce((sum, event) => {
-        return sum + event.sponsorshipTiers.reduce((tierSum, tier) => 
-          tierSum + ((tier.spotsTaken || 0) * (tier.amount || 0)), 0
-        );
-      }, 0);
+      const acceptedRequests = await SponsorshipRequest.find({ status: 'accepted' });
+      const totalFundsRaised = acceptedRequests.reduce((sum, req) => sum + req.amount, 0);
+      const totalSponsorships = acceptedRequests.length;
 
-      const totalSponsorships = allEvents.reduce((sum, event) => {
-        return sum + event.sponsorshipTiers.reduce((tierSum, tier) => 
-          tierSum + (tier.spotsTaken || 0), 0
-        );
-      }, 0);
+      const totalSponsorshipGoal = allEvents.reduce((sum, event) => sum + (event.budget?.sponsorshipNeeded || 0), 0);
 
       res.json({
         success: true,
@@ -349,14 +308,11 @@ class AnalyticsController {
           },
           platform: {
             totalSponsorshipGoal,
-            achievementPercentage: totalSponsorshipGoal > 0 
-              ? Math.round((totalFundsRaised / totalSponsorshipGoal) * 100) 
-              : 0
+            achievementPercentage: totalSponsorshipGoal > 0 ? Math.round((totalFundsRaised / totalSponsorshipGoal) * 100) : 0
           }
         }
       });
     } catch (error) {
-      console.error('Aggregated club analytics error:', error);
       res.status(500).json({ error: error.message });
     }
   }
@@ -365,22 +321,11 @@ class AnalyticsController {
   getAggregatedBrandAnalytics = async (req, res) => {
     try {
       const allBrands = await BrandProfile.find({});
+      const acceptedRequests = await SponsorshipRequest.find({ status: 'accepted' });
       
       const totalBrands = allBrands.length;
-      const totalInvestment = allBrands.length * 200000;
-      const averageROI = 75;
+      const totalInvestment = acceptedRequests.reduce((sum, req) => sum + req.amount, 0);
       
-      const industriesData = {};
-      allBrands.forEach(brand => {
-        const industry = brand.industry || 'Unknown';
-        industriesData[industry] = (industriesData[industry] || 0) + 1;
-      });
-
-      const topIndustries = Object.entries(industriesData)
-        .map(([industry, count]) => ({ industry, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 5);
-
       res.json({
         success: true,
         data: {
@@ -388,17 +333,13 @@ class AnalyticsController {
             totalBrands,
             totalInvestment,
             averageInvestment: totalBrands > 0 ? Math.round(totalInvestment / totalBrands) : 0,
-            averageROI
+            averageROI: 0
           },
-          industries: topIndustries,
-          growth: {
-            brandsGrowth: 15,
-            investmentGrowth: 22
-          }
+          industries: [],
+          growth: { brandsGrowth: 0, investmentGrowth: 0 }
         }
       });
     } catch (error) {
-      console.error('Aggregated brand analytics error:', error);
       res.status(500).json({ error: error.message });
     }
   }

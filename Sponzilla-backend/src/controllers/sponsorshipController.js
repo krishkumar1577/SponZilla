@@ -4,6 +4,8 @@ const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
+const User = require('../models/user');
+const notificationService = require('../services/notificationService');
 
 class SponsorshipController {
   // Submit a new sponsorship request
@@ -60,6 +62,14 @@ class SponsorshipController {
         senderId: req.userId,
         content: `System: I have submitted a formal bid for the ${tierName} tier (₹${amount.toLocaleString()}). Message: ${message}`
       });
+
+      // Notify Club via email
+      User.findById(event.clubId.userId).then(clubUser => {
+        if (clubUser) {
+          notificationService.sendNewSponsorshipBidEmail(clubUser, brandProfile.brandName, event.title, amount)
+            .catch(err => console.error('Failed to send bid email:', err));
+        }
+      }).catch(err => console.error('Failed to fetch club user for email:', err));
 
       res.status(201).json({ success: true, request });
     } catch (error) {
@@ -150,6 +160,14 @@ class SponsorshipController {
           content: `System: Your sponsorship request for ${request.tierName} has been ${status}.`
         });
       }
+
+      // Notify Brand via email
+      User.findById(brandProfile.userId).then(brandUser => {
+        if (brandUser) {
+          notificationService.sendSponsorshipUpdateEmail(brandUser, clubProfile.clubName, status)
+            .catch(err => console.error('Failed to send sponsorship update email:', err));
+        }
+      }).catch(err => console.error('Failed to fetch brand user for email:', err));
 
       res.json({ success: true, request });
     } catch (error) {

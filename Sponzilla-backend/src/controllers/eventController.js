@@ -371,6 +371,55 @@ class EventController {
             });
         }
     }
+  // ===== AI MATCHMAKING =====
+  getRecommendedEvents = async (req, res) => {
+    try {
+      // Find the brand profile
+      const BrandProfile = require('../models/BrandProfile');
+      const brandProfile = await BrandProfile.findOne({ userId: req.userId });
+      
+      if (!brandProfile) {
+        return res.status(403).json({ error: 'Only brands can access recommended events' });
+      }
+
+      // Fetch active events that are published and in the future
+      const activeEvents = await Event.find({ 
+        status: 'published',
+        eventDate: { $gte: new Date() }
+      }).populate('clubId', 'clubName logo industry');
+
+      if (!activeEvents || activeEvents.length === 0) {
+        return res.json({ success: true, recommendedEvents: [] });
+      }
+
+      const { getAIRecommendations } = require('../services/geminiService');
+      const recommendations = await getAIRecommendations(brandProfile, activeEvents);
+
+      // Merge the AI recommendations with the event objects
+      const populatedRecommendations = recommendations.map(rec => {
+        const eventDoc = activeEvents.find(e => e._id.toString() === rec.eventId);
+        if (eventDoc) {
+          return {
+            event: eventDoc,
+            matchScore: rec.matchScore,
+            reason: rec.reason
+          };
+        }
+        return null;
+      }).filter(Boolean);
+
+      // Sort by score descending
+      populatedRecommendations.sort((a, b) => b.matchScore - a.matchScore);
+
+      res.json({
+        success: true,
+        recommendedEvents: populatedRecommendations
+      });
+    } catch (error) {
+      console.error('Error fetching recommended events:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
 }
 
 module.exports = new EventController();

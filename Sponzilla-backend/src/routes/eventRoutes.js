@@ -25,6 +25,7 @@ router.get('/:id/stats', verifyToken, isClub, eventController.getEventStats);
 
 // Public routes with :id parameter (MUST come last)
 router.get('/', eventController.getAllEvents);
+router.get('/recommended', verifyToken, eventController.getRecommendedEvents);
 router.get('/:id', eventController.getEventById);
 
 module.exports = router;

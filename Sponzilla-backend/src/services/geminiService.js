@@ -73,7 +73,71 @@ const generateFallbackContent = (eventData, aiResponse) => {
   };
 };
 
+/**
+ * Generate AI matchmaking recommendations for a brand
+ * @param {Object} brandProfile - The brand profile
+ * @param {Array} activeEvents - Array of active events
+ * @returns {Promise<Array>} - Array of recommended event IDs with reasons
+ */
+const getAIRecommendations = async (brandProfile, activeEvents) => {
+  try {
+    if (!activeEvents || activeEvents.length === 0) return [];
+    
+    const model = genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+
+    const prompt = `
+You are an expert AI Matchmaker for sponsorships. You need to match a Brand with the most relevant Events from a provided list.
+
+BRAND DETAILS:
+- Name: ${brandProfile.brandName}
+- Industry: ${brandProfile.industry}
+- Target Audience: ${JSON.stringify(brandProfile.targetAudience || [])}
+- Budget Range: ${JSON.stringify(brandProfile.sponsorshipBudget || {})}
+
+AVAILABLE EVENTS:
+${activeEvents.map(e => `
+- ID: ${e._id}
+- Title: ${e.title}
+- Expected Attendees: ${e.expectedAttendees}
+- Target Audience: ${JSON.stringify(e.targetAudience || [])}
+- Budget Needed: ${e.budget?.sponsorshipNeeded || 'N/A'}
+`).join('\n')}
+
+Analyze the brand and the events. Select the top 3 best matching events based on target audience overlap, industry relevance, and budget fit.
+Return a JSON array with exactly this structure (return ONLY valid JSON, no markdown):
+[
+  {
+    "eventId": "event_id_here",
+    "matchScore": 95,
+    "reason": "Short 1-sentence reason why this is a good match."
+  }
+]
+`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+
+    let recommendations;
+    try {
+      let cleanedResponse = responseText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim();
+      recommendations = JSON.parse(cleanedResponse);
+    } catch (parseError) {
+      console.error('Failed to parse Gemini match response:', responseText);
+      return [];
+    }
+
+    return recommendations;
+  } catch (error) {
+    console.error('Error in AI Matchmaking:', error.message);
+    return []; // Return empty on failure so frontend doesn't crash
+  }
+};
+
 module.exports = {
   generatePitchContent,
-  generateFallbackContent
+  generateFallbackContent,
+  getAIRecommendations
 };

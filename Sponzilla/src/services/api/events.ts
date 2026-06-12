@@ -107,6 +107,10 @@ export const eventsAPI = {
   getEventById: (id: string): Promise<{ event: Event }> =>
     apiRequest(`/events/${id}`),
 
+  // ===== AI MATCHMAKING =====
+  getRecommendedEvents: (): Promise<{ success: boolean; recommendedEvents: any[] }> => 
+    apiRequest('/events/recommended'),
+
   createEvent: (data: CreateEventData): Promise<{ message: string; event: Event }> =>
     apiRequest('/events', {
       method: 'POST',

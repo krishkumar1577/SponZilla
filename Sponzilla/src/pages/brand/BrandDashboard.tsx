@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { SmartNavbar } from '../../components/layout/Navbar';
 import { useNavigate } from 'react-router-dom';
-import { analyticsAPI, type BrandAnalytics } from '../../services/api';
+import { analyticsAPI, eventsAPI, type BrandAnalytics } from '../../services/api';
+import { OnboardingModal } from '../../components/profile/OnboardingModal';
 
 const BrandDashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const [analytics, setAnalytics] = useState<BrandAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [loadingRecs, setLoadingRecs] = useState(false);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -25,6 +28,24 @@ const BrandDashboardPage: React.FC = () => {
     };
 
     fetchAnalytics();
+  }, []);
+
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        setLoadingRecs(true);
+        const res = await eventsAPI.getRecommendedEvents();
+        if (res.success && res.recommendedEvents) {
+          setRecommendations(res.recommendedEvents);
+        }
+      } catch (err) {
+        console.error('Failed to load AI recommendations:', err);
+      } finally {
+        setLoadingRecs(false);
+      }
+    };
+
+    fetchRecommendations();
   }, []);
 
   // Format numbers for displayw
@@ -77,19 +98,52 @@ const BrandDashboardPage: React.FC = () => {
         <SmartNavbar />        <div className="px-40 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
             {/* Onboarding Banner for New Users */}
+            {/* Onboarding Modal for New Users */}
             {analytics && analytics.profileExists === false && (
-              <div className="mb-6 p-6 bg-gradient-to-r from-purple-600 to-blue-700 rounded-2xl text-white shadow-lg animate-in fade-in slide-in-from-top duration-500">
-                <div className="flex flex-col @[480px]:flex-row items-center justify-between gap-4">
-                  <div className="text-center @[480px]:text-left">
-                    <h3 className="text-xl font-bold mb-1">Welcome to Sponzilla! 🚀</h3>
-                    <p className="text-blue-100 text-sm">Your brand profile is currently empty. Complete it to start discovering top university clubs and tracking your ROI.</p>
-                  </div>
-                  <button
-                    onClick={() => navigate('/brand-settings')}
-                    className="px-6 py-2.5 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition-colors shadow-sm"
-                  >
-                    Complete Profile
-                  </button>
+              <OnboardingModal 
+                role="brand" 
+                onComplete={() => window.location.reload()} 
+              />
+            )}
+
+            {/* AI Recommended Matches */}
+            {recommendations.length > 0 && (
+              <div className="mb-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-center gap-2 px-4 pb-3 pt-2">
+                  <span className="text-xl">✨</span>
+                  <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] text-left">
+                    AI Recommended Matches
+                  </h2>
+                </div>
+                <div className="flex gap-4 overflow-x-auto pb-4 px-4 snap-x">
+                  {recommendations.map((rec, idx) => (
+                    <div 
+                      key={idx} 
+                      className="min-w-[300px] flex-shrink-0 bg-white border-2 border-purple-100 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all cursor-pointer snap-start relative overflow-hidden"
+                      onClick={() => navigate(`/view-event/${rec.event._id}`)}
+                    >
+                      <div className="absolute top-0 right-0 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">
+                        {rec.matchScore}% Match
+                      </div>
+                      <div className="flex gap-3 items-center mb-3">
+                        <div
+                          className="w-12 h-12 rounded-xl bg-cover bg-center"
+                          style={{ backgroundImage: `url("${rec.event.clubId?.logo || 'https://placehold.co/100'}")` }}
+                        ></div>
+                        <div>
+                          <h3 className="text-[#111518] font-bold text-lg leading-tight">{rec.event.title}</h3>
+                          <p className="text-[#617989] text-sm">{rec.event.clubId?.clubName}</p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-purple-700 bg-purple-50 p-2 rounded-lg font-medium mb-3">
+                        {rec.reason}
+                      </p>
+                      <div className="flex justify-between items-center text-sm text-[#617989]">
+                        <span className="flex items-center gap-1">👥 {rec.event.expectedAttendees}</span>
+                        <span className="flex items-center gap-1">💰 ${rec.event.budget?.sponsorshipNeeded || 'N/A'}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

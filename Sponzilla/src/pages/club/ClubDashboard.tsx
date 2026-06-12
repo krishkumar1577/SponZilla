@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SmartNavbar } from '../../components/layout/Navbar';
 import { analyticsAPI, eventsAPI, profilesAPI, sponsorshipAPI, type ClubAnalytics, type Event, type BrandProfile, type ClubProfile } from '../../services/api';
+import { OnboardingModal } from '../../components/profile/OnboardingModal';
 
 const ClubDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -178,22 +179,12 @@ const ClubDashboard: React.FC = () => {
         {/* Main Content */}
         <div className="gap-1 px-6 flex flex-1 justify-center py-5">
           <div className="layout-content-container flex flex-col max-w-[920px] flex-1">
-            {/* Onboarding Banner for New Users */}
+            {/* Onboarding Modal for New Users */}
             {analytics && analytics.profileExists === false && (
-              <div className="mb-6 p-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl text-white shadow-lg animate-in fade-in slide-in-from-top duration-500">
-                <div className="flex flex-col @[480px]:flex-row items-center justify-between gap-4">
-                  <div className="text-center @[480px]:text-left">
-                    <h3 className="text-xl font-bold mb-1">Welcome to Sponzilla! 🚀</h3>
-                    <p className="text-blue-100 text-sm">Your profile is currently empty. Complete your club profile to start attracting brands and generating AI pitch decks.</p>
-                  </div>
-                  <button
-                    onClick={() => navigate('/club-settings')}
-                    className="px-6 py-2.5 bg-white text-blue-700 font-bold rounded-xl hover:bg-blue-50 transition-colors shadow-sm"
-                  >
-                    Complete Profile
-                  </button>
-                </div>
-              </div>
+              <OnboardingModal 
+                role="club" 
+                onComplete={() => window.location.reload()} 
+              />
             )}
 
             {/* Dashboard Header */}
