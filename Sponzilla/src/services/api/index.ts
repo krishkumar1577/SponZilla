@@ -5,9 +5,9 @@ export * from './profiles';
 export * from './analytics';
 export * from './chat';
 export * from './sponsorships';
-export * from './sponsorship';
 export * from './admin';
 export * from './proofOfWork';
+export * from './notifications';
 
 export const contactAPI = {
   submitContactForm: async (data: { name: string; email: string; subject: string; message: string }) => {

@@ -7,7 +7,7 @@ import { useNotifications } from '../contexts/NotificationContext';
 
 const Messages: React.FC = () => {
   const { user } = useUser();
-  const { refreshUnreadCount } = useNotifications();
+  const { refreshNotifications } = useNotifications();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -56,7 +56,7 @@ const Messages: React.FC = () => {
       const response = await chatAPI.getMessages(conversationId);
       setMessages(response.messages);
       await chatAPI.markAsRead(conversationId);
-      refreshUnreadCount();
+      refreshNotifications();
     } catch (error) {
       console.error('Error fetching messages:', error);
     } finally {
@@ -80,6 +80,9 @@ const Messages: React.FC = () => {
       });
       setMessages([...messages, response.message]);
       setNewMessage('');
+      
+      // Refresh notifications to clear any badge if necessary
+      refreshNotifications();
     } catch (error) {
       console.error('Error sending message:', error);
     } finally {

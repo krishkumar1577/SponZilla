@@ -1,51 +1,102 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { toast, Toaster } from 'react-hot-toast';
 import { useUser } from './UserContext';
-import { chatAPI } from '../services/api';
+import { chatAPI, notificationsAPI, type Notification } from '../services/api';
 
 interface NotificationContextType {
-  unreadCount: number;
-  refreshUnreadCount: () => Promise<void>;
+  unreadMessageCount: number;
+  unreadSystemCount: number;
+  notifications: Notification[];
+  refreshNotifications: () => Promise<void>;
+  markAsRead: (id: string) => Promise<void>;
+  markAllAsRead: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, isAuthenticated } = useUser();
-  const [unreadCount, setUnreadCount] = useState(0);
-  const prevCountRef = useRef(0);
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  const [unreadSystemCount, setUnreadSystemCount] = useState(0);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  
+  const prevMessageCountRef = useRef(0);
+  const prevSystemCountRef = useRef(0);
 
-  const refreshUnreadCount = async () => {
+  const refreshNotifications = async () => {
     if (!isAuthenticated) return;
+    
     try {
-      const response = await chatAPI.getUnreadCount();
-      if (response.success) {
-        if (response.count > prevCountRef.current) {
-          // New message received!
+      // 1. Fetch chat unread count
+      const chatResponse = await chatAPI.getUnreadCount();
+      if (chatResponse.success) {
+        if (chatResponse.count > prevMessageCountRef.current) {
           toast.success('New message received!', {
             icon: '💬',
             duration: 4000,
             position: 'bottom-right',
           });
         }
-        setUnreadCount(response.count);
-        prevCountRef.current = response.count;
+        setUnreadMessageCount(chatResponse.count);
+        prevMessageCountRef.current = chatResponse.count;
+      }
+
+      // 2. Fetch system notifications
+      const notifResponse = await notificationsAPI.getNotifications();
+      if (notifResponse.success) {
+        if (notifResponse.unreadCount > prevSystemCountRef.current) {
+          toast.success('New notification!', {
+            icon: '🔔',
+            duration: 4000,
+            position: 'bottom-right',
+          });
+        }
+        setNotifications(notifResponse.notifications);
+        setUnreadSystemCount(notifResponse.unreadCount);
+        prevSystemCountRef.current = notifResponse.unreadCount;
       }
     } catch (error) {
-      console.error('Failed to fetch unread count:', error);
+      console.error('Failed to fetch notifications:', error);
     }
   };
 
-  // Poll for new messages every 15 seconds
+  const markAsRead = async (id: string) => {
+    try {
+      const res = await notificationsAPI.markAsRead(id);
+      if (res.success) {
+        setNotifications(prev => prev.map(n => n._id === id ? { ...n, read: true } : n));
+        setUnreadSystemCount(prev => Math.max(0, prev - 1));
+      }
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
+  };
+
+  const markAllAsRead = async () => {
+    try {
+      const res = await notificationsAPI.markAllAsRead();
+      if (res.success) {
+        setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+        setUnreadSystemCount(0);
+      }
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
+  };
+
+  // Poll for new messages/notifications every 15 seconds
   useEffect(() => {
     let interval: any;
 
     if (isAuthenticated) {
-      refreshUnreadCount();
-      interval = setInterval(refreshUnreadCount, 15000);
+      refreshNotifications();
+      interval = setInterval(refreshNotifications, 15000);
     } else {
-      setUnreadCount(0);
-      prevCountRef.current = 0;
+      setUnreadMessageCount(0);
+      setUnreadSystemCount(0);
+      setNotifications([]);
+      prevMessageCountRef.current = 0;
+      prevSystemCountRef.current = 0;
     }
 
     return () => {
@@ -54,7 +105,16 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [isAuthenticated, user?.id]);
 
   return (
-    <NotificationContext.Provider value={{ unreadCount, refreshUnreadCount }}>
+    <NotificationContext.Provider 
+      value={{ 
+        unreadMessageCount, 
+        unreadSystemCount, 
+        notifications, 
+        refreshNotifications,
+        markAsRead,
+        markAllAsRead
+      }}
+    >
       {children}
       <Toaster />
     </NotificationContext.Provider>

@@ -6,11 +6,10 @@ import { OnboardingModal } from '../../components/profile/OnboardingModal';
 
 const BrandDashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const [analytics, setAnalytics] = useState<BrandAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<(BrandAnalytics & { profileExists?: boolean }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [loadingRecs, setLoadingRecs] = useState(false);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -33,15 +32,12 @@ const BrandDashboardPage: React.FC = () => {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        setLoadingRecs(true);
         const res = await eventsAPI.getRecommendedEvents();
         if (res.success && res.recommendedEvents) {
           setRecommendations(res.recommendedEvents);
         }
       } catch (err) {
         console.error('Failed to load AI recommendations:', err);
-      } finally {
-        setLoadingRecs(false);
       }
     };
 

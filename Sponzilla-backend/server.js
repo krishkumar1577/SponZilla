@@ -80,9 +80,14 @@ app.use(express.json());  // Allow reading JSON data from requests
 const User = require('./src/models/user');  // Fixed: keep lowercase 'user' as per your file structure
 const authRoutes = require('./src/routes/authRoutes');
 const profileRoutes = require('./src/routes/profileRoutes');
-const eventRoutes = require('./src/routes/eventRoutes'); // Add this new route
-const analyticsRoutes = require('./src/routes/analyticsRoutes'); // Add analytics routes
-const contactRoutes = require('./src/routes/contactRoutes'); // Add this new route
+const eventRoutes = require('./src/routes/eventRoutes');
+const analyticsRoutes = require('./src/routes/analyticsRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
+const proofOfWorkRoutes = require('./src/routes/proofOfWorkRoutes');
+const chatRoutes = require('./src/routes/chatRoutes');
+const sponsorshipRoutes = require('./src/routes/sponsorshipRoutes');
+const contactRoutes = require('./src/routes/contactRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
 
 
 
@@ -144,6 +149,7 @@ app.use('/api/sponsorships', require('./src/routes/sponsorshipRoutes'));
 app.use('/api/admin', require('./src/routes/adminRoutes'));
 app.use('/api/proof-of-work', require('./src/routes/proofOfWorkRoutes'));
 app.use('/api/contact', require('./src/routes/contactRoutes'));
+app.use('/api/notifications', notificationRoutes);
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {

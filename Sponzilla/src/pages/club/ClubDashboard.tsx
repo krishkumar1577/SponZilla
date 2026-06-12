@@ -7,7 +7,7 @@ import { OnboardingModal } from '../../components/profile/OnboardingModal';
 const ClubDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
-  const [analytics, setAnalytics] = useState<ClubAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<(ClubAnalytics & { profileExists?: boolean }) | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [recommendedBrands, setRecommendedBrands] = useState<BrandProfile[]>([]);
   const [clubProfile, setClubProfile] = useState<ClubProfile | null>(null);

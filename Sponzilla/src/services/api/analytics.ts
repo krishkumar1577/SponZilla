@@ -90,11 +90,11 @@ export interface EventAnalytics {
 
 export const analyticsAPI = {
   // Club analytics (for club dashboard)
-  getClubAnalytics: (): Promise<{ success: boolean; data: ClubAnalytics }> =>
+  getClubAnalytics: (): Promise<{ success: boolean; data: ClubAnalytics; profileExists?: boolean }> =>
     apiRequest('/analytics/club'),
 
   // Brand analytics (for brand dashboard)
-  getBrandAnalytics: (): Promise<{ success: boolean; data: BrandAnalytics }> =>
+  getBrandAnalytics: (): Promise<{ success: boolean; data: BrandAnalytics; profileExists?: boolean }> =>
     apiRequest('/analytics/brand'),
 
   // Event specific analytics

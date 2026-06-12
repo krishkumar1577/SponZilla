@@ -18,7 +18,7 @@ interface NavLink {
 
 const DynamicNavbar: React.FC<DynamicNavbarProps> = ({ userType, className = "" }) => {
   const location = useLocation();
-  const { unreadCount } = useNotifications();
+  const { unreadMessageCount, unreadSystemCount, notifications, markAsRead, markAllAsRead } = useNotifications();
 
   // Define navigation links for each user type
   const getNavigationLinks = (type: UserType): NavLink[] => {
@@ -45,25 +45,93 @@ const DynamicNavbar: React.FC<DynamicNavbarProps> = ({ userType, className = "" 
     }
   };
 
+  const [isNotifDropdownOpen, setIsNotifDropdownOpen] = React.useState(false);
+
   // Define action buttons for each user type
   const getActionButtons = (type: UserType) => {
     switch (type) {
       case 'club':
       case 'brand':
         return (
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
+            {/* System Notifications Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsNotifDropdownOpen(!isNotifDropdownOpen)}
+                className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 bg-[#f0f3f4] text-[#111518] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5 relative hover:bg-[#e8ecef] transition-colors"
+              >
+                <div className="text-[#111518]" data-icon="Bell" data-size="20px" data-weight="regular">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
+                    <path d="M221.8,175.94C216.25,166.38,208,139.33,208,104a80,80,0,1,0-160,0c0,35.34-8.26,62.38-13.81,71.94A16,16,0,0,0,48,200H88.81a40,40,0,0,0,78.38,0H208a16,16,0,0,0,13.8-24.06ZM128,216a24,24,0,0,1-22.62-16h45.24A24,24,0,0,1,128,216ZM48,184c7.7-13.24,16-43.92,16-80a64,64,0,1,1,128,0c0,36.05,8.28,66.73,16,80Z"></path>
+                  </svg>
+                </div>
+                {unreadSystemCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
+                )}
+              </button>
+
+              {/* Dropdown Menu */}
+              {isNotifDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                    <h3 className="font-bold text-gray-900">Notifications</h3>
+                    {unreadSystemCount > 0 && (
+                      <button 
+                        onClick={() => markAllAsRead()}
+                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-[320px] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-6 text-center text-gray-500 text-sm">
+                        No notifications yet
+                      </div>
+                    ) : (
+                      notifications.map(notif => (
+                        <div 
+                          key={notif._id} 
+                          onClick={() => {
+                            if (!notif.read) markAsRead(notif._id);
+                            if (notif.link) window.location.href = notif.link;
+                            setIsNotifDropdownOpen(false);
+                          }}
+                          className={`p-4 border-b border-gray-50 cursor-pointer hover:bg-gray-50 transition-colors ${!notif.read ? 'bg-blue-50/50' : ''}`}
+                        >
+                          <div className="flex gap-3">
+                            <div className={`mt-1 w-2 h-2 rounded-full flex-shrink-0 ${!notif.read ? 'bg-blue-500' : 'bg-transparent'}`}></div>
+                            <div>
+                              <p className="text-sm font-bold text-gray-900">{notif.title}</p>
+                              <p className="text-xs text-gray-600 mt-1 line-clamp-2">{notif.message}</p>
+                              <p className="text-[10px] text-gray-400 mt-2">
+                                {new Date(notif.createdAt).toLocaleDateString()} at {new Date(notif.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Chat Dropdown */}
             <Link
               to="/messages"
-              className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 bg-[#f0f3f4] text-[#111518] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5 relative"
+              className="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 bg-[#f0f3f4] text-[#111518] gap-2 text-sm font-bold leading-normal tracking-[0.015em] min-w-0 px-2.5 relative hover:bg-[#e8ecef] transition-colors"
             >
               <div className="text-[#111518]" data-icon="ChatCircleDots" data-size="20px" data-weight="regular">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
                   <path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"></path>
                 </svg>
               </div>
-              {unreadCount > 0 && (
+              {unreadMessageCount > 0 && (
                 <span className="absolute top-1.5 right-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 border-2 border-white"></span>
               )}
+
             </Link>
             <Link
               to="/help"
