@@ -68,6 +68,8 @@ class NotificationService {
       <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/brand/requests">View Requests</a>
     `;
     return this.sendEmail(brandUser.email, `Your Sponsorship Request was ${status}`, html);
+  }
+
   async sendContactEmail(name, email, subject, message) {
     const supportEmail = process.env.SUPPORT_EMAIL || 'Sponzilla.k@gmail.com';
     const html = `
