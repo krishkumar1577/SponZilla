@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SmartNavbar } from '../../components/layout/Navbar';
 import { useNavigate } from 'react-router-dom';
-import { analyticsAPI, eventsAPI, type BrandAnalytics } from '../../services/api';
+import { analyticsAPI, eventsAPI, sponsorshipAPI, type BrandAnalytics } from '../../services/api';
 import { OnboardingModal } from '../../components/profile/OnboardingModal';
 
 const BrandDashboardPage: React.FC = () => {
@@ -10,6 +10,8 @@ const BrandDashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [sponsorshipRequests, setSponsorshipRequests] = useState<any[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -30,7 +32,7 @@ const BrandDashboardPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const fetchAdditionalData = async () => {
       try {
         const res = await eventsAPI.getRecommendedEvents();
         if (res.success && res.recommendedEvents) {
@@ -39,9 +41,19 @@ const BrandDashboardPage: React.FC = () => {
       } catch (err) {
         console.error('Failed to load AI recommendations:', err);
       }
+
+      try {
+        setRequestsLoading(true);
+        const reqResponse = await sponsorshipAPI.getBrandRequests();
+        setSponsorshipRequests(reqResponse.requests || []);
+      } catch (err) {
+        console.error('Failed to load sponsorship requests:', err);
+      } finally {
+        setRequestsLoading(false);
+      }
     };
 
-    fetchRecommendations();
+    fetchAdditionalData();
   }, []);
 
   // Format numbers for displayw
@@ -328,6 +340,72 @@ const BrandDashboardPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Your Sponsorship Bids Section */}
+        <div className="px-40 flex flex-1 justify-center py-5">
+          <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
+            <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Your Sponsorship Bids</h2>
+            <div className="px-4 py-3">
+              <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
+                <table className="flex-1 w-full text-left">
+                  <thead>
+                    <tr className="bg-[#f0f3f4] border-b border-[#dbe1e6]">
+                      <th className="px-4 py-3 text-[#111518] text-sm font-bold">Event & Club</th>
+                      <th className="px-4 py-3 text-[#111518] text-sm font-bold">Tier</th>
+                      <th className="px-4 py-3 text-[#111518] text-sm font-bold">Amount</th>
+                      <th className="px-4 py-3 text-[#111518] text-sm font-bold">Status</th>
+                      <th className="px-4 py-3 text-[#111518] text-sm font-bold text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {requestsLoading ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-[#617989] text-sm">Loading requests...</td>
+                      </tr>
+                    ) : sponsorshipRequests.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-8 text-center text-[#617989] text-sm">
+                          You haven't submitted any sponsorship bids yet. <button onClick={() => navigate('/browse-events')} className="text-blue-600 hover:underline">Find events to sponsor</button>
+                        </td>
+                      </tr>
+                    ) : (
+                      sponsorshipRequests.map((req) => (
+                        <tr key={req._id} className="border-b border-[#dbe1e6] hover:bg-gray-50 transition-colors">
+                          <td className="px-4 py-4">
+                            <p className="text-[#111518] font-bold">{req.eventId?.title || 'Unknown Event'}</p>
+                            <p className="text-[#617989] text-xs">by {req.clubId?.clubName || 'Unknown Club'}</p>
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded uppercase tracking-wider">{req.tierName}</span>
+                          </td>
+                          <td className="px-4 py-4">
+                            <p className="text-[#111518] font-bold">₹{req.amount.toLocaleString()}</p>
+                          </td>
+                          <td className="px-4 py-4">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize
+                              ${req.status === 'accepted' ? 'bg-green-100 text-green-800' : 
+                                req.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                                'bg-yellow-100 text-yellow-800'}`}>
+                              {req.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 text-center">
+                            <button 
+                              onClick={() => navigate('/messages')}
+                              className="text-blue-600 text-sm font-bold hover:underline"
+                            >
+                              Message
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>

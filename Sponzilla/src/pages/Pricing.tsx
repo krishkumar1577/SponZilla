@@ -1,11 +1,77 @@
 import React, { useState } from 'react';
 import Navbar from '../components/layout/Navbar';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../contexts/UserContext';
+import { paymentAPI } from '../services/paymentAPI';
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
   const [userType, setUserType] = useState<'club' | 'brand'>('club');
+  const { user, isAuthenticated, setUser } = useUser();
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleUpgrade = async () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
+    // TEMPORARILY DISABLED: Razorpay integration is built but commented out for deployment
+    // until the Razorpay account and keys are fully set up.
+    alert("Pro subscriptions will be available soon! We are currently finalizing our payment gateway.");
+    
+    /*
+    try {
+      setIsProcessing(true);
+      const orderData = await paymentAPI.createOrder(billingCycle);
+      
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_placeholder', // Usually fetched from backend or env
+        amount: orderData.order.amount,
+        currency: 'INR',
+        name: 'SponZilla',
+        description: 'Pro Subscription',
+        order_id: orderData.order.id,
+        handler: async (response: any) => {
+          try {
+            const verifyRes = await paymentAPI.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature
+            });
+            if (verifyRes.success) {
+              alert('Successfully upgraded to Pro!');
+              setUser({ ...user, subscriptionPlan: 'pro' });
+            }
+          } catch (err) {
+            console.error('Payment verification failed', err);
+            alert('Payment verification failed. Please contact support.');
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+        },
+        theme: {
+          color: '#111518'
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.on('payment.failed', function (response: any){
+        console.error('Payment failed', response.error);
+        alert('Payment failed. Please try again.');
+      });
+      rzp.open();
+    } catch (err) {
+      console.error('Failed to initiate payment', err);
+      alert('Failed to initiate checkout. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+    */
+  };
 
   const clubPlans = [
     {
@@ -132,10 +198,11 @@ const PricingPage: React.FC = () => {
                 </div>
 
                 <button 
-                  onClick={() => navigate('/login')}
-                  className={`w-full py-3 rounded-xl font-bold transition-all mb-8 ${plan.highlighted ? 'bg-white text-[#111518] hover:bg-gray-100' : 'bg-[#f0f3f4] text-[#111518] hover:bg-[#e4e9ec]'}`}
+                  onClick={plan.highlighted ? handleUpgrade : () => navigate(isAuthenticated ? '/dashboard' : '/login')}
+                  disabled={isProcessing}
+                  className={`w-full py-3 rounded-xl font-bold transition-all mb-8 ${plan.highlighted ? 'bg-white text-[#111518] hover:bg-gray-100' : 'bg-[#f0f3f4] text-[#111518] hover:bg-[#e4e9ec]'} ${isProcessing && plan.highlighted ? 'opacity-70 cursor-wait' : ''}`}
                 >
-                  {plan.buttonText}
+                  {isProcessing && plan.highlighted ? 'Processing...' : plan.buttonText}
                 </button>
 
                 <div className="flex flex-col gap-4 mt-auto">

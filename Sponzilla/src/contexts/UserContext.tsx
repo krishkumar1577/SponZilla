@@ -11,6 +11,7 @@ interface User {
   type: UserType;
   profileImage?: string;
   token?: string;
+  subscriptionPlan?: 'free' | 'pro';
 }
 
 interface UserContextType {
