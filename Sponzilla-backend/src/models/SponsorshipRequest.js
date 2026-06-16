@@ -50,4 +50,10 @@ const sponsorshipRequestSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Indexes for better query performance
+sponsorshipRequestSchema.index({ clubId: 1, status: 1 });
+sponsorshipRequestSchema.index({ brandId: 1, status: 1 });
+sponsorshipRequestSchema.index({ eventId: 1, brandId: 1 }, { unique: true });
+sponsorshipRequestSchema.index({ status: 1, createdAt: -1 });
+
 module.exports = mongoose.model('SponsorshipRequest', sponsorshipRequestSchema);

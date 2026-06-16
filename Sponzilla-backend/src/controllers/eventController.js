@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const ClubProfile = require('../models/ClubProfile');
+const DOMPurify = require('isomorphic-dompurify');
 
 class EventController {
     // Create a new event
@@ -9,10 +10,16 @@ class EventController {
             if (!clubProfile) {
                 return res.status(403).json({ error: 'Club profile not found. Please create one first.' });
             }
-            const event = await Event.create({
+
+            // Sanitize user inputs
+            const sanitizedData = {
                 clubId: clubProfile._id,
                 ...req.body
-            });
+            };
+            if (req.body.title) sanitizedData.title = DOMPurify.sanitize(req.body.title);
+            if (req.body.description) sanitizedData.description = DOMPurify.sanitize(req.body.description);
+
+            const event = await Event.create(sanitizedData);
 
             res.status(201).json({
                 message: 'Event created successfully',
@@ -143,10 +150,17 @@ class EventController {
                 });
             }
 
+            // Sanitize user inputs
+            const sanitizedData = {
+                ...req.body
+            };
+            if (req.body.title) sanitizedData.title = DOMPurify.sanitize(req.body.title);
+            if (req.body.description) sanitizedData.description = DOMPurify.sanitize(req.body.description);
+
             // Update event
             const updatedEvent = await Event.findByIdAndUpdate(
                 req.params.id,
-                req.body,
+                sanitizedData,
                 { new: true, runValidators: true }
             );
 

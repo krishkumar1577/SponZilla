@@ -1,4 +1,11 @@
 require('dotenv').config();  // Load .env file
+
+// Validate JWT_SECRET in production
+if (process.env.NODE_ENV === 'production' &&
+    process.env.JWT_SECRET === 'your_jwt_secret_here') {
+  throw new Error('❌ CRITICAL: JWT_SECRET must be changed from default value in production!');
+}
+
 const express = require('express');
 const cors = require('cors');
 const connectDB = require('./src/config/database');  // Import database connection
@@ -39,28 +46,25 @@ connectDB();
 //   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
 //   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 // };
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? ['https://sponzilla.vercel.app']
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
+
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin
+    // Allow requests with no origin (like mobile apps, curl requests)
     if (!origin) return callback(null, true);
 
-    const allowedOrigins = [
-      'https://sponzilla.vercel.app',
-      'http://localhost:5173',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'http://127.0.0.1:3000'
-    ];
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-    // Check if origin is allowed
-    const isAllowed = allowedOrigins.includes(origin) ||
-      origin.includes('github.dev') ||
-      origin.includes('githubpreview.dev') ||
-      origin.includes('vercel.app') ||
-      origin.startsWith('http://localhost:') ||
-      origin.startsWith('http://127.0.0.1:');
-
-    if (isAllowed) {
+    // Allow GitHub Codespaces and Vercel preview deployments in development
+    if (process.env.NODE_ENV !== 'production' &&
+      (origin.includes('github.dev') ||
+       origin.includes('githubpreview.dev') ||
+       origin.includes('vercel.app'))) {
       return callback(null, true);
     }
 
@@ -69,12 +73,13 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));  // Allow frontend to access backend
 
-app.use(express.json());  // Allow reading JSON data from requests
+app.use(express.json({ limit: '10mb' }));  // Allow reading JSON data from requests with 10MB limit
+app.use(express.urlencoded({ limit: '10mb', extended: true }));  // Allow reading URL-encoded data with 10MB limit
 
 // Import models and routes
 const User = require('./src/models/user');  // Fixed: keep lowercase 'user' as per your file structure
@@ -108,36 +113,38 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Test route: Create a test user
-app.get('/test-user', async (req, res) => {
-  try {
-    // Check if test user already exists
-    const existing = await User.findOne({ email: 'test@example.com' });
-    if (existing) {
-      return res.json({
-        message: 'Test user already exists',
-        user: existing
+// Test route: Create a test user (development only)
+if (process.env.NODE_ENV === 'development') {
+  app.get('/test-user', async (req, res) => {
+    try {
+      // Check if test user already exists
+      const existing = await User.findOne({ email: 'test@example.com' });
+      if (existing) {
+        return res.json({
+          message: 'Test user already exists',
+          user: existing
+        });
+      }
+
+      // Create test user
+      const testUser = await User.create({
+        name: 'Test Club',
+        email: 'test@example.com',
+        password: 'password123',
+        role: 'club'
+      });
+
+      res.json({
+        message: 'Test user created successfully!',
+        user: testUser
+      });
+    } catch (error) {
+      res.status(500).json({
+        error: error.message
       });
     }
-
-    // Create test user
-    const testUser = await User.create({
-      name: 'Test Club',
-      email: 'test@example.com',
-      password: 'password123',
-      role: 'club'
-    });
-
-    res.json({
-      message: 'Test user created successfully!',
-      user: testUser
-    });
-  } catch (error) {
-    res.status(500).json({
-      error: error.message
-    });
-  }
-});
+  });
+}
 
 // STEP 5.5: Mount routes
 app.use('/api/auth', authRoutes);
@@ -152,6 +159,21 @@ app.use('/api/contact', require('./src/routes/contactRoutes'));
 app.use('/api/notifications', notificationRoutes);
 // TEMPORARILY DISABLED for deployment until Razorpay account is ready
 // app.use('/api/payments', require('./src/routes/paymentRoutes'));
+
+// Global error handler
+app.use((err, req, res, next) => {
+  const isDev = process.env.NODE_ENV === 'development';
+
+  const statusCode = err.statusCode || 500;
+  const message = isDev ? err.message : 'An error occurred. Please try again.';
+
+  console.error('Error:', err);
+
+  res.status(statusCode).json({
+    error: message,
+    ...(isDev && { stack: err.stack })
+  });
+});
 
 // STEP 6: 404 handler (if route doesn't exist)
 app.use((req, res) => {

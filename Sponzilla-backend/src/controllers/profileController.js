@@ -1,5 +1,39 @@
 const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
+const DOMPurify = require('isomorphic-dompurify');
+const Joi = require('joi');
+
+// Utility function to escape regex special characters
+const escapeRegex = (string) => {
+  return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+};
+
+// Validation schemas
+const clubProfileSchema = Joi.object({
+  clubName: Joi.string().required().min(3).max(100),
+  university: Joi.string().required().min(3).max(100),
+  description: Joi.string().required().min(10).max(1000),
+  category: Joi.string().valid('technical', 'cultural', 'sports', 'social', 'entrepreneurship', 'other').required(),
+  memberCount: Joi.number().min(0).default(0),
+  contactPerson: Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    phone: Joi.string().required()
+  }).required()
+});
+
+const brandProfileSchema = Joi.object({
+  brandName: Joi.string().required().min(3).max(100),
+  industry: Joi.string().required(),
+  description: Joi.string().required().min(10).max(1000),
+  website: Joi.string().uri().required(),
+  companySize: Joi.string().valid('startup', 'small', 'medium', 'large', 'enterprise').required(),
+  contactPerson: Joi.object({
+    name: Joi.string().required(),
+    email: Joi.string().email().required(),
+    phone: Joi.string().required()
+  }).required()
+});
 
 
 class ProfileController {
@@ -7,25 +41,37 @@ class ProfileController {
   // ===== CREATE CLUB PROFILE =====
   async createClubProfile(req, res) {
     try {
+      // Validate input
+      const { error, value } = clubProfileSchema.validate(req.body);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+
       // Check if profile already exists
       const existingProfile = await ClubProfile.findOne({ userId: req.userId });
       if (existingProfile) {
-        return res.status(400).json({ 
-          error: 'Profile already exists. Use update instead.' 
+        return res.status(400).json({
+          error: 'Profile already exists. Use update instead.'
         });
       }
-      
-      // Create profile
-      const profile = await ClubProfile.create({
+
+      // Sanitize user inputs
+      const sanitizedData = {
         userId: req.userId,
-        ...req.body
-      });
-      
+        clubName: DOMPurify.sanitize(value.clubName),
+        description: DOMPurify.sanitize(value.description),
+        achievements: value.achievements ? value.achievements.map(a => DOMPurify.sanitize(a)) : [],
+        ...value
+      };
+
+      // Create profile
+      const profile = await ClubProfile.create(sanitizedData);
+
       res.status(201).json({
         message: 'Club profile created successfully',
         profile
       });
-      
+
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
@@ -34,25 +80,36 @@ class ProfileController {
   // ===== CREATE BRAND PROFILE =====
   async createBrandProfile(req, res) {
     try {
+      // Validate input
+      const { error, value } = brandProfileSchema.validate(req.body);
+      if (error) {
+        return res.status(400).json({ error: error.details[0].message });
+      }
+
       // Check if profile already exists
       const existingProfile = await BrandProfile.findOne({ userId: req.userId });
       if (existingProfile) {
-        return res.status(400).json({ 
-          error: 'Profile already exists. Use update instead.' 
+        return res.status(400).json({
+          error: 'Profile already exists. Use update instead.'
         });
       }
-      
-      // Create profile
-      const profile = await BrandProfile.create({
+
+      // Sanitize user inputs
+      const sanitizedData = {
         userId: req.userId,
-        ...req.body
-      });
-      
+        brandName: DOMPurify.sanitize(value.brandName),
+        description: DOMPurify.sanitize(value.description),
+        ...value
+      };
+
+      // Create profile
+      const profile = await BrandProfile.create(sanitizedData);
+
       res.status(201).json({
         message: 'Brand profile created successfully',
         profile
       });
-      
+
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
@@ -90,21 +147,29 @@ class ProfileController {
   // ===== UPDATE CLUB PROFILE =====
   async updateClubProfile(req, res) {
     try {
+      // Sanitize user inputs
+      const sanitizedData = {
+        ...req.body
+      };
+      if (req.body.clubName) sanitizedData.clubName = DOMPurify.sanitize(req.body.clubName);
+      if (req.body.description) sanitizedData.description = DOMPurify.sanitize(req.body.description);
+      if (req.body.achievements) sanitizedData.achievements = req.body.achievements.map(a => DOMPurify.sanitize(a));
+
       const profile = await ClubProfile.findOneAndUpdate(
         { userId: req.userId },
-        req.body,
+        sanitizedData,
         { new: true, runValidators: true }
       );
-      
+
       if (!profile) {
         return res.status(404).json({ error: 'Profile not found' });
       }
-      
+
       res.json({
         message: 'Profile updated successfully',
         profile
       });
-      
+
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
@@ -113,21 +178,28 @@ class ProfileController {
   // ===== UPDATE BRAND PROFILE =====
   async updateBrandProfile(req, res) {
     try {
+      // Sanitize user inputs
+      const sanitizedData = {
+        ...req.body
+      };
+      if (req.body.brandName) sanitizedData.brandName = DOMPurify.sanitize(req.body.brandName);
+      if (req.body.description) sanitizedData.description = DOMPurify.sanitize(req.body.description);
+
       const profile = await BrandProfile.findOneAndUpdate(
         { userId: req.userId },
-        req.body,
+        sanitizedData,
         { new: true, runValidators: true }
       );
-      
+
       if (!profile) {
         return res.status(404).json({ error: 'Profile not found' });
       }
-      
+
       res.json({
         message: 'Profile updated successfully',
         profile
       });
-      
+
     } catch (error) {
       res.status(400).json({ error: error.message });
     }
@@ -137,11 +209,11 @@ class ProfileController {
   async getAllClubs(req, res) {
     try {
       const { category, university, search, page = 1, limit = 10 } = req.query;
-      
+
       // Build filter
       const filter = {};
       if (category) filter.category = category;
-      if (university) filter.university = new RegExp(university, 'i');
+      if (university) filter.university = new RegExp(escapeRegex(university), 'i');
       if (search) {
         filter.$text = { $search: search };
       }
@@ -175,12 +247,15 @@ class ProfileController {
   async getAllBrands(req, res) {
     try {
       const { industry, search, page = 1, limit = 10 } = req.query;
-      
+
       // Build filter
       const filter = {};
       if (industry) filter.industry = industry;
       if (search) {
-        filter.$text = { $search: search };
+        filter.$or = [
+          { brandName: new RegExp(escapeRegex(search), 'i') },
+          { industry: new RegExp(escapeRegex(search), 'i') }
+        ];
       }
       
       // Pagination

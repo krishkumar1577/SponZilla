@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
 import { authAPI, type LoginCredentials, type RegisterData } from '../services/api';
 
-export type UserType = 'guest' | 'club' | 'brand';
+export type UserType = 'guest' | 'club' | 'brand' | 'admin';
 
 interface User {
   id?: string;

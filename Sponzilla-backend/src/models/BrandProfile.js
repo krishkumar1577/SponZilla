@@ -159,5 +159,7 @@ const brandProfileSchema = new mongoose.Schema({
 
 // Create index for faster searches
 brandProfileSchema.index({ brandName: 'text', industry: 'text', description: 'text' });
+brandProfileSchema.index({ userId: 1 }, { unique: true });
+brandProfileSchema.index({ industry: 1 });
 
 module.exports = mongoose.model('BrandProfile', brandProfileSchema);

@@ -1,5 +1,15 @@
 
 const authService = require('../services/authService');
+const crypto = require('crypto');
+const User = require('../models/user');
+
+// Password validation function
+const validatePassword = (password) => {
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+  if (!regex.test(password)) {
+    throw new Error('Password must be at least 8 characters with uppercase, lowercase, number, and special character');
+  }
+};
 
 class AuthController {
   
@@ -22,7 +32,14 @@ class AuthController {
           error: 'Role must be either "club" or "brand"' 
         });
       }
-      
+
+      // Validate password complexity
+      try {
+        validatePassword(password);
+      } catch (validationError) {
+        return res.status(400).json({ error: validationError.message });
+      }
+
       // Call service to register user
       const result = await authService.register(name, email, password, role);
       
@@ -83,17 +100,18 @@ class AuthController {
       const { currentPassword, newPassword } = req.body;
       
       if (!currentPassword || !newPassword) {
-        return res.status(400).json({ 
-          error: 'Please provide current password and new password' 
+        return res.status(400).json({
+          error: 'Please provide current password and new password'
         });
       }
-      
-      if (newPassword.length < 6) {
-        return res.status(400).json({ 
-          error: 'New password must be at least 6 characters' 
-        });
+
+      // Validate password complexity
+      try {
+        validatePassword(newPassword);
+      } catch (validationError) {
+        return res.status(400).json({ error: validationError.message });
       }
-      
+
       await authService.changePassword(req.userId, currentPassword, newPassword);
       
       res.json({ message: 'Password changed successfully' });
@@ -136,13 +154,62 @@ class AuthController {
   async updateSettings(req, res) {
     try {
       const { notifications, security } = req.body;
-      
+
       await authService.updateSettings(req.userId, { notifications, security });
-      
+
       res.json({ message: 'Settings updated successfully' });
-      
+
     } catch (error) {
       res.status(400).json({ error: error.message });
+    }
+  }
+
+  // ===== REFRESH TOKEN =====
+  async refreshToken(req, res) {
+    try {
+      const { refreshToken } = req.body;
+      if (!refreshToken) {
+        return res.status(400).json({ error: 'Refresh token required' });
+      }
+
+      const decoded = authService.verifyRefreshToken(refreshToken);
+      const user = await User.findById(decoded.userId);
+
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const newAccessToken = authService.generateToken(user._id, user.role);
+
+      res.json({ accessToken: newAccessToken });
+    } catch (error) {
+      res.status(401).json({ error: 'Invalid refresh token' });
+    }
+  }
+
+  // ===== VERIFY EMAIL =====
+  async verifyEmail(req, res) {
+    try {
+      const { token } = req.params;
+      const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+
+      const user = await User.findOne({
+        verificationToken: hashedToken,
+        verificationTokenExpiry: { $gt: Date.now() }
+      });
+
+      if (!user) {
+        return res.status(400).json({ error: 'Invalid or expired verification token' });
+      }
+
+      user.isEmailVerified = true;
+      user.verificationToken = null;
+      user.verificationTokenExpiry = null;
+      await user.save();
+
+      res.json({ message: 'Email verified successfully' });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
     }
   }
 

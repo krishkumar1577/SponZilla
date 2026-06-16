@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require("../models/user");
 
 class AuthService {
@@ -13,14 +14,24 @@ class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
+
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       role,
+      verificationToken: hashedVerificationToken,
+      verificationTokenExpiry: Date.now() + 24 * 60 * 60 * 1000, // 24 hours
     });
 
-    const token = this.generateToken(user._id, role);
+    // Log verification URL (TODO: Send via email service)
+    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+    console.log('Verification URL:', verificationUrl);
+
+    const accessToken = this.generateToken(user._id, role);
+    const refreshToken = this.generateRefreshToken(user._id);
 
     return {
       user: {
@@ -30,7 +41,8 @@ class AuthService {
         role: user.role,
         verified: user.verified,
       },
-      token,
+      accessToken,
+      refreshToken,
     };
   } catch (error) {
     throw error;
@@ -48,7 +60,8 @@ class AuthService {
         throw new Error("Invalid email or password");
       }
 
-      const token = this.generateToken(user._id, user.role);
+      const accessToken = this.generateToken(user._id, user.role);
+      const refreshToken = this.generateRefreshToken(user._id);
 
       return {
         user: {
@@ -58,7 +71,8 @@ class AuthService {
           role: user.role,
           verified: user.verified,
         },
-        token,
+        accessToken,
+        refreshToken,
       };
     } catch (error) {
       throw error;
@@ -89,6 +103,25 @@ class AuthService {
     return token;
   }
 
+  // ===== GENERATE REFRESH TOKEN =====
+  generateRefreshToken(userId) {
+    return jwt.sign(
+      { userId },
+      process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+      { expiresIn: "30d" }
+    );
+  }
+
+  // ===== VERIFY REFRESH TOKEN =====
+  verifyRefreshToken(token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET);
+      return decoded; // Returns { userId }
+    } catch (error) {
+      throw new Error("Invalid refresh token");
+    }
+  }
+
   // ===== VERIFY JWT TOKEN =====
   verifyToken(token) {
     try {
@@ -96,6 +129,28 @@ class AuthService {
       return decoded; // Returns { userId, role }
     } catch (error) {
       throw new Error("Invalid token");
+    }
+  }
+
+  // ===== OAUTH STATE GENERATION =====
+  generateOAuthState(role) {
+    const state = crypto.randomBytes(32).toString('hex');
+    // In production, this should be stored in Redis or session with expiration
+    // For now, we'll encode the role in the state for simplicity
+    const stateWithRole = Buffer.from(JSON.stringify({ state, role })).toString('base64');
+    return stateWithRole;
+  }
+
+  // ===== OAUTH STATE VALIDATION =====
+  validateOAuthState(encodedState) {
+    try {
+      const decoded = JSON.parse(Buffer.from(encodedState, 'base64').toString());
+      if (!decoded.state || !decoded.role) {
+        throw new Error('Invalid OAuth state - possible CSRF attack');
+      }
+      return decoded;
+    } catch (error) {
+      throw new Error('Invalid OAuth state - possible CSRF attack');
     }
   }
 
@@ -222,12 +277,16 @@ class AuthService {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
     const redirectUri = `${backendUrl}/api/auth/google/callback`;
     const scope = 'profile email';
-    
-    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${role}`;
+    const state = this.generateOAuthState(role);
+
+    return `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${state}`;
   }
 
   // ===== GOOGLE OAUTH CALLBACK =====
-  async handleGoogleCallback(code, stateRole = 'club') {
+  async handleGoogleCallback(code, encodedState) {
+    // Validate OAuth state to prevent CSRF attacks
+    const { state, role } = this.validateOAuthState(encodedState);
+
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
@@ -324,12 +383,16 @@ class AuthService {
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';
     const redirectUri = `${backendUrl}/api/auth/github/callback`;
     const scope = 'user:email';
-    
-    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${role}`;
+    const state = this.generateOAuthState(role);
+
+    return `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}&state=${state}`;
   }
 
   // ===== GITHUB OAUTH CALLBACK =====
-  async handleGithubCallback(code, stateRole = 'club') {
+  async handleGithubCallback(code, encodedState) {
+    // Validate OAuth state to prevent CSRF attacks
+    const { state, role } = this.validateOAuthState(encodedState);
+
     const clientId = process.env.GITHUB_CLIENT_ID;
     const clientSecret = process.env.GITHUB_CLIENT_SECRET;
     const backendUrl = process.env.BACKEND_URL || 'http://localhost:5001';

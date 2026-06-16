@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { ProfileDropdown } from '../ui';
 import { useNotifications } from '../../contexts/NotificationContext';
 
-export type UserType = 'guest' | 'club' | 'brand';
+export type UserType = 'guest' | 'club' | 'brand' | 'admin';
 
 interface DynamicNavbarProps {
   userType: UserType;

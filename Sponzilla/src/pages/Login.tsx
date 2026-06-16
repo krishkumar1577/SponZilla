@@ -11,8 +11,8 @@ const LoginPage: React.FC = () => {
   const [userType, setUserType] = useState<'club' | 'brand'>('club');
   const [error, setError] = useState<string>('');
   const [loginData, setLoginData] = useState({
-    email: 'testuser@example.com',
-    password: 'password123'
+    email: '',
+    password: ''
   });
   const [signupData, setSignupData] = useState({
     name: '',

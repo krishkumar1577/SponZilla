@@ -6,13 +6,17 @@ const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 const User = require('../models/user');
 const notificationService = require('../services/notificationService');
+const DOMPurify = require('isomorphic-dompurify');
 
 class SponsorshipController {
   // Submit a new sponsorship request
   createRequest = async (req, res) => {
     try {
       const { eventId, tierName, amount, message } = req.body;
-      
+
+      // Sanitize message input
+      const sanitizedMessage = message ? DOMPurify.sanitize(message) : '';
+
       const brandProfile = await BrandProfile.findOne({ userId: req.userId });
       if (!brandProfile) {
         return res.status(403).json({ error: 'Only brands can submit sponsorship requests' });
@@ -40,7 +44,7 @@ class SponsorshipController {
         brandId: brandProfile._id,
         tierName,
         amount,
-        message,
+        message: sanitizedMessage,
         status: 'pending'
       });
 
@@ -60,7 +64,7 @@ class SponsorshipController {
       await Message.create({
         conversationId: conversation._id,
         senderId: req.userId,
-        content: `System: I have submitted a formal bid for the ${tierName} tier (₹${amount.toLocaleString()}). Message: ${message}`
+        content: `System: I have submitted a formal bid for the ${tierName} tier (₹${amount.toLocaleString()}). Message: ${sanitizedMessage}`
       });
 
       // Notify Club via email
@@ -87,8 +91,15 @@ class SponsorshipController {
       }
 
       const requests = await SponsorshipRequest.find({ clubId: clubProfile._id })
-        .populate('eventId', 'title eventDate')
-        .populate('brandId', 'brandName logo')
+        .populate({
+          path: 'eventId',
+          select: 'title eventDate category'
+        })
+        .populate({
+          path: 'brandId',
+          select: 'brandName logo contactPerson'
+        })
+        .lean()
         .sort({ createdAt: -1 });
 
       res.json({ success: true, requests });
@@ -106,8 +117,15 @@ class SponsorshipController {
       }
 
       const requests = await SponsorshipRequest.find({ brandId: brandProfile._id })
-        .populate('eventId', 'title eventDate')
-        .populate('clubId', 'clubName logo')
+        .populate({
+          path: 'eventId',
+          select: 'title eventDate category'
+        })
+        .populate({
+          path: 'clubId',
+          select: 'clubName logo contactPerson'
+        })
+        .lean()
         .sort({ createdAt: -1 });
 
       res.json({ success: true, requests });

@@ -141,28 +141,43 @@ class AdminController {
   async deleteUser(req, res) {
     try {
       const { id } = req.params;
-      
+
       // Prevent deleting the currently logged-in admin
       if (id === req.userId) {
         return res.status(400).json({ error: 'You cannot delete your own admin account.' });
       }
 
-      const user = await User.findByIdAndDelete(id);
+      // Get user first to find associated data
+      const user = await User.findById(id);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      // We should also delete their associated profiles and events to clean up the DB
+      // Delete all associated data based on role
       if (user.role === 'club') {
-        const club = await ClubProfile.findOneAndDelete({ userId: id });
-        if (club) {
-          await Event.deleteMany({ clubId: club._id });
+        const clubProfile = await ClubProfile.findOne({ userId: id });
+        if (clubProfile) {
+          await Event.deleteMany({ clubId: clubProfile._id });
+          await SponsorshipRequest.deleteMany({ clubId: clubProfile._id });
         }
+        await ClubProfile.deleteOne({ userId: id });
       } else if (user.role === 'brand') {
-        await BrandProfile.findOneAndDelete({ userId: id });
+        const brandProfile = await BrandProfile.findOne({ userId: id });
+        if (brandProfile) {
+          await SponsorshipRequest.deleteMany({ brandId: brandProfile._id });
+        }
+        await BrandProfile.deleteOne({ userId: id });
       }
 
-      res.json({ success: true, message: 'User and associated data deleted successfully' });
+      // Clean up messages and notifications
+      await Message.deleteMany({ senderId: id });
+      await Conversation.deleteMany({ participants: id });
+      await Notification.deleteMany({ userId: id });
+
+      // Finally delete user
+      await User.findByIdAndDelete(id);
+
+      res.json({ success: true, message: 'User and all associated data deleted successfully' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

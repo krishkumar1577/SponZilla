@@ -145,5 +145,8 @@ const clubProfileSchema = new mongoose.Schema({
 
 // Create index for faster searches
 clubProfileSchema.index({ clubName: 'text', university: 'text', description: 'text' });
+clubProfileSchema.index({ userId: 1 }, { unique: true });
+clubProfileSchema.index({ university: 1 });
+clubProfileSchema.index({ category: 1 });
 
 module.exports = mongoose.model('ClubProfile', clubProfileSchema);

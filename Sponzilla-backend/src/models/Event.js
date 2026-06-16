@@ -201,6 +201,9 @@ eventSchema.index({ title: 'text', description: 'text', tags: 'text' });
 eventSchema.index({ eventDate: 1 });
 eventSchema.index({ status: 1 });
 eventSchema.index({ category: 1 });
+eventSchema.index({ clubId: 1, status: 1 });
+eventSchema.index({ eventDate: 1, status: 1 });
+eventSchema.index({ status: 1, createdAt: -1 });
 
 // Virtual field: Is event upcoming?
 eventSchema.virtual('isUpcoming').get(function() {
