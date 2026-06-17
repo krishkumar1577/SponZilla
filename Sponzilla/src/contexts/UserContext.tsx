@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { authAPI, type LoginCredentials, type RegisterData } from '../services/api';
+import { authAPI, type AuthResponse, type LoginCredentials, type RegisterData } from '../services/api';
 
 export type UserType = 'guest' | 'club' | 'brand' | 'admin';
 
@@ -11,6 +11,7 @@ interface User {
   type: UserType;
   profileImage?: string;
   token?: string;
+  profileCompleted: boolean;
   subscriptionPlan?: 'free' | 'pro';
 }
 
@@ -19,13 +20,16 @@ interface UserContextType {
   setUser: (user: User) => void;
   login: (credentials: LoginCredentials) => Promise<User | null>;
   register: (data: RegisterData) => Promise<User | null>;
+  completeAuth: (response: AuthResponse) => User;
+  refreshUser: () => Promise<User | null>;
   logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
 }
 
 const defaultUser: User = {
-  type: 'guest'
+  type: 'guest',
+  profileCompleted: false,
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -35,29 +39,74 @@ interface UserProviderProps {
 }
 
 export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User>(defaultUser);
-  const [loading, setLoading] = useState(false);
+  const [user, setUserState] = useState<User>(defaultUser);
+  const [loading, setLoading] = useState(true);
 
-  const login = async (credentials: LoginCredentials): Promise<User | null> => {
+  const persistUser = (nextUser: User) => {
+    setUserState(nextUser);
+
+    if (nextUser.token) {
+      localStorage.setItem('authToken', nextUser.token);
+      localStorage.setItem('user', JSON.stringify(nextUser));
+    } else {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+    }
+  };
+
+  const setUser = (nextUser: User) => {
+    persistUser(nextUser);
+  };
+
+  const mapAuthResponseToUser = (response: AuthResponse): User => ({
+    id: response.user.id,
+    name: response.user.name,
+    email: response.user.email,
+    type: response.user.role as UserType,
+    profileImage: response.user.avatar || undefined,
+    token: response.accessToken,
+    profileCompleted: response.user.profileCompleted,
+  });
+
+  const completeAuth = (response: AuthResponse): User => {
+    const userData = mapAuthResponseToUser(response);
+    persistUser(userData);
+    return userData;
+  };
+
+  const refreshUser = async (): Promise<User | null> => {
     try {
-      setLoading(true);
-      const response = await authAPI.login(credentials);
-      
+      const response = await authAPI.getProfile();
+      const savedToken = localStorage.getItem('authToken') || user.token;
+
+      if (!savedToken) {
+        logout();
+        return null;
+      }
+
       const userData: User = {
         id: response.user.id,
         name: response.user.name,
         email: response.user.email,
         type: response.user.role as UserType,
-        token: response.accessToken,
+        profileImage: response.user.avatar || undefined,
+        token: savedToken,
+        profileCompleted: response.user.profileCompleted,
       };
 
-      setUser(userData);
-      
-      // Store token and user data
-      localStorage.setItem('authToken', response.accessToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
+      persistUser(userData);
       return userData;
+    } catch (error) {
+      logout();
+      return null;
+    }
+  };
+
+  const login = async (credentials: LoginCredentials): Promise<User | null> => {
+    try {
+      setLoading(true);
+      const response = await authAPI.login(credentials);
+      return completeAuth(response);
     } catch (error) {
       console.error('Login failed:', error);
       return null;
@@ -70,22 +119,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       const response = await authAPI.register(data);
-      
-      const userData: User = {
-        id: response.user.id,
-        name: response.user.name,
-        email: response.user.email,
-        type: response.user.role as UserType,
-        token: response.accessToken,
-      };
-
-      setUser(userData);
-      
-      // Store token and user data
-      localStorage.setItem('authToken', response.accessToken);
-      localStorage.setItem('user', JSON.stringify(userData));
-      
-      return userData;
+      return completeAuth(response);
     } catch (error) {
       console.error('Registration failed:', error);
       return null;
@@ -95,9 +129,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   };
 
   const logout = () => {
-    setUser(defaultUser);
+    setUserState(defaultUser);
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    setLoading(false);
   };
 
   const isAuthenticated = user.type !== 'guest' && !!user.token;
@@ -106,27 +141,26 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   React.useEffect(() => {
     const savedUser = localStorage.getItem('user');
     const savedToken = localStorage.getItem('authToken');
-    
-    if (savedUser && savedToken) {
+
+    if (!savedToken) {
+      setLoading(false);
+      return;
+    }
+
+    if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
         userData.token = savedToken;
-        setUser(userData);
-        
-        // Optional: Verify token is still valid
-        authAPI.getProfile()
-          .then(() => {
-            // Token is still valid
-          })
-          .catch(() => {
-            // Token expired or invalid, logout
-            logout();
-          });
+        userData.profileCompleted = Boolean(userData.profileCompleted);
+        setUserState(userData);
       } catch (error) {
         console.error('Failed to parse saved user data:', error);
-        logout();
       }
     }
+
+    refreshUser().finally(() => {
+      setLoading(false);
+    });
   }, []);
 
   return (
@@ -135,6 +169,8 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       setUser, 
       login, 
       register, 
+      completeAuth,
+      refreshUser,
       logout, 
       isAuthenticated, 
       loading 

@@ -5,9 +5,10 @@ import { useUser, type UserType } from '../../contexts/UserContext';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedRoles?: UserType[];
+  allowIncompleteProfile?: boolean;
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles, allowIncompleteProfile = false }) => {
   const { isAuthenticated, user, loading } = useUser();
   const location = useLocation();
 
@@ -36,6 +37,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     } else {
       return <Navigate to="/" replace />;
     }
+  }
+
+  if (!allowIncompleteProfile && user.type !== 'admin' && !user.profileCompleted) {
+    return <Navigate to={`/onboarding/${user.type}`} replace state={{ from: location }} />;
   }
 
   return <>{children}</>;

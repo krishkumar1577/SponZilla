@@ -3,12 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import Navbar from '../components/layout/Navbar';
 import { API_BASE_URL } from '../services/api';
-
-const getDashboardRoute = (role: 'club' | 'brand' | 'admin') => {
-  if (role === 'admin') return '/admin';
-  if (role === 'club') return '/club-dashboard';
-  return '/brand-dashboard';
-};
+import { getPostAuthRoute } from '../utils/authRouting';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -39,9 +34,8 @@ const LoginPage: React.FC = () => {
   }, []);
 
   const handleSocialLogin = (provider: 'google' | 'github') => {
-    const role = activeTab === 'signup' ? userType : 'club'; // default role during sign up
     const baseUrl = API_BASE_URL || window.location.origin;
-    window.location.href = `${baseUrl}/api/auth/${provider}?role=${role}`;
+    window.location.href = `${baseUrl}/api/auth/${provider}`;
   };
 
   const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -74,7 +68,7 @@ const LoginPage: React.FC = () => {
     try {
       const loggedInUser = await login(loginData);
       if (loggedInUser) {
-        navigate(getDashboardRoute(loggedInUser.type as 'club' | 'brand' | 'admin'));
+        navigate(getPostAuthRoute(loggedInUser));
       } else {
         setError('Invalid email or password');
       }
@@ -97,8 +91,8 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    if (signupData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (signupData.password.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
 
@@ -111,7 +105,7 @@ const LoginPage: React.FC = () => {
       });
 
       if (registeredUser) {
-        navigate(getDashboardRoute(registeredUser.type as 'club' | 'brand' | 'admin'));
+        navigate(getPostAuthRoute(registeredUser));
       } else {
         setError('Registration failed. Please try again.');
       }

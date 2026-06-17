@@ -12,16 +12,22 @@ export interface RegisterData {
   role: 'club' | 'brand';
 }
 
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  verified: boolean;
+  isEmailVerified?: boolean;
+  avatar?: string | null;
+  profileCompleted: boolean;
+}
+
 export interface AuthResponse {
   message: string;
   accessToken: string;
   refreshToken?: string;
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-  };
+  user: AuthUser;
 }
 
 export interface UserSettings {
@@ -39,6 +45,14 @@ export interface UserSettings {
   };
 }
 
+export interface PendingOAuthSignup {
+  sessionId: string;
+  provider: 'google' | 'github';
+  name: string;
+  email: string;
+  avatar?: string | null;
+}
+
 export const authAPI = {
   login: (credentials: LoginCredentials): Promise<AuthResponse> =>
     apiRequest('/auth/login', {
@@ -52,8 +66,23 @@ export const authAPI = {
       body: JSON.stringify(data),
     }),
 
-  getProfile: (): Promise<{ user: any }> =>
+  getProfile: (): Promise<{ user: AuthUser }> =>
     apiRequest('/auth/me'),
+
+  exchangeOAuthSession: (sessionId: string): Promise<AuthResponse> =>
+    apiRequest('/auth/oauth/exchange-session', {
+      method: 'POST',
+      body: JSON.stringify({ sessionId }),
+    }),
+
+  getPendingOAuthSignup: (sessionId: string): Promise<PendingOAuthSignup> =>
+    apiRequest(`/auth/oauth/pending/${sessionId}`),
+
+  completeOAuthSignup: (data: { sessionId: string; role: 'club' | 'brand' }): Promise<AuthResponse> =>
+    apiRequest('/auth/oauth/complete-signup', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 
   changePassword: (data: {
     currentPassword: string;

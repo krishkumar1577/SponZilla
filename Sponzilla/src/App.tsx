@@ -16,6 +16,8 @@ const ContactPage = lazy(() => import('./pages/Contact'));
 const ContactWithHeaderPage = lazy(() => import('./pages/ContactWithHeader'));
 const LoginPage = lazy(() => import('./pages/Login'));
 const OAuthSuccessPage = lazy(() => import('./pages/OAuthSuccess'));
+const RoleSelectionPage = lazy(() => import('./pages/RoleSelection'));
+const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
 const BrandDashboardPage = lazy(() => import('./pages/brand/BrandDashboard'));
 const ClubDashboardPage = lazy(() => import('./pages/club/ClubDashboard'));
 const FindClubsPage = lazy(() => import('./pages/brand/FindClubs'));
@@ -54,6 +56,9 @@ function App() {
                 <Route path="/contact-with-header" element={<ContactWithHeaderPage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/oauth-success" element={<OAuthSuccessPage />} />
+                <Route path="/role-selection" element={<RoleSelectionPage />} />
+                <Route path="/onboarding/club" element={<OnboardingPage role="club" />} />
+                <Route path="/onboarding/brand" element={<OnboardingPage role="brand" />} />
                 <Route path="/terms-of-service" element={<TermsOfServicePage />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
                 <Route path="/help" element={<HelpPage />} />
