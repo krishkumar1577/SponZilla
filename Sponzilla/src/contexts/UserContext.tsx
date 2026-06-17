@@ -17,8 +17,8 @@ interface User {
 interface UserContextType {
   user: User;
   setUser: (user: User) => void;
-  login: (credentials: LoginCredentials) => Promise<boolean>;
-  register: (data: RegisterData) => Promise<boolean>;
+  login: (credentials: LoginCredentials) => Promise<User | null>;
+  register: (data: RegisterData) => Promise<User | null>;
   logout: () => void;
   isAuthenticated: boolean;
   loading: boolean;
@@ -38,7 +38,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User>(defaultUser);
   const [loading, setLoading] = useState(false);
 
-  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+  const login = async (credentials: LoginCredentials): Promise<User | null> => {
     try {
       setLoading(true);
       const response = await authAPI.login(credentials);
@@ -48,25 +48,25 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         name: response.user.name,
         email: response.user.email,
         type: response.user.role as UserType,
-        token: response.token,
+        token: response.accessToken,
       };
 
       setUser(userData);
       
       // Store token and user data
-      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('authToken', response.accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      return true;
+      return userData;
     } catch (error) {
       console.error('Login failed:', error);
-      return false;
+      return null;
     } finally {
       setLoading(false);
     }
   };
 
-  const register = async (data: RegisterData): Promise<boolean> => {
+  const register = async (data: RegisterData): Promise<User | null> => {
     try {
       setLoading(true);
       const response = await authAPI.register(data);
@@ -76,19 +76,19 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         name: response.user.name,
         email: response.user.email,
         type: response.user.role as UserType,
-        token: response.token,
+        token: response.accessToken,
       };
 
       setUser(userData);
       
       // Store token and user data
-      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('authToken', response.accessToken);
       localStorage.setItem('user', JSON.stringify(userData));
       
-      return true;
+      return userData;
     } catch (error) {
       console.error('Registration failed:', error);
-      return false;
+      return null;
     } finally {
       setLoading(false);
     }

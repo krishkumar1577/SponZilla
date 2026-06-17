@@ -4,6 +4,12 @@ import { useUser } from '../contexts/UserContext';
 import Navbar from '../components/layout/Navbar';
 import { API_BASE_URL } from '../services/api';
 
+const getDashboardRoute = (role: 'club' | 'brand' | 'admin') => {
+  if (role === 'admin') return '/admin';
+  if (role === 'club') return '/club-dashboard';
+  return '/brand-dashboard';
+};
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, register, loading } = useUser();
@@ -66,10 +72,9 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const success = await login(loginData);
-      if (success) {
-        // Redirect based on user type - this will be determined by the API response
-        navigate('/');
+      const loggedInUser = await login(loginData);
+      if (loggedInUser) {
+        navigate(getDashboardRoute(loggedInUser.type as 'club' | 'brand' | 'admin'));
       } else {
         setError('Invalid email or password');
       }
@@ -98,20 +103,15 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const success = await register({
+      const registeredUser = await register({
         name: signupData.name,
         email: signupData.email,
         password: signupData.password,
         role: userType,
       });
 
-      if (success) {
-        // Redirect to appropriate dashboard
-        if (userType === 'club') {
-          navigate('/club-dashboard');
-        } else {
-          navigate('/brand-dashboard');
-        }
+      if (registeredUser) {
+        navigate(getDashboardRoute(registeredUser.type as 'club' | 'brand' | 'admin'));
       } else {
         setError('Registration failed. Please try again.');
       }
