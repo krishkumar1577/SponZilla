@@ -15,6 +15,7 @@ router.get('/users', adminController.getUsers);
 router.get('/clubs', adminController.getClubs);
 router.get('/brands', adminController.getBrands);
 router.get('/events', adminController.getEvents);
+router.get('/sponsorships', adminController.getSponsorships);
 
 // Verification and Featuring
 router.put('/clubs/:id/verify', adminController.toggleClubVerification);

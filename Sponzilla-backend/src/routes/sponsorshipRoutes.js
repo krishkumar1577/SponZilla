@@ -7,5 +7,6 @@ router.post('/apply', verifyToken, isBrand, sponsorshipController.createRequest)
 router.get('/club-requests', verifyToken, isClub, sponsorshipController.getClubRequests);
 router.get('/brand-requests', verifyToken, isBrand, sponsorshipController.getBrandRequests);
 router.put('/status/:requestId', verifyToken, isClub, sponsorshipController.updateRequestStatus);
+router.delete('/:requestId', verifyToken, isBrand, sponsorshipController.withdrawRequest);
 
 module.exports = router;

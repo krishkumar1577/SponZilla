@@ -2,6 +2,7 @@
 const authService = require('../services/authService');
 const crypto = require('crypto');
 const User = require('../models/user');
+const { sendErrorResponse, sendSuccessResponse } = require('../utils/errorHandler');
 
 // Password validation function
 const validatePassword = (password) => {
@@ -18,33 +19,29 @@ class AuthController {
     try {
       // Get data from request body
       const { name, email, password, role } = req.body;
-      
+
       // Validate input
       if (!name || !email || !password || !role) {
-        return res.status(400).json({ 
-          error: 'Please provide name, email, password, and role' 
-        });
+        return sendErrorResponse(res, 400, 'Please provide name, email, password, and role');
       }
-      
+
       // Check if role is valid
       if (!['club', 'brand'].includes(role)) {
-        return res.status(400).json({ 
-          error: 'Role must be either "club" or "brand"' 
-        });
+        return sendErrorResponse(res, 400, 'Role must be either "club" or "brand"');
       }
 
       // Validate password complexity
       try {
         validatePassword(password);
       } catch (validationError) {
-        return res.status(400).json({ error: validationError.message });
+        return sendErrorResponse(res, 400, validationError.message);
       }
 
       // Call service to register user
       const result = await authService.register(name, email, password, role);
-      
+
       // Send response
-      res.status(201).json({
+      sendSuccessResponse(res, 201, {
         message: 'Registration successful',
         ...result
       });

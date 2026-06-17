@@ -8,16 +8,22 @@ import type { Event } from '../../services/api/events';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'clubs' | 'brands' | 'events'>('overview');
-  
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'clubs' | 'brands' | 'events' | 'sponsorships'>('overview');
+
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [clubs, setClubs] = useState<ClubProfile[]>([]);
   const [brands, setBrands] = useState<BrandProfile[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
-  
+  const [sponsorships, setSponsorships] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Search and filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterRole, setFilterRole] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
 
   const fetchStats = async () => {
     try {
@@ -82,6 +88,18 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const fetchSponsorships = async () => {
+    try {
+      setLoading(true);
+      const res = await adminAPI.getSponsorships();
+      setSponsorships(res.sponsorships);
+    } catch (err) {
+      setError('Failed to load sponsorships.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     setError(null);
     if (activeTab === 'overview') fetchStats();
@@ -89,6 +107,7 @@ const AdminDashboard: React.FC = () => {
     if (activeTab === 'clubs') fetchClubs();
     if (activeTab === 'brands') fetchBrands();
     if (activeTab === 'events') fetchEvents();
+    if (activeTab === 'sponsorships') fetchSponsorships();
   }, [activeTab]);
 
   const handleVerifyClub = async (id: string) => {
@@ -129,6 +148,46 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  // Filter functions
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesRole = filterRole === 'all' || user.role === filterRole;
+    return matchesSearch && matchesRole;
+  });
+
+  const filteredClubs = clubs.filter(club => {
+    const matchesSearch = club.clubName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          club.university.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === 'all' ||
+                         (filterStatus === 'verified' && club.verified) ||
+                         (filterStatus === 'unverified' && !club.verified);
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredBrands = brands.filter(brand => {
+    const matchesSearch = brand.brandName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          brand.industry.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === 'all' ||
+                         (filterStatus === 'verified' && brand.verified) ||
+                         (filterStatus === 'unverified' && !brand.verified);
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredEvents = events.filter(event => {
+    const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || event.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const filteredSponsorships = sponsorships.filter(sponsorship => {
+    const matchesSearch = sponsorship.eventId?.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          sponsorship.brandId?.brandName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          sponsorship.clubId?.clubName?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || sponsorship.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
   return (
     <div className="min-h-screen bg-white font-sans">
       <SmartNavbar />
@@ -147,9 +206,72 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
+        {/* Search and Filter Bar */}
+        {activeTab !== 'overview' && (
+          <div className="bg-gray-50 p-4 rounded-lg mb-6 border border-gray-200">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+              </div>
+              {activeTab === 'users' && (
+                <select
+                  value={filterRole}
+                  onChange={(e) => setFilterRole(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="club">Clubs</option>
+                  <option value="brand">Brands</option>
+                  <option value="admin">Admins</option>
+                </select>
+              )}
+              {(activeTab === 'clubs' || activeTab === 'brands') && (
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Status</option>
+                  <option value="verified">Verified</option>
+                  <option value="unverified">Unverified</option>
+                </select>
+              )}
+              {activeTab === 'events' && (
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Status</option>
+                  <option value="published">Published</option>
+                  <option value="draft">Draft</option>
+                </select>
+              )}
+              {activeTab === 'sponsorships' && (
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="all">All Status</option>
+                  <option value="pending">Pending</option>
+                  <option value="accepted">Accepted</option>
+                  <option value="rejected">Rejected</option>
+                </select>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="border-b border-gray-200 mb-6">
           <nav className="-mb-px flex space-x-8">
-            {['overview', 'users', 'clubs', 'brands', 'events'].map((tab) => (
+            {['overview', 'users', 'clubs', 'brands', 'events', 'sponsorships'].map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
@@ -207,7 +329,7 @@ const AdminDashboard: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <tr key={user._id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">{user.name}</div>
@@ -244,7 +366,7 @@ const AdminDashboard: React.FC = () => {
             {/* CLUBS TAB */}
             {activeTab === 'clubs' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {clubs.map((club) => (
+                {filteredClubs.map((club) => (
                   <div key={club._id} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm flex flex-col">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -274,7 +396,7 @@ const AdminDashboard: React.FC = () => {
             {/* BRANDS TAB */}
             {activeTab === 'brands' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {brands.map((brand) => (
+                {filteredBrands.map((brand) => (
                   <div key={brand._id} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm flex flex-col">
                     <div className="flex justify-between items-start mb-4">
                       <div>
@@ -304,7 +426,7 @@ const AdminDashboard: React.FC = () => {
             {/* EVENTS TAB */}
             {activeTab === 'events' && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {events.map((event) => (
+                {filteredEvents.map((event) => (
                   <div key={event._id} className="border border-gray-200 rounded-xl p-6 bg-white shadow-sm flex flex-col">
                     <div className="flex justify-between items-start mb-2">
                       <span className={`text-xs px-2 py-1 rounded font-medium ${
@@ -316,13 +438,13 @@ const AdminDashboard: React.FC = () => {
                     </div>
                     <h3 className="text-lg font-bold text-gray-900 mt-2">{event.title}</h3>
                     <p className="text-sm text-gray-500 mb-4">{new Date(event.eventDate).toLocaleDateString()}</p>
-                    
+
                     <div className="mt-auto pt-4 border-t border-gray-100">
-                      <button 
+                      <button
                         onClick={() => handleFeatureEvent(event._id)}
                         className={`w-full py-2 rounded-lg font-medium flex items-center justify-center gap-2 transition ${
-                          event.featured 
-                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200' 
+                          event.featured
+                            ? 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             : 'bg-yellow-500 text-white hover:bg-yellow-600'
                         }`}
                       >
@@ -331,6 +453,60 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* SPONSORSHIPS TAB */}
+            {activeTab === 'sponsorships' && (
+              <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Brand</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Club</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tier</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {filteredSponsorships.map((sponsorship) => (
+                      <tr key={sponsorship._id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{sponsorship.eventId?.title || 'N/A'}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{sponsorship.brandId?.brandName || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{sponsorship.brandId?.industry || ''}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">{sponsorship.clubId?.clubName || 'N/A'}</div>
+                          <div className="text-sm text-gray-500">{sponsorship.clubId?.university || ''}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {sponsorship.tierName}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
+                          ₹{sponsorship.amount?.toLocaleString() || '0'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            sponsorship.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                            sponsorship.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {sponsorship.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(sponsorship.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>

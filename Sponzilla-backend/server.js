@@ -8,6 +8,7 @@ if (process.env.NODE_ENV === 'production' &&
 
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const connectDB = require('./src/config/database');  // Import database connection
 
 // STEP 2: Create Express app
@@ -77,6 +78,17 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));  // Allow frontend to access backend
+
+// Enable compression for all responses
+app.use(compression({
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  },
+  level: 6 // 1-9, higher = more compression but slower
+}));
 
 app.use(express.json({ limit: '10mb' }));  // Allow reading JSON data from requests with 10MB limit
 app.use(express.urlencoded({ limit: '10mb', extended: true }));  // Allow reading URL-encoded data with 10MB limit

@@ -37,6 +37,9 @@ export const adminAPI = {
   getEvents: (): Promise<{ success: boolean; events: Event[] }> =>
     apiRequest('/admin/events'),
 
+  getSponsorships: (): Promise<{ success: boolean; sponsorships: any[] }> =>
+    apiRequest('/admin/sponsorships'),
+
   verifyClub: (id: string): Promise<{ success: boolean; verified: boolean; club: ClubProfile }> =>
     apiRequest(`/admin/clubs/${id}/verify`, { method: 'PUT' }),
 

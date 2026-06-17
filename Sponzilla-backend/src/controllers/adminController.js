@@ -2,6 +2,7 @@ const User = require('../models/user');
 const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
 const Event = require('../models/Event');
+const SponsorshipRequest = require('../models/SponsorshipRequest');
 
 class AdminController {
   
@@ -69,6 +70,56 @@ class AdminController {
     try {
       const events = await Event.find().populate('clubId', 'clubName').sort({ createdAt: -1 });
       res.json({ success: true, events });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // ===== GET ALL SPONSORSHIP REQUESTS =====
+  async getSponsorships(req, res) {
+    try {
+      const { page = 1, limit = 20, status } = req.query;
+      const skip = (page - 1) * limit;
+
+      const filter = {};
+      if (status) {
+        filter.status = status;
+      }
+
+      const sponsorships = await SponsorshipRequest.find(filter)
+        .populate({
+          path: 'eventId',
+          select: 'title eventDate clubId',
+          populate: {
+            path: 'clubId',
+            select: 'clubName'
+          }
+        })
+        .populate({
+          path: 'brandId',
+          select: 'brandName industry'
+        })
+        .populate({
+          path: 'clubId',
+          select: 'clubName university'
+        })
+        .lean()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+
+      const total = await SponsorshipRequest.countDocuments(filter);
+
+      res.json({
+        success: true,
+        sponsorships,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

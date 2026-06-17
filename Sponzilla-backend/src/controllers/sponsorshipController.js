@@ -90,7 +90,15 @@ class SponsorshipController {
         return res.json({ success: true, requests: [] });
       }
 
-      const requests = await SponsorshipRequest.find({ clubId: clubProfile._id })
+      const { page = 1, limit = 10, status } = req.query;
+      const skip = (page - 1) * limit;
+
+      const filter = { clubId: clubProfile._id };
+      if (status) {
+        filter.status = status;
+      }
+
+      const requests = await SponsorshipRequest.find(filter)
         .populate({
           path: 'eventId',
           select: 'title eventDate category'
@@ -100,9 +108,22 @@ class SponsorshipController {
           select: 'brandName logo contactPerson'
         })
         .lean()
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
 
-      res.json({ success: true, requests });
+      const total = await SponsorshipRequest.countDocuments(filter);
+
+      res.json({
+        success: true,
+        requests,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -116,7 +137,15 @@ class SponsorshipController {
         return res.json({ success: true, requests: [] });
       }
 
-      const requests = await SponsorshipRequest.find({ brandId: brandProfile._id })
+      const { page = 1, limit = 10, status } = req.query;
+      const skip = (page - 1) * limit;
+
+      const filter = { brandId: brandProfile._id };
+      if (status) {
+        filter.status = status;
+      }
+
+      const requests = await SponsorshipRequest.find(filter)
         .populate({
           path: 'eventId',
           select: 'title eventDate category'
@@ -126,9 +155,22 @@ class SponsorshipController {
           select: 'clubName logo contactPerson'
         })
         .lean()
-        .sort({ createdAt: -1 });
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
 
-      res.json({ success: true, requests });
+      const total = await SponsorshipRequest.countDocuments(filter);
+
+      res.json({
+        success: true,
+        requests,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit)
+        }
+      });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
@@ -188,6 +230,35 @@ class SponsorshipController {
       }).catch(err => console.error('Failed to fetch brand user for email:', err));
 
       res.json({ success: true, request });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // Withdraw sponsorship request (Brand only)
+  withdrawRequest = async (req, res) => {
+    try {
+      const { requestId } = req.params;
+
+      const request = await SponsorshipRequest.findById(requestId);
+      if (!request) {
+        return res.status(404).json({ error: 'Request not found' });
+      }
+
+      // Verify brand ownership
+      const brandProfile = await BrandProfile.findOne({ userId: req.userId });
+      if (!brandProfile || request.brandId.toString() !== brandProfile._id.toString()) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+
+      // Can only withdraw pending requests
+      if (request.status !== 'pending') {
+        return res.status(400).json({ error: 'Can only withdraw pending requests' });
+      }
+
+      await SponsorshipRequest.findByIdAndDelete(requestId);
+
+      res.json({ success: true, message: 'Sponsorship request withdrawn successfully' });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
