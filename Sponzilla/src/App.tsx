@@ -4,7 +4,6 @@ import { UserProvider } from './contexts/UserContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import HomePage from './pages/home';
 import ProtectedRoute from './components/layout/ProtectedRoute';
-import { Analytics } from "@vercel/analytics/react"
 import './App.css';
 
 const ListEventPage = lazy(() => import('./pages/ListEvent'));
@@ -92,7 +91,6 @@ function App() {
               </Routes>
             </Suspense>
           </div>
-          <Analytics />
         </Router>
       </NotificationProvider>
     </UserProvider>
