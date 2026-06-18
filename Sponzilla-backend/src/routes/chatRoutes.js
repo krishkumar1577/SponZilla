@@ -2,10 +2,11 @@
 const express = require('express');
 const router = express.Router();
 const chatController = require('../controllers/chatController');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireCompletedProfile } = require('../middleware/auth');
 
 // All chat routes require authentication
 router.use(verifyToken);
+router.use(requireCompletedProfile);
 
 router.get('/conversations', chatController.getConversations);
 router.get('/messages/:conversationId', chatController.getMessages);

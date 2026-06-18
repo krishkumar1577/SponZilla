@@ -40,8 +40,7 @@ class AuthController {
       // Call service to register user
       const result = await authService.register(name, email, password, role);
 
-      // Send response
-      sendSuccessResponse(res, 201, {
+      res.status(201).json({
         message: 'Registration successful',
         ...result
       });
@@ -81,7 +80,6 @@ class AuthController {
   // ===== GET PROFILE =====
   async getProfile(req, res) {
     try {
-      // req.userId is set by auth middleware
       const user = await authService.getProfile(req.userId);
       
       res.json({ user });
@@ -127,7 +125,7 @@ class AuthController {
       
       res.json({ 
         message: 'Account updated successfully',
-        user: updatedUser
+        user: updatedUser.user
       });
       
     } catch (error) {
@@ -176,7 +174,7 @@ class AuthController {
         return res.status(404).json({ error: 'User not found' });
       }
 
-      const newAccessToken = authService.generateToken(user._id, user.role);
+      const newAccessToken = authService.generateToken(user._id);
 
       res.json({ accessToken: newAccessToken });
     } catch (error) {
@@ -213,11 +211,10 @@ class AuthController {
   // ===== GOOGLE LOGIN =====
   async googleLogin(req, res) {
     try {
-      const { role } = req.query;
       if (!process.env.GOOGLE_CLIENT_ID) {
         return res.status(500).json({ error: 'Google OAuth is not configured on the server. Please set GOOGLE_CLIENT_ID in the backend environment variables.' });
       }
-      const url = authService.getGoogleAuthUrl(role);
+      const url = authService.getGoogleAuthUrl();
       res.redirect(url);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -231,10 +228,11 @@ class AuthController {
       const result = await authService.handleGoogleCallback(code, state);
       
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      const userString = encodeURIComponent(JSON.stringify(result.user));
-      const token = result.token;
-      
-      res.redirect(`${frontendUrl}/oauth-success?token=${token}&user=${userString}`);
+      if (result.kind === 'login') {
+        return res.redirect(`${frontendUrl}/oauth-success?session=${result.sessionId}`);
+      }
+
+      return res.redirect(`${frontendUrl}/role-selection?oauthSession=${result.sessionId}`);
     } catch (error) {
       console.error('Google Auth Callback Error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -245,11 +243,10 @@ class AuthController {
   // ===== GITHUB LOGIN =====
   async githubLogin(req, res) {
     try {
-      const { role } = req.query;
       if (!process.env.GITHUB_CLIENT_ID) {
         return res.status(500).json({ error: 'GitHub OAuth is not configured on the server. Please set GITHUB_CLIENT_ID in the backend environment variables.' });
       }
-      const url = authService.getGithubAuthUrl(role);
+      const url = authService.getGithubAuthUrl();
       res.redirect(url);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -263,14 +260,57 @@ class AuthController {
       const result = await authService.handleGithubCallback(code, state);
       
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-      const userString = encodeURIComponent(JSON.stringify(result.user));
-      const token = result.token;
-      
-      res.redirect(`${frontendUrl}/oauth-success?token=${token}&user=${userString}`);
+      if (result.kind === 'login') {
+        return res.redirect(`${frontendUrl}/oauth-success?session=${result.sessionId}`);
+      }
+
+      return res.redirect(`${frontendUrl}/role-selection?oauthSession=${result.sessionId}`);
     } catch (error) {
       console.error('GitHub Auth Callback Error:', error);
       const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       res.redirect(`${frontendUrl}/login?error=${encodeURIComponent(error.message)}`);
+    }
+  }
+
+  async exchangeOAuthSession(req, res) {
+    try {
+      const { sessionId } = req.body;
+
+      if (!sessionId) {
+        return res.status(400).json({ error: 'OAuth session ID is required' });
+      }
+
+      const authResult = authService.exchangeOAuthAuthSession(sessionId);
+      res.json(authResult);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  async getPendingOAuthSignup(req, res) {
+    try {
+      const session = authService.getPendingOAuthSignup(req.params.sessionId);
+      res.json(session);
+    } catch (error) {
+      res.status(404).json({ error: error.message });
+    }
+  }
+
+  async completeOAuthSignup(req, res) {
+    try {
+      const { sessionId, role } = req.body;
+
+      if (!sessionId || !role) {
+        return res.status(400).json({ error: 'OAuth session ID and role are required' });
+      }
+
+      const authResult = await authService.completeOAuthSignup(sessionId, role);
+      res.status(201).json({
+        message: 'OAuth signup completed successfully',
+        ...authResult,
+      });
+    } catch (error) {
+      res.status(400).json({ error: error.message });
     }
   }
 }

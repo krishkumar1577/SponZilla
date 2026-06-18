@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const analyticsController = require('../controllers/analyticsController');
-const { verifyToken } = require('../middleware/auth');
+const { verifyToken, requireCompletedProfile } = require('../middleware/auth');
 
 // All analytics routes require authentication
 router.use(verifyToken);
+router.use(requireCompletedProfile);
 
 // Club analytics (for club dashboard)
 // Query params: ?clubId=xxx (admin only - to view specific club)
