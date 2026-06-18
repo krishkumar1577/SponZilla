@@ -109,7 +109,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       return completeAuth(response);
     } catch (error) {
       console.error('Login failed:', error);
-      return null;
+      throw error;
     } finally {
       setLoading(false);
     }
@@ -122,7 +122,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
       return completeAuth(response);
     } catch (error) {
       console.error('Registration failed:', error);
-      return null;
+      throw error;
     } finally {
       setLoading(false);
     }

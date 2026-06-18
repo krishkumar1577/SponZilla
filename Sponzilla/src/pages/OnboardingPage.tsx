@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import Navbar from '../components/layout/Navbar';
-import { authAPI, profilesAPI, type PendingOAuthSignup } from '../services/api';
+import { authAPI, profilesAPI } from '../services/api';
 import { useUser } from '../contexts/UserContext';
 import { getDefaultRouteForRole } from '../utils/authRouting';
 
@@ -22,8 +22,10 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ role }) => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, isAuthenticated, loading, completeAuth, setUser } = useUser();
-  const oauthSessionId = searchParams.get('oauthSession');
-  const [oauthSession, setOAuthSession] = useState<PendingOAuthSignup | null>(null);
+  const signupToken = searchParams.get('signupToken');
+  const provider = searchParams.get('provider');
+  const signupName = searchParams.get('name') || '';
+  const signupEmail = searchParams.get('email') || '';
   const [pageLoading, setPageLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -58,10 +60,10 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ role }) => {
       };
     }
 
-    if (oauthSession) {
+    if (signupName || signupEmail) {
       return {
-        name: oauthSession.name,
-        email: oauthSession.email,
+        name: signupName,
+        email: signupEmail,
       };
     }
 
@@ -69,7 +71,7 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ role }) => {
       name: '',
       email: '',
     };
-  }, [isAuthenticated, oauthSession, user.email, user.name]);
+  }, [isAuthenticated, signupEmail, signupName, user.email, user.name]);
 
   useEffect(() => {
     if (loading) {
@@ -91,22 +93,12 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ role }) => {
       return;
     }
 
-    if (!oauthSessionId) {
-      navigate('/login');
-      return;
+    if (!signupToken || !provider || !signupEmail) {
+      setError('Your signup session is missing or expired. Please sign in again.');
     }
 
-    authAPI.getPendingOAuthSignup(oauthSessionId)
-      .then((response) => {
-        setOAuthSession(response);
-      })
-      .catch((err: Error) => {
-        setError(err.message || 'Failed to load your signup session.');
-      })
-      .finally(() => {
-        setPageLoading(false);
-      });
-  }, [isAuthenticated, loading, navigate, oauthSessionId, role, user.profileCompleted, user.type]);
+    setPageLoading(false);
+  }, [isAuthenticated, loading, navigate, provider, role, signupEmail, signupToken, user.profileCompleted, user.type]);
 
   const toggleSelection = (value: string, setter: React.Dispatch<React.SetStateAction<string[]>>) => {
     setter((prev) => (
@@ -126,11 +118,11 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ role }) => {
       return user;
     }
 
-    if (!oauthSessionId) {
-      throw new Error('OAuth session missing. Please sign in again.');
+    if (!signupToken) {
+      throw new Error('Signup session missing. Please sign in again.');
     }
 
-    const authResponse = await authAPI.completeOAuthSignup({ sessionId: oauthSessionId, role });
+    const authResponse = await authAPI.completeOAuthSignup({ signupToken, role });
     return completeAuth(authResponse);
   };
 

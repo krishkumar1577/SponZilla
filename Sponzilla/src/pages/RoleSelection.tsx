@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { authAPI, type PendingOAuthSignup } from '../services/api';
 import Navbar from '../components/layout/Navbar';
 import { useUser } from '../contexts/UserContext';
 import { getDefaultRouteForRole } from '../utils/authRouting';
@@ -9,14 +8,14 @@ const RoleSelectionPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { isAuthenticated, user, loading } = useUser();
-  const [session, setSession] = useState<PendingOAuthSignup | null>(null);
   const [selectedRole, setSelectedRole] = useState<'club' | 'brand'>('club');
   const [error, setError] = useState('');
-  const [pageLoading, setPageLoading] = useState(true);
+  const signupToken = searchParams.get('signupToken');
+  const provider = searchParams.get('provider') as 'google' | 'github' | null;
+  const name = searchParams.get('name') || '';
+  const email = searchParams.get('email') || '';
 
   useEffect(() => {
-    const sessionId = searchParams.get('oauthSession');
-
     if (loading) {
       return;
     }
@@ -26,27 +25,26 @@ const RoleSelectionPage: React.FC = () => {
       return;
     }
 
-    if (!sessionId) {
+    if (!signupToken || !provider || !name || !email) {
       setError('Your signup session is missing or expired. Please try signing in again.');
-      setPageLoading(false);
-      return;
     }
-
-    authAPI.getPendingOAuthSignup(sessionId)
-      .then((response) => {
-        setSession(response);
-      })
-      .catch((err: Error) => {
-        setError(err.message || 'Failed to load your signup session.');
-      })
-      .finally(() => {
-        setPageLoading(false);
-      });
-  }, [isAuthenticated, loading, navigate, searchParams, user.type]);
+  }, [email, isAuthenticated, loading, name, navigate, provider, signupToken, user.type]);
 
   const handleContinue = () => {
-    if (!session) return;
-    navigate(`/onboarding/${selectedRole}?oauthSession=${session.sessionId}`);
+    if (!signupToken || !provider || !name || !email) return;
+
+    const params = new URLSearchParams({
+      signupToken,
+      provider,
+      name,
+      email,
+    });
+    const avatar = searchParams.get('avatar');
+    if (avatar) {
+      params.set('avatar', avatar);
+    }
+
+    navigate(`/onboarding/${selectedRole}?${params.toString()}`);
   };
 
   return (
@@ -60,23 +58,19 @@ const RoleSelectionPage: React.FC = () => {
               We’ve authenticated your account. Your next step is choosing whether you’re joining as a club or a brand.
             </p>
 
-            {pageLoading && (
-              <div className="py-10 text-center text-[#617989]">Loading your signup session...</div>
-            )}
-
-            {!pageLoading && error && (
+            {error && (
               <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-600">
                 {error}
               </div>
             )}
 
-            {!pageLoading && session && (
+            {!error && (
               <>
                 <div className="mt-6 rounded-2xl bg-[#f6f8f9] p-4 text-left">
-                  <p className="text-sm font-semibold text-[#121516]">{session.name}</p>
-                  <p className="text-sm text-[#617989]">{session.email}</p>
+                  <p className="text-sm font-semibold text-[#121516]">{name}</p>
+                  <p className="text-sm text-[#617989]">{email}</p>
                   <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#617989]">
-                    Signed in with {session.provider}
+                    Signed in with {provider}
                   </p>
                 </div>
 

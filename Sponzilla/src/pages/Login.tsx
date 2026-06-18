@@ -5,6 +5,9 @@ import Navbar from '../components/layout/Navbar';
 import { API_BASE_URL } from '../services/api';
 import { getPostAuthRoute } from '../utils/authRouting';
 
+const PASSWORD_RULE_MESSAGE = 'Password must be at least 8 characters with uppercase, lowercase, number, and special character';
+const PASSWORD_RULE_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
+
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const { login, register, loading } = useUser();
@@ -72,8 +75,8 @@ const LoginPage: React.FC = () => {
       } else {
         setError('Invalid email or password');
       }
-    } catch (err) {
-      setError('Login failed. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please try again.');
     }
   };
 
@@ -91,8 +94,8 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    if (signupData.password.length < 8) {
-      setError('Password must be at least 8 characters');
+    if (!PASSWORD_RULE_REGEX.test(signupData.password)) {
+      setError(PASSWORD_RULE_MESSAGE);
       return;
     }
 
@@ -109,8 +112,8 @@ const LoginPage: React.FC = () => {
       } else {
         setError('Registration failed. Please try again.');
       }
-    } catch (err) {
-      setError('Registration failed. Please try again.');
+    } catch (err: any) {
+      setError(err.message || 'Registration failed. Please try again.');
     }
   };
 
@@ -270,12 +273,12 @@ const LoginPage: React.FC = () => {
                     <input
                       name="password"
                       type="password"
-                      placeholder="Create a password (min 6 characters)"
+                      placeholder="Create a strong password"
                       className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121516] focus:outline-0 focus:ring-0 border border-[#dde1e3] bg-white focus:border-[#dde1e3] h-14 placeholder:text-[#6a7781] p-[15px] text-base font-normal leading-normal"
                       value={signupData.password}
                       onChange={handleSignupChange}
                       required
-                      minLength={6}
+                      minLength={8}
                     />
                   </label>
                 </div>

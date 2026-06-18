@@ -46,7 +46,7 @@ export interface UserSettings {
 }
 
 export interface PendingOAuthSignup {
-  sessionId: string;
+  signupToken: string;
   provider: 'google' | 'github';
   name: string;
   email: string;
@@ -69,16 +69,7 @@ export const authAPI = {
   getProfile: (): Promise<{ user: AuthUser }> =>
     apiRequest('/auth/me'),
 
-  exchangeOAuthSession: (sessionId: string): Promise<AuthResponse> =>
-    apiRequest('/auth/oauth/exchange-session', {
-      method: 'POST',
-      body: JSON.stringify({ sessionId }),
-    }),
-
-  getPendingOAuthSignup: (sessionId: string): Promise<PendingOAuthSignup> =>
-    apiRequest(`/auth/oauth/pending/${sessionId}`),
-
-  completeOAuthSignup: (data: { sessionId: string; role: 'club' | 'brand' }): Promise<AuthResponse> =>
+  completeOAuthSignup: (data: { signupToken: string; role: 'club' | 'brand' }): Promise<AuthResponse> =>
     apiRequest('/auth/oauth/complete-signup', {
       method: 'POST',
       body: JSON.stringify(data),
