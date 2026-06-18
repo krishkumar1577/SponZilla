@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { toast } from 'react-hot-toast';
@@ -7,8 +7,15 @@ import { getPostAuthRoute } from '../utils/authRouting';
 const OAuthSuccessPage: React.FC = () => {
   const navigate = useNavigate();
   const { completeAuth } = useUser();
+  const hasHandledCallback = useRef(false);
 
   useEffect(() => {
+    if (hasHandledCallback.current) {
+      return;
+    }
+
+    hasHandledCallback.current = true;
+
     const hash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : '';
     const hashParams = new URLSearchParams(hash);
     const token = hashParams.get('token');
