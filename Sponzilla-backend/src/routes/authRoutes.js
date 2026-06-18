@@ -22,8 +22,6 @@ router.post('/verify-email/:token', authController.verifyEmail);
 // Google OAuth Routes
 router.get('/google', authController.googleLogin);
 router.get('/google/callback', authController.googleCallback);
-router.post('/oauth/exchange-session', authController.exchangeOAuthSession);
-router.get('/oauth/pending/:sessionId', authController.getPendingOAuthSignup);
 router.post('/oauth/complete-signup', authController.completeOAuthSignup);
 
 // GitHub OAuth Routes

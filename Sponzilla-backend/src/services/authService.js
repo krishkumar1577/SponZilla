@@ -5,37 +5,7 @@ const User = require('../models/user');
 const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
 
-const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
-const OAUTH_SIGNUP_TTL_MS = 15 * 60 * 1000;
-const OAUTH_AUTH_TTL_MS = 5 * 60 * 1000;
-
 class AuthService {
-  constructor() {
-    this.oauthStates = new Map();
-    this.pendingOAuthSignups = new Map();
-    this.oauthAuthSessions = new Map();
-
-    const cleanupInterval = setInterval(() => {
-      this.cleanupExpiredSessions();
-    }, 5 * 60 * 1000);
-
-    if (typeof cleanupInterval.unref === 'function') {
-      cleanupInterval.unref();
-    }
-  }
-
-  cleanupExpiredSessions() {
-    const now = Date.now();
-
-    [this.oauthStates, this.pendingOAuthSignups, this.oauthAuthSessions].forEach((store) => {
-      for (const [key, value] of store.entries()) {
-        if (!value || value.expiresAt <= now) {
-          store.delete(key);
-        }
-      }
-    });
-  }
-
   async getProfileCompletionStatus(userId, role) {
     if (role === 'admin') {
       return true;
@@ -156,92 +126,53 @@ class AuthService {
   }
 
   generateOAuthState(provider) {
-    const state = crypto.randomBytes(32).toString('hex');
-
-    this.oauthStates.set(state, {
-      provider,
-      expiresAt: Date.now() + OAUTH_STATE_TTL_MS,
-    });
-
-    return state;
+    return jwt.sign(
+      { purpose: 'oauth_state', provider },
+      process.env.JWT_SECRET,
+      { expiresIn: '10m' }
+    );
   }
 
   validateOAuthState(state, expectedProvider) {
-    const storedState = this.oauthStates.get(state);
+    try {
+      const payload = jwt.verify(state, process.env.JWT_SECRET);
 
-    if (
-      !storedState ||
-      storedState.provider !== expectedProvider ||
-      storedState.expiresAt <= Date.now()
-    ) {
-      this.oauthStates.delete(state);
+      if (payload.purpose !== 'oauth_state' || payload.provider !== expectedProvider) {
+        throw new Error('Invalid OAuth state');
+      }
+    } catch (error) {
       throw new Error('Invalid OAuth state - possible CSRF attack');
     }
-
-    this.oauthStates.delete(state);
   }
 
-  createOAuthAuthSession(authResult) {
-    const sessionId = crypto.randomBytes(32).toString('hex');
-
-    this.oauthAuthSessions.set(sessionId, {
-      authResult,
-      expiresAt: Date.now() + OAUTH_AUTH_TTL_MS,
-    });
-
-    return sessionId;
+  createOAuthSignupToken(profile) {
+    return jwt.sign(
+      { purpose: 'oauth_signup', profile },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
   }
 
-  exchangeOAuthAuthSession(sessionId) {
-    const session = this.oauthAuthSessions.get(sessionId);
+  parseOAuthSignupToken(signupToken) {
+    try {
+      const payload = jwt.verify(signupToken, process.env.JWT_SECRET);
 
-    if (!session || session.expiresAt <= Date.now()) {
-      this.oauthAuthSessions.delete(sessionId);
-      throw new Error('OAuth session expired. Please try signing in again.');
-    }
+      if (payload.purpose !== 'oauth_signup' || !payload.profile?.provider || !payload.profile?.email) {
+        throw new Error('Invalid signup token');
+      }
 
-    this.oauthAuthSessions.delete(sessionId);
-    return session.authResult;
-  }
-
-  createPendingOAuthSignup(profile) {
-    const sessionId = crypto.randomBytes(32).toString('hex');
-
-    this.pendingOAuthSignups.set(sessionId, {
-      ...profile,
-      expiresAt: Date.now() + OAUTH_SIGNUP_TTL_MS,
-    });
-
-    return sessionId;
-  }
-
-  getPendingOAuthSignup(sessionId) {
-    const session = this.pendingOAuthSignups.get(sessionId);
-
-    if (!session || session.expiresAt <= Date.now()) {
-      this.pendingOAuthSignups.delete(sessionId);
+      return payload.profile;
+    } catch (error) {
       throw new Error('OAuth signup session expired. Please try again.');
     }
-
-    return {
-      sessionId,
-      provider: session.provider,
-      name: session.name,
-      email: session.email,
-      avatar: session.avatar || null,
-    };
   }
 
-  async completeOAuthSignup(sessionId, role) {
+  async completeOAuthSignup(signupToken, role) {
     if (!['club', 'brand'].includes(role)) {
       throw new Error('Role must be either "club" or "brand"');
     }
 
-    const session = this.pendingOAuthSignups.get(sessionId);
-    if (!session || session.expiresAt <= Date.now()) {
-      this.pendingOAuthSignups.delete(sessionId);
-      throw new Error('OAuth signup session expired. Please try again.');
-    }
+    const session = this.parseOAuthSignupToken(signupToken);
 
     const providerIdField = session.provider === 'google' ? 'googleId' : 'githubId';
     const providerId = session.provider === 'google' ? session.googleId : session.githubId;
@@ -268,7 +199,6 @@ class AuthService {
       });
     }
 
-    this.pendingOAuthSignups.delete(sessionId);
     return this.createAuthResult(user);
   }
 
@@ -347,19 +277,23 @@ class AuthService {
       user = await this.linkExistingSocialUser(user, 'googleId', googleId, avatar);
       return {
         kind: 'login',
-        sessionId: this.createOAuthAuthSession(await this.createAuthResult(user)),
+        authResult: await this.createAuthResult(user),
       };
     }
 
     return {
       kind: 'signup',
-      sessionId: this.createPendingOAuthSignup({
+      signupToken: this.createOAuthSignupToken({
         provider: 'google',
         googleId,
         name: name || 'Google User',
         email,
         avatar,
       }),
+      provider: 'google',
+      name: name || 'Google User',
+      email,
+      avatar: avatar || null,
     };
   }
 
@@ -454,19 +388,23 @@ class AuthService {
       user = await this.linkExistingSocialUser(user, 'githubId', githubId, avatar);
       return {
         kind: 'login',
-        sessionId: this.createOAuthAuthSession(await this.createAuthResult(user)),
+        authResult: await this.createAuthResult(user),
       };
     }
 
     return {
       kind: 'signup',
-      sessionId: this.createPendingOAuthSignup({
+      signupToken: this.createOAuthSignupToken({
         provider: 'github',
         githubId,
         name,
         email,
         avatar,
       }),
+      provider: 'github',
+      name,
+      email,
+      avatar: avatar || null,
     };
   }
 
