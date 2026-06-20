@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { SmartNavbar } from '../../components/layout/Navbar';
 import { analyticsAPI, eventsAPI, profilesAPI, sponsorshipAPI, type ClubAnalytics, type Event, type BrandProfile, type ClubProfile } from '../../services/api';
 import { OnboardingModal } from '../../components/profile/OnboardingModal';
+import { proofOfWorkAPI, type Escrow } from '../../services/api/proofOfWork';
+import { EscrowTracker } from '../../components/sponsorships/EscrowTracker';
 
 const ClubDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -22,6 +24,8 @@ const ClubDashboard: React.FC = () => {
   const [sponsorshipRequests, setSponsorshipRequests] = useState<any[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(true);
   const [activeModal, setActiveModal] = useState<string | null>(null); // 'current', 'potential', 'requests'
+  const [escrows, setEscrows] = useState<Escrow[]>([]);
+  const [escrowsLoading, setEscrowsLoading] = useState(true);
 
   // Helper functions for formatting
   const formatNumber = (num: number | undefined): string => {
@@ -116,6 +120,17 @@ const ClubDashboard: React.FC = () => {
         console.error('Failed to fetch sponsorship requests:', err);
       } finally {
         setRequestsLoading(false);
+      }
+
+      // Fetch escrows
+      try {
+        setEscrowsLoading(true);
+        const escrowsRes = await proofOfWorkAPI.getMyEscrows();
+        setEscrows(escrowsRes.escrows || []);
+      } catch (err) {
+        console.error('Failed to fetch escrows:', err);
+      } finally {
+        setEscrowsLoading(false);
       }
     };
 
@@ -321,6 +336,16 @@ const ClubDashboard: React.FC = () => {
                   <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${activeTab === 'drafts' ? 'text-[#111518]' : 'text-[#617989]'
                     }`}>Drafts</p>
                 </button>
+                <button
+                  onClick={() => setActiveTab('escrows')}
+                  className={`flex flex-col items-center justify-center border-b-[3px] pb-[13px] pt-4 ${activeTab === 'escrows'
+                    ? 'border-b-[#111518] text-[#111518]'
+                    : 'border-b-transparent text-[#617989]'
+                    }`}
+                >
+                  <p className={`text-sm font-bold leading-normal tracking-[0.015em] text-left ${activeTab === 'escrows' ? 'text-[#111518]' : 'text-[#617989]'
+                    }`}>Active Escrows</p>
+                </button>
               </div>
             </div>
 
@@ -389,7 +414,28 @@ const ClubDashboard: React.FC = () => {
               </div>
             </div>
 
-            {/* Events Table */}
+            {/* Main Tab Content */}
+            {activeTab === 'escrows' ? (
+              <div className="px-4 py-6 space-y-6">
+                {escrowsLoading ? (
+                  <p className="text-center text-[#617989] py-8">Loading your escrow vault...</p>
+                ) : escrows.length === 0 ? (
+                  <div className="text-center bg-white rounded-xl border border-[#dbe1e6] py-12">
+                    <p className="text-[#617989] font-medium text-lg mb-2">No Active Escrows</p>
+                    <p className="text-[#617989] text-sm max-w-md mx-auto">When a brand accepts your sponsorship bid, the funds will be locked here until you complete your Proof of Performance milestones.</p>
+                  </div>
+                ) : (
+                  escrows.map(escrow => (
+                    <EscrowTracker 
+                      key={escrow._id} 
+                      escrow={escrow} 
+                      userType="club" 
+                      onUpdate={(updated) => setEscrows(prev => prev.map(e => e._id === updated._id ? updated : e))} 
+                    />
+                  ))
+                )}
+              </div>
+            ) : (
             <div className="px-4 py-3">
               <div className="flex overflow-hidden rounded-xl border border-[#dbe1e6] bg-white">
                 <table className="flex-1">
@@ -475,6 +521,7 @@ const ClubDashboard: React.FC = () => {
                 </table>
               </div>
             </div>
+            )}
           </div>
 
           {/* Right Sidebar */}

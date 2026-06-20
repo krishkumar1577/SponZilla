@@ -1,66 +1,152 @@
 const ProofOfWork = require('../models/ProofOfWork');
-const Event = require('../models/Event');
+const SponsorshipRequest = require('../models/SponsorshipRequest');
 const ClubProfile = require('../models/ClubProfile');
+const BrandProfile = require('../models/BrandProfile');
 
 class ProofOfWorkController {
-  // Submit a new Proof of Work report
-  submitReport = async (req, res) => {
+  
+  // Directly called by sponsorshipController when a request is accepted
+  async initializeEscrow(eventId, clubId, brandId, sponsorshipRequestId, amount) {
     try {
-      const { eventId, actualAttendees, socialImpressions, clickThroughs, postEventNotes } = req.body;
-      
-      const clubProfile = await ClubProfile.findOne({ userId: req.userId });
-      if (!clubProfile) {
-        return res.status(403).json({ error: 'Only clubs can submit Proof of Work reports' });
-      }
+      const defaultMilestones = [
+        {
+          title: "Pre-Event Promotion",
+          description: "Upload a screenshot or link of the brand's promotion on your social media.",
+          payoutAmount: amount * 0.2, // 20% upfront
+        },
+        {
+          title: "Event Day Execution",
+          description: "Upload geotagged photos of the brand's banners/assets at the actual event.",
+          payoutAmount: amount * 0.6, // 60% upon execution
+        },
+        {
+          title: "Post-Event Analytics",
+          description: "Upload final attendee counts, receipts, and social reach screenshots.",
+          payoutAmount: amount * 0.2, // 20% on completion
+        }
+      ];
 
-      const event = await Event.findById(eventId);
-      if (!event) {
-        return res.status(404).json({ error: 'Event not found' });
-      }
-
-      if (event.clubId.toString() !== clubProfile._id.toString()) {
-        return res.status(403).json({ error: 'You can only submit reports for your own events' });
-      }
-
-      // Check if report already exists
-      let report = await ProofOfWork.findOne({ eventId });
-      if (report) {
-        return res.status(400).json({ error: 'A Proof of Work report has already been submitted for this event' });
-      }
-
-      report = await ProofOfWork.create({
+      const escrow = await ProofOfWork.create({
         eventId,
-        clubId: clubProfile._id,
-        actualAttendees,
-        socialImpressions,
-        clickThroughs,
-        postEventNotes
+        clubId,
+        brandId,
+        sponsorshipRequestId,
+        escrowAmount: amount,
+        escrowStatus: 'funded', // Mocking instant funding for MVP
+        milestones: defaultMilestones
       });
 
-      // Update event status to completed if it isn't already
-      if (event.status !== 'completed') {
-        event.status = 'completed';
-        await event.save();
+      return escrow;
+    } catch (error) {
+      console.error('Error initializing escrow:', error);
+      throw error;
+    }
+  }
+
+  // Get Escrow details by Sponsorship ID
+  getEscrowBySponsorship = async (req, res) => {
+    try {
+      const { sponsorshipId } = req.params;
+      const escrow = await ProofOfWork.findOne({ sponsorshipRequestId: sponsorshipId })
+        .populate('clubId', 'clubName logo')
+        .populate('brandId', 'companyName logo');
+      
+      if (!escrow) {
+        return res.status(404).json({ error: 'Escrow not found for this sponsorship' });
       }
 
-      res.status(201).json({ success: true, report });
+      res.json({ success: true, escrow });
     } catch (error) {
-      console.error('Proof of Work submission error:', error);
       res.status(500).json({ error: error.message });
     }
   }
 
-  // Get report for a specific event
-  getReportByEvent = async (req, res) => {
+  // Club submits evidence for a milestone
+  submitMilestoneEvidence = async (req, res) => {
     try {
-      const { eventId } = req.params;
-      const report = await ProofOfWork.findOne({ eventId }).populate('clubId', 'clubName logo');
-      
-      if (!report) {
-        return res.status(404).json({ error: 'Report not found' });
+      const { id, milestoneId } = req.params;
+      const { evidenceData, evidenceType } = req.body;
+
+      const escrow = await ProofOfWork.findById(id);
+      if (!escrow) return res.status(404).json({ error: 'Escrow not found' });
+
+      // Find the milestone
+      const milestone = escrow.milestones.id(milestoneId);
+      if (!milestone) return res.status(404).json({ error: 'Milestone not found' });
+
+      // Update milestone
+      milestone.evidenceData = evidenceData;
+      if (evidenceType) milestone.evidenceType = evidenceType;
+      milestone.status = 'submitted';
+      milestone.submittedAt = new Date();
+
+      await escrow.save();
+
+      res.json({ success: true, escrow });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // Brand verifies or rejects a milestone
+  verifyMilestone = async (req, res) => {
+    try {
+      const { id, milestoneId } = req.params;
+      const { status, brandFeedback } = req.body; // status must be 'verified' or 'rejected'
+
+      if (!['verified', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Status must be verified or rejected' });
       }
 
-      res.json({ success: true, report });
+      const escrow = await ProofOfWork.findById(id);
+      if (!escrow) return res.status(404).json({ error: 'Escrow not found' });
+
+      // Find the milestone
+      const milestone = escrow.milestones.id(milestoneId);
+      if (!milestone) return res.status(404).json({ error: 'Milestone not found' });
+
+      // Update milestone
+      milestone.status = status;
+      milestone.brandFeedback = brandFeedback;
+      if (status === 'verified') milestone.verifiedAt = new Date();
+
+      // Check if all milestones are verified to update escrow status
+      const allVerified = escrow.milestones.every(m => m.status === 'verified');
+      const anyVerified = escrow.milestones.some(m => m.status === 'verified');
+      
+      if (allVerified) {
+        escrow.escrowStatus = 'fully_released';
+      } else if (anyVerified) {
+        escrow.escrowStatus = 'partially_released';
+      }
+
+      await escrow.save();
+
+      res.json({ success: true, escrow });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // Get all active escrows for a club or brand
+  getMyEscrows = async (req, res) => {
+    try {
+      // Find whether user is club or brand
+      const clubProfile = await ClubProfile.findOne({ userId: req.userId });
+      const brandProfile = await BrandProfile.findOne({ userId: req.userId });
+
+      let escrows = [];
+      if (clubProfile) {
+        escrows = await ProofOfWork.find({ clubId: clubProfile._id })
+          .populate('brandId', 'companyName logo')
+          .populate('eventId', 'title date');
+      } else if (brandProfile) {
+        escrows = await ProofOfWork.find({ brandId: brandProfile._id })
+          .populate('clubId', 'clubName logo')
+          .populate('eventId', 'title date');
+      }
+
+      res.json({ success: true, escrows });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

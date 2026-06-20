@@ -22,10 +22,10 @@ const BrandLanding: React.FC = () => {
                 >
                   <div className="flex flex-col gap-2 text-center">
                     <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-5xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em]">
-                      Connect with the Next Generation
+                      Trackable Campus Customer Acquisition. Zero Ghosting Risk. Automated W-9 Tax Compliance.
                     </h1>
                     <h2 className="text-white text-sm font-normal leading-normal @[480px]:text-base @[480px]:font-normal @[480px]:leading-normal">
-                      Reach a highly engaged student audience through targeted sponsorships of campus clubs and events.
+                      Eliminate the friction of sponsoring college clubs. Use SponZilla's Automated Proof of Performance Escrow to scale your hyper-local marketing securely.
                     </h2>
                   </div>
                   <Link

@@ -3,6 +3,8 @@ import { SmartNavbar } from '../../components/layout/Navbar';
 import { useNavigate } from 'react-router-dom';
 import { analyticsAPI, eventsAPI, sponsorshipAPI, type BrandAnalytics } from '../../services/api';
 import { OnboardingModal } from '../../components/profile/OnboardingModal';
+import { proofOfWorkAPI, type Escrow } from '../../services/api/proofOfWork';
+import { EscrowTracker } from '../../components/sponsorships/EscrowTracker';
 
 const BrandDashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +14,8 @@ const BrandDashboardPage: React.FC = () => {
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [sponsorshipRequests, setSponsorshipRequests] = useState<any[]>([]);
   const [requestsLoading, setRequestsLoading] = useState(true);
+  const [escrows, setEscrows] = useState<Escrow[]>([]);
+  const [escrowsLoading, setEscrowsLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalytics = async () => {
@@ -50,6 +54,16 @@ const BrandDashboardPage: React.FC = () => {
         console.error('Failed to load sponsorship requests:', err);
       } finally {
         setRequestsLoading(false);
+      }
+
+      try {
+        setEscrowsLoading(true);
+        const escrowsRes = await proofOfWorkAPI.getMyEscrows();
+        setEscrows(escrowsRes.escrows || []);
+      } catch (err) {
+        console.error('Failed to fetch escrows:', err);
+      } finally {
+        setEscrowsLoading(false);
       }
     };
 
@@ -408,6 +422,29 @@ const BrandDashboardPage: React.FC = () => {
                 </table>
               </div>
             </div>
+
+            {/* Active Escrows Section */}
+            <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Active Escrows & Deliverables</h2>
+            <div className="px-4 py-3 space-y-6">
+              {escrowsLoading ? (
+                <p className="text-[#617989] text-center py-4">Loading your active escrows...</p>
+              ) : escrows.length === 0 ? (
+                <div className="text-center bg-white rounded-xl border border-[#dbe1e6] py-12">
+                  <p className="text-[#617989] font-medium text-lg mb-2">No Active Escrows</p>
+                  <p className="text-[#617989] text-sm max-w-md mx-auto">When you accept a sponsorship bid, the funds are held in escrow here until the club completes their Proof of Performance milestones.</p>
+                </div>
+              ) : (
+                escrows.map(escrow => (
+                  <EscrowTracker 
+                    key={escrow._id} 
+                    escrow={escrow} 
+                    userType="brand" 
+                    onUpdate={(updated) => setEscrows(prev => prev.map(e => e._id === updated._id ? updated : e))} 
+                  />
+                ))
+              )}
+            </div>
+
           </div>
         </div>
 

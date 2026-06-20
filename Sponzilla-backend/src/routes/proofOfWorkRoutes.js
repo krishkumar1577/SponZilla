@@ -1,12 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const proofOfWorkController = require('../controllers/proofOfWorkController');
-const { verifyToken, isClub } = require('../middleware/auth');
+const { verifyToken, isClub, isBrand } = require('../middleware/auth');
 
-// Submit a new Proof of Work report (Club only)
-router.post('/submit', verifyToken, isClub, proofOfWorkController.submitReport);
+// Get all active escrows for the logged-in user (club or brand)
+router.get('/my-escrows', verifyToken, proofOfWorkController.getMyEscrows);
 
-// Get report for a specific event (Any authenticated user)
-router.get('/event/:eventId', verifyToken, proofOfWorkController.getReportByEvent);
+// Get escrow details by sponsorship request ID
+router.get('/sponsorship/:sponsorshipId', verifyToken, proofOfWorkController.getEscrowBySponsorship);
+
+// Submit evidence for a milestone (Club only)
+router.post('/:id/milestones/:milestoneId/submit', verifyToken, isClub, proofOfWorkController.submitMilestoneEvidence);
+
+// Verify or reject evidence for a milestone (Brand only)
+router.post('/:id/milestones/:milestoneId/verify', verifyToken, isBrand, proofOfWorkController.verifyMilestone);
 
 module.exports = router;

@@ -22,10 +22,10 @@ const ClubLanding: React.FC = () => {
                 >
                   <div className="flex flex-col gap-2 text-center">
                     <h1 className="text-white text-4xl font-black leading-tight tracking-[-0.033em] @[480px]:text-5xl @[480px]:font-black @[480px]:leading-tight @[480px]:tracking-[-0.033em]">
-                      Empower Your Club with Sponsorships
+                      Stop Begging Local Pizzerias. Execute Milestones, Get Paid.
                     </h1>
                     <h2 className="text-white text-sm font-normal leading-normal @[480px]:text-base @[480px]:font-normal @[480px]:leading-normal">
-                      Connect with leading brands and secure funding for your events and initiatives. SponZilla helps student organizations thrive.
+                      Ditch the cold emails. Match with top consumer brands, complete clear Proof of Performance milestones, and get your funding instantly through SponZilla Escrow.
                     </h2>
                   </div>
                   <Link

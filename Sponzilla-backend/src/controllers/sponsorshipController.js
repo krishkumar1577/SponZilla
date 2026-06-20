@@ -7,6 +7,7 @@ const Conversation = require('../models/Conversation');
 const User = require('../models/user');
 const notificationService = require('../services/notificationService');
 const DOMPurify = require('isomorphic-dompurify');
+const proofOfWorkController = require('./proofOfWorkController');
 
 class SponsorshipController {
   // Submit a new sponsorship request
@@ -196,13 +197,26 @@ class SponsorshipController {
       request.status = status;
       await request.save();
 
-      // If accepted, update the event's tier spotsTaken
+      // If accepted, update the event's tier spotsTaken and initialize Escrow
       if (status === 'accepted') {
         const event = await Event.findById(request.eventId);
         const tierIndex = event.sponsorshipTiers.findIndex(t => t.name === request.tierName);
         if (tierIndex !== -1) {
           event.sponsorshipTiers[tierIndex].spotsTaken = (event.sponsorshipTiers[tierIndex].spotsTaken || 0) + 1;
           await event.save();
+        }
+        
+        // Initialize the Automated PoP Escrow Vault
+        try {
+          await proofOfWorkController.initializeEscrow(
+            request.eventId,
+            request.clubId,
+            request.brandId,
+            request._id,
+            request.amount
+          );
+        } catch (err) {
+          console.error("Failed to initialize Escrow upon acceptance:", err);
         }
       }
 
