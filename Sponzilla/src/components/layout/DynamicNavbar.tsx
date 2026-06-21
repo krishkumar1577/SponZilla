@@ -39,7 +39,8 @@ const DynamicNavbar: React.FC<DynamicNavbarProps> = ({ userType, className = "" 
         return [
           { label: 'For Clubs', href: '/club-landing' },
           { label: 'For Brands', href: '/brand-landing' },
-          { label: 'Resources', href: '#' },
+          { label: 'Pricing', href: '/pricing' },
+          { label: 'Help Center', href: '/help' },
         ];
     }
   };

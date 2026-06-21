@@ -161,6 +161,23 @@ const LoginPage: React.FC = () => {
             {/* Login Form */}
             {activeTab === 'login' && (
               <form onSubmit={handleLoginSubmit}>
+                {/* Demo Credentials Helper */}
+                <div className="mx-4 mb-6 p-4 rounded-xl border border-[#dce8f3] bg-[#f4f9fd] text-left">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#1383eb] mb-2">⚡ Quick Demo Access</p>
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <p className="font-semibold text-gray-800">For Student Clubs:</p>
+                      <p className="text-[#6a7781] mt-0.5">Email: <span className="font-mono text-[#121516] font-medium">club@example.com</span></p>
+                      <p className="text-[#6a7781]">Pass: <span className="font-mono text-[#121516] font-medium">clubpass123</span></p>
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800">For Corporate Brands:</p>
+                      <p className="text-[#6a7781] mt-0.5">Email: <span className="font-mono text-[#121516] font-medium">brand@example.com</span></p>
+                      <p className="text-[#6a7781]">Pass: <span className="font-mono text-[#121516] font-medium">brandpass123</span></p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                   <label className="flex flex-col min-w-40 flex-1">
                     <p className="text-[#121516] text-base font-medium leading-normal pb-2">Email</p>

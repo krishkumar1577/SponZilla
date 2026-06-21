@@ -40,9 +40,21 @@ const proofOfWorkSchema = new mongoose.Schema({
   },
   escrowStatus: {
     type: String,
-    enum: ['unfunded', 'funded', 'partially_released', 'fully_released', 'disputed'],
-    default: 'funded' // Assuming funded immediately upon creation for MVP
+    enum: ['pending_signatures', 'unfunded', 'funded', 'partially_released', 'fully_released', 'disputed'],
+    default: 'pending_signatures'
   },
+  // Digital Agreement Sign-off Fields
+  clubSignatory: { type: String, default: '' },
+  clubSignedAt: { type: Date },
+  clubTaxId: { type: String, default: '' },
+  
+  brandSignatory: { type: String, default: '' },
+  brandSignedAt: { type: Date },
+  brandTaxId: { type: String, default: '' },
+  
+  agreementSigned: { type: Boolean, default: false },
+  agreementText: { type: String, default: '' },
+  
   milestones: [milestoneSchema]
 }, { timestamps: true });
 

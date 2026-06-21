@@ -15,4 +15,7 @@ router.post('/:id/milestones/:milestoneId/submit', verifyToken, isClub, proofOfW
 // Verify or reject evidence for a milestone (Brand only)
 router.post('/:id/milestones/:milestoneId/verify', verifyToken, isBrand, proofOfWorkController.verifyMilestone);
 
+// Sign digital agreement contract (Club or Brand)
+router.post('/:id/sign', verifyToken, proofOfWorkController.signAgreement);
+
 module.exports = router;

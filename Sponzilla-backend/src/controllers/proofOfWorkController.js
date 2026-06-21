@@ -29,14 +29,34 @@ class ProofOfWorkController {
         }
       ];
 
+      const agreementText = `SPONSORSHIP & ESCROW SERVICES AGREEMENT
+
+This Agreement is made by and between the Brand Partner (hereinafter "Sponsor") and the Student Club/Organization (hereinafter "Club") and is facilitated by SponZilla.
+
+1. SCOPE OF SPONSORSHIP
+The Club agrees to coordinate and execute the event. In exchange, the Sponsor agrees to pay the sponsorship amount of ₹${amount.toLocaleString()} through SponZilla's secure escrow vault.
+
+2. PERFORMANCE-BASED MILESTONE DISBURSEMENT
+The sponsorship amount is broken down and released on a milestone basis:
+- Pre-Event Promotion (20% payout: ₹${(amount * 0.2).toLocaleString()})
+- Event Day Execution (60% payout: ₹${(amount * 0.6).toLocaleString()})
+- Post-Event Analytics (20% payout: ₹${(amount * 0.2).toLocaleString()})
+
+3. EVIDENCE & VERIFICATION
+The Club must upload digital proof of performance (screenshots, receipts, or geotagged photographs) to the SponZilla dashboard. The Sponsor has 14 days to review and either approve the release of funds or request modifications.
+
+4. COMPLIANCE & LEGAL
+Both parties certify that the representatives typing their names below are authorized signatories of their respective organizations. Both parties agree that digital signature constitutes binding agreement to these terms.`;
+
       const escrow = await ProofOfWork.create({
         eventId,
         clubId,
         brandId,
         sponsorshipRequestId,
         escrowAmount: amount,
-        escrowStatus: 'funded', // Mocking instant funding for MVP
-        milestones: defaultMilestones
+        escrowStatus: 'pending_signatures',
+        milestones: defaultMilestones,
+        agreementText
       });
 
       return escrow;
@@ -192,6 +212,48 @@ class ProofOfWorkController {
       }
 
       res.json({ success: true, escrows });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  // Sign standard agreement and unlock escrow
+  signAgreement = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { signatoryName, taxId } = req.body;
+
+      if (!signatoryName) {
+        return res.status(400).json({ error: 'Representative signatory name is required' });
+      }
+
+      const escrow = await ProofOfWork.findById(id);
+      if (!escrow) return res.status(404).json({ error: 'Escrow contract not found' });
+
+      // Determine if signer is the club or the brand
+      const clubProfile = await ClubProfile.findOne({ userId: req.userId });
+      const brandProfile = await BrandProfile.findOne({ userId: req.userId });
+
+      if (clubProfile && escrow.clubId.toString() === clubProfile._id.toString()) {
+        escrow.clubSignatory = signatoryName;
+        escrow.clubSignedAt = new Date();
+        escrow.clubTaxId = taxId || '';
+      } else if (brandProfile && escrow.brandId.toString() === brandProfile._id.toString()) {
+        escrow.brandSignatory = signatoryName;
+        escrow.brandSignedAt = new Date();
+        escrow.brandTaxId = taxId || '';
+      } else {
+        return res.status(403).json({ error: 'Unauthorized to sign this contract' });
+      }
+
+      // If both have signed, update status to funded (meaning funds are conceptually locked)
+      if (escrow.clubSignatory && escrow.brandSignatory) {
+        escrow.agreementSigned = true;
+        escrow.escrowStatus = 'funded';
+      }
+
+      await escrow.save();
+      res.json({ success: true, escrow });
     } catch (error) {
       res.status(500).json({ error: error.message });
     }

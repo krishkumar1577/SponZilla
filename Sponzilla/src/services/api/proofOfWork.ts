@@ -20,7 +20,15 @@ export interface Escrow {
   brandId: any;
   sponsorshipRequestId: string;
   escrowAmount: number;
-  escrowStatus: 'unfunded' | 'funded' | 'partially_released' | 'fully_released' | 'disputed';
+  escrowStatus: 'pending_signatures' | 'unfunded' | 'funded' | 'partially_released' | 'fully_released' | 'disputed';
+  clubSignatory?: string;
+  clubSignedAt?: string;
+  clubTaxId?: string;
+  brandSignatory?: string;
+  brandSignedAt?: string;
+  brandTaxId?: string;
+  agreementSigned?: boolean;
+  agreementText?: string;
   milestones: Milestone[];
   createdAt: string;
   updatedAt: string;
@@ -41,6 +49,12 @@ export const proofOfWorkAPI = {
 
   verifyMilestone: (escrowId: string, milestoneId: string, data: { status: 'verified' | 'rejected'; brandFeedback?: string }): Promise<{ success: boolean; escrow: Escrow }> =>
     apiRequest(`/proof-of-work/${escrowId}/milestones/${milestoneId}/verify`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  signAgreement: (escrowId: string, data: { signatoryName: string; taxId?: string }): Promise<{ success: boolean; escrow: Escrow }> =>
+    apiRequest(`/proof-of-work/${escrowId}/sign`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
