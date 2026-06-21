@@ -113,6 +113,64 @@ class NotificationService {
     return this.sendEmail(brandUser.email, `Your Sponsorship Request was ${status}`, html);
   }
 
+  async sendMilestoneSubmissionEmail(brandUser, clubName, eventTitle, milestoneTitle) {
+    if (!brandUser || !brandUser.email) return;
+    
+    // Create in-app notification
+    try {
+      await Notification.create({
+        userId: brandUser._id,
+        title: 'Milestone Proof Uploaded',
+        message: `${clubName} has uploaded proof of performance for the milestone "${milestoneTitle}".`,
+        type: 'escrow_update',
+        link: '/brand-dashboard'
+      });
+    } catch (err) {
+      console.error('Failed to create in-app notification:', err);
+    }
+
+    const html = `
+      <h2>Milestone Proof Uploaded 📸</h2>
+      <p><strong>${clubName}</strong> has submitted proof of performance for the milestone: <strong>"${milestoneTitle}"</strong> in event: <strong>${eventTitle}</strong>.</p>
+      <p>Please log in to your dashboard to review the evidence and approve or request changes.</p>
+      <br>
+      <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/brand-dashboard">Review Proof</a>
+    `;
+    return this.sendEmail(brandUser.email, `Milestone Proof Uploaded - ${clubName}`, html);
+  }
+
+  async sendMilestoneStatusEmail(clubUser, brandName, eventTitle, milestoneTitle, status, feedback) {
+    if (!clubUser || !clubUser.email) return;
+    const isApproved = status === 'verified';
+
+    // Create in-app notification
+    try {
+      await Notification.create({
+        userId: clubUser._id,
+        title: isApproved ? 'Milestone Approved' : 'Milestone Change Requested',
+        message: isApproved 
+          ? `${brandName} has approved your proof for "${milestoneTitle}".`
+          : `${brandName} has requested updates for "${milestoneTitle}".`,
+        type: 'escrow_update',
+        link: '/club-dashboard'
+      });
+    } catch (err) {
+      console.error('Failed to create in-app notification:', err);
+    }
+
+    const html = `
+      <h2>Milestone Update: ${isApproved ? 'Approved 🎉' : 'Needs Changes ⚠️'}</h2>
+      <p><strong>${brandName}</strong> has reviewed your milestone <strong>"${milestoneTitle}"</strong> for <strong>${eventTitle}</strong>.</p>
+      <p>Status: <strong>${isApproved ? 'Approved & Funds Released' : 'Requires Modifications'}</strong></p>
+      ${feedback ? `<p><strong>Feedback from brand:</strong> ${feedback}</p>` : ''}
+      <br>
+      <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/club-dashboard">View Dashboard</a>
+    `;
+    return this.sendEmail(clubUser.email, `Milestone ${isApproved ? 'Approved' : 'Needs Changes'} - ${brandName}`, html);
+  }
+
+
+
   async sendContactEmail(name, email, subject, message) {
     const supportEmail = process.env.SUPPORT_EMAIL || 'Sponzilla.k@gmail.com';
     const html = `

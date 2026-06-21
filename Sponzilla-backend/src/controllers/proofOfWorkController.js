@@ -2,6 +2,9 @@ const ProofOfWork = require('../models/ProofOfWork');
 const SponsorshipRequest = require('../models/SponsorshipRequest');
 const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
+const User = require('../models/user');
+const Event = require('../models/Event');
+const notificationService = require('../services/notificationService');
 
 class ProofOfWorkController {
   
@@ -82,6 +85,26 @@ class ProofOfWorkController {
 
       await escrow.save();
 
+      // Trigger notification to Brand
+      try {
+        const brandProfile = await BrandProfile.findById(escrow.brandId);
+        const clubProfile = await ClubProfile.findById(escrow.clubId);
+        const event = await Event.findById(escrow.eventId);
+        if (brandProfile && brandProfile.userId) {
+          const brandUser = await User.findById(brandProfile.userId);
+          if (brandUser) {
+            await notificationService.sendMilestoneSubmissionEmail(
+              brandUser,
+              clubProfile?.clubName || 'Student Club',
+              event?.title || 'Event',
+              milestone.title
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Failed to send milestone submission email notification:', err);
+      }
+
       res.json({ success: true, escrow });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -121,6 +144,28 @@ class ProofOfWorkController {
       }
 
       await escrow.save();
+
+      // Trigger notification to Club
+      try {
+        const clubProfile = await ClubProfile.findById(escrow.clubId);
+        const brandProfile = await BrandProfile.findById(escrow.brandId);
+        const event = await Event.findById(escrow.eventId);
+        if (clubProfile && clubProfile.userId) {
+          const clubUser = await User.findById(clubProfile.userId);
+          if (clubUser) {
+            await notificationService.sendMilestoneStatusEmail(
+              clubUser,
+              brandProfile?.companyName || brandProfile?.brandName || 'Brand Partner',
+              event?.title || 'Event',
+              milestone.title,
+              status,
+              brandFeedback
+            );
+          }
+        }
+      } catch (err) {
+        console.error('Failed to send milestone update email notification:', err);
+      }
 
       res.json({ success: true, escrow });
     } catch (error) {
