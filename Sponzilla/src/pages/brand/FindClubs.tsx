@@ -181,8 +181,8 @@ const FindClubsPage: React.FC = () => {
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <div className="flex min-w-72 flex-col gap-3">
-                <p className="text-[#131516] tracking-light text-[32px] font-bold leading-tight text-left">Explore Clubs</p>
-                <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">Discover student organizations aligned with your brand's values and goals.</p>
+                <p className="text-[#131516] tracking-light text-[32px] font-bold leading-tight text-left">Trackable Campus Acquisition</p>
+                <p className="text-[#6b7780] text-sm font-normal leading-normal text-left">Search verified student clubs by hyperlocal demographic reach and milestone execution tracking.</p>
               </div>
             </div>
             <div className="px-4 py-3">
@@ -201,7 +201,7 @@ const FindClubsPage: React.FC = () => {
                     </svg>
                   </div>
                   <input
-                    placeholder="Search for clubs"
+                    placeholder="Search clubs by demographics, interests or university..."
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#131516] focus:outline-0 focus:ring-0 border-none bg-[#f1f2f3] focus:border-none h-full placeholder:text-[#6b7780] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
                     value={searchTerm}
                     onChange={handleSearchChange}

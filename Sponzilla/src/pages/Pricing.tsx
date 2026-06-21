@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
-import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
-// TEMPORARILY DISABLED: Razorpay integration commented out for deployment
-// import { paymentAPI } from '../services/paymentAPI';
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -85,35 +82,45 @@ const PricingPage: React.FC = () => {
   const currentPlans = userType === 'club' ? clubPlans : brandPlans;
 
   return (
-    <div className="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
+    <div className="relative flex size-full min-h-screen flex-col bg-[#f8f9fa] overflow-x-hidden" style={{ fontFamily: 'Inter, "Noto Sans", sans-serif' }}>
       <div className="layout-container flex h-full grow flex-col">
         <Navbar />
 
-        <div className="px-40 flex flex-1 justify-center py-5">
-          <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
-            {/* Page Title */}
-            <div className="flex flex-wrap justify-between gap-3 p-4">
-              <div className="flex min-w-72 flex-col gap-3">
-                <p className="text-[#111518] tracking-light text-[32px] font-bold leading-tight text-left">Pricing</p>
-                <p className="text-[#617689] text-sm font-normal leading-normal text-left">
-                  Whether you're a student club looking for funding, or a brand looking to reach the next generation — we have a plan for you.
-                </p>
-              </div>
+        <div className="flex-1 flex justify-center py-10 px-4 md:px-8">
+          <div className="w-full max-w-[960px] flex flex-col">
+            
+            {/* Page Header */}
+            <div className="text-center py-6 max-w-2xl mx-auto flex flex-col gap-3">
+              <h1 className="text-[#111518] text-4xl font-extrabold tracking-tight">
+                Simple, Transparent Pricing
+              </h1>
+              <p className="text-[#617689] text-base font-normal leading-relaxed">
+                Whether you're a student club looking for event funding or a brand seeking to reach the next generation, we have a plan tailored for you.
+              </p>
             </div>
 
-            {/* Toggle Section */}
-            <div className="flex flex-col items-center gap-4 px-4 py-6">
+            {/* Toggle Switch Controls */}
+            <div className="flex flex-col items-center gap-6 py-6">
+              
               {/* User Type Toggle */}
-              <div className="flex gap-2 p-1 rounded-xl bg-[#f0f3f4]">
+              <div className="flex p-1.5 rounded-full bg-[#f0f3f4] border border-[#dbe1e6]">
                 <button
                   onClick={() => setUserType('club')}
-                  className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${userType === 'club' ? 'bg-white text-[#111518] shadow-sm' : 'text-[#617689]'}`}
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-200 ${
+                    userType === 'club' 
+                      ? 'bg-white text-[#111518] shadow-sm' 
+                      : 'text-[#617689] hover:text-[#111518]'
+                  }`}
                 >
                   For Student Clubs
                 </button>
                 <button
                   onClick={() => setUserType('brand')}
-                  className={`px-5 py-2 rounded-lg text-sm font-bold transition-all ${userType === 'brand' ? 'bg-white text-[#111518] shadow-sm' : 'text-[#617689]'}`}
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-200 ${
+                    userType === 'brand' 
+                      ? 'bg-white text-[#111518] shadow-sm' 
+                      : 'text-[#617689] hover:text-[#111518]'
+                  }`}
                 >
                   For Brands
                 </button>
@@ -121,111 +128,144 @@ const PricingPage: React.FC = () => {
 
               {/* Billing Cycle Toggle */}
               <div className="flex items-center gap-3">
-                <span className={`text-sm font-medium ${billingCycle === 'monthly' ? 'text-[#111518]' : 'text-[#617689]'}`}>Monthly</span>
+                <span className={`text-sm font-semibold transition-colors duration-200 ${billingCycle === 'monthly' ? 'text-[#111518]' : 'text-[#617689]'}`}>
+                  Monthly
+                </span>
                 <button
                   onClick={() => setBillingCycle(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
                   className="relative w-11 h-6 bg-[#111518] rounded-full transition-colors focus:outline-none"
+                  aria-label="Toggle billing cycle"
                 >
-                  <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${billingCycle === 'yearly' ? 'translate-x-5' : ''}`}></div>
+                  <div className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ${billingCycle === 'yearly' ? 'translate-x-5' : ''}`}></div>
                 </button>
-                <span className={`text-sm font-medium flex items-center gap-2 ${billingCycle === 'yearly' ? 'text-[#111518]' : 'text-[#617689]'}`}>
-                  Annually
-                  <span className="text-[10px] font-bold uppercase bg-[#e8f5e9] text-[#078838] px-2 py-0.5 rounded-full">Save 16%</span>
+                <span className={`text-sm font-semibold flex items-center gap-2 transition-colors duration-200 ${billingCycle === 'yearly' ? 'text-[#111518]' : 'text-[#617689]'}`}>
+                  Yearly
+                  <span className="text-[10px] font-bold uppercase bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full">
+                    Save 16%
+                  </span>
                 </span>
               </div>
             </div>
 
-            {/* Pricing Cards */}
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-4 p-4">
+            {/* Pricing Cards Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 px-4">
               {currentPlans.map((plan, idx) => (
                 <div
                   key={idx}
-                  className={`flex flex-col gap-4 rounded-xl p-6 border ${plan.highlighted ? 'border-[#111518] bg-[#111518]' : 'border-[#dbe1e6] bg-white'}`}
+                  className={`flex flex-col gap-6 rounded-2xl p-8 bg-white border transition-all duration-300 ${
+                    plan.highlighted 
+                      ? 'border-[#118ee8] shadow-md ring-1 ring-[#118ee8]' 
+                      : 'border-[#dde1e3] shadow-sm hover:shadow-md'
+                  }`}
                 >
-                  {/* Plan Header */}
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <h2 className={`text-[22px] font-bold leading-tight tracking-[-0.015em] ${plan.highlighted ? 'text-white' : 'text-[#111518]'}`}>
+                  {/* Card Header */}
+                  <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <h2 className="text-2xl font-bold leading-tight text-[#111518]">
                         {plan.name}
                       </h2>
                       {plan.highlighted && (
-                        <span className="text-[10px] font-bold uppercase bg-[#dce8f3] text-[#111518] px-2 py-0.5 rounded-full">Popular</span>
+                        <span className="text-[10px] font-extrabold uppercase bg-[#e8f4f8] text-[#118ee8] px-2.5 py-1 rounded-full">
+                          Recommended
+                        </span>
                       )}
                     </div>
-                    <p className={`text-sm font-normal leading-normal ${plan.highlighted ? 'text-[#9ba8b4]' : 'text-[#617689]'}`}>
+                    <p className="text-sm font-normal leading-relaxed text-[#617689] min-h-[40px]">
                       {plan.description}
                     </p>
                   </div>
 
-                  {/* Price */}
-                  <div className="flex items-baseline gap-1 pt-2">
-                    <span className={`tracking-light text-[32px] font-bold leading-tight ${plan.highlighted ? 'text-white' : 'text-[#111518]'}`}>
+                  {/* Price Block */}
+                  <div className="flex items-baseline gap-1.5 py-2 border-b border-[#f0f2f5]">
+                    <span className="text-4xl font-extrabold tracking-tight text-[#111518]">
                       {plan.price}
                     </span>
-                    <span className={`text-sm font-normal ${plan.highlighted ? 'text-[#9ba8b4]' : 'text-[#617689]'}`}>
+                    <span className="text-sm font-medium text-[#617689]">
                       {plan.priceNote}
                     </span>
                   </div>
 
-                  {/* CTA Button */}
+                  {/* Features List */}
+                  <div className="flex flex-col gap-4 flex-1">
+                    <p className="text-xs font-bold uppercase tracking-wider text-[#617689]">
+                      Includes:
+                    </p>
+                    <ul className="flex flex-col gap-3">
+                      {plan.features.map((feature, fIdx) => (
+                        <li key={fIdx} className="flex items-start gap-3">
+                          <span className={`flex-shrink-0 mt-0.5 ${plan.highlighted ? 'text-[#118ee8]' : 'text-gray-400'}`}>
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          </span>
+                          <span className="text-sm font-medium leading-normal text-[#111518]">
+                            {feature}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Button Action */}
                   <button
                     onClick={plan.highlighted ? handleUpgrade : () => navigate(isAuthenticated ? '/dashboard' : '/login')}
-                    className={`flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 text-sm font-bold leading-normal tracking-[0.015em] w-full ${plan.highlighted ? 'bg-[#dce8f3] text-[#111518] hover:bg-white' : 'bg-[#f0f3f4] text-[#111518] hover:bg-[#dbe1e6]'} transition-colors`}
+                    className={`flex items-center justify-center rounded-full h-12 px-6 text-sm font-bold tracking-wide w-full transition-all duration-200 ${
+                      plan.highlighted 
+                        ? 'bg-[#118ee8] hover:bg-[#0f7fcb] text-white shadow-sm' 
+                        : 'bg-[#f0f3f4] hover:bg-[#e4e8eb] text-[#111518]'
+                    }`}
                   >
-                    <span className="truncate">{plan.buttonText}</span>
+                    {plan.buttonText}
                   </button>
-
-                  {/* Features */}
-                  <div className="flex flex-col gap-3 pt-2">
-                    <p className={`text-sm font-bold ${plan.highlighted ? 'text-[#9ba8b4]' : 'text-[#617689]'}`}>What's included:</p>
-                    {plan.features.map((feature, fIdx) => (
-                      <div key={fIdx} className="flex items-center gap-3">
-                        <div className={`text-current ${plan.highlighted ? 'text-[#dce8f3]' : 'text-[#111518]'}`}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" fill="currentColor" viewBox="0 0 256 256">
-                            <path d="M229.66,77.66l-128,128a8,8,0,0,1-11.32,0l-56-56a8,8,0,0,1,11.32-11.32L96,188.69,218.34,66.34a8,8,0,0,1,11.32,11.32Z"></path>
-                          </svg>
-                        </div>
-                        <span className={`text-sm font-normal leading-normal ${plan.highlighted ? 'text-white' : 'text-[#111518]'}`}>{feature}</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               ))}
             </div>
 
-            {/* FAQ Section */}
-            <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-8 text-left">Frequently Asked Questions</h2>
-            <div className="flex flex-col gap-3 p-4">
-              <div className="flex flex-1 gap-3 rounded-lg border border-[#dbe1e6] bg-white p-4 flex-col">
-                <h3 className="text-[#111518] text-base font-bold leading-tight">Can I change plans later?</h3>
-                <p className="text-[#617689] text-sm font-normal leading-normal">Yes, you can upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle.</p>
-              </div>
-              <div className="flex flex-1 gap-3 rounded-lg border border-[#dbe1e6] bg-white p-4 flex-col">
-                <h3 className="text-[#111518] text-base font-bold leading-tight">Is there a free trial for Pro?</h3>
-                <p className="text-[#617689] text-sm font-normal leading-normal">We offer a 14-day free trial of Pro features so you can experience the full power of SponZilla before committing.</p>
-              </div>
-              <div className="flex flex-1 gap-3 rounded-lg border border-[#dbe1e6] bg-white p-4 flex-col">
-                <h3 className="text-[#111518] text-base font-bold leading-tight">What payment methods do you accept?</h3>
-                <p className="text-[#617689] text-sm font-normal leading-normal">We accept all major credit/debit cards and UPI payments through our secure payment partner Razorpay.</p>
+            {/* FAQs Accordion/Grid */}
+            <div className="mt-12 px-4">
+              <h2 className="text-[#111518] text-2xl font-bold tracking-tight text-center pb-8">
+                Frequently Asked Questions
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="flex flex-col gap-2 rounded-2xl border border-[#dde1e3] bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <h3 className="text-[#111518] text-base font-bold">Can I switch plans later?</h3>
+                  <p className="text-[#617689] text-sm font-normal leading-relaxed">
+                    Absolutely. You can upgrade, downgrade, or cancel your subscription at any time directly from your dashboard settings.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 rounded-2xl border border-[#dde1e3] bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <h3 className="text-[#111518] text-base font-bold">Is there a free trial for Pro?</h3>
+                  <p className="text-[#617689] text-sm font-normal leading-relaxed">
+                    Yes, we offer a 14-day free trial on our Club Pro and Brand Pro tiers so you can test all AI tools and matchmaking services.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2 rounded-2xl border border-[#dde1e3] bg-white p-6 shadow-sm hover:shadow-md transition-shadow duration-200">
+                  <h3 className="text-[#111518] text-base font-bold">What payment models do you accept?</h3>
+                  <p className="text-[#617689] text-sm font-normal leading-relaxed">
+                    We accept all major credit cards, debit cards, Net Banking, and UPI payments through our secure Razorpay integration.
+                  </p>
+                </div>
               </div>
             </div>
+
+            {/* Bottom Footer Section */}
+            <footer className="mt-20 border-t border-[#dde1e3]">
+              <div className="flex flex-col gap-6 py-10 text-center">
+                <div className="flex flex-wrap items-center justify-center gap-8 sm:flex-row">
+                  <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/about">About</Link>
+                  <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/contact">Contact Us</Link>
+                  <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/privacy-policy">Privacy Policy</Link>
+                  <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/terms-of-service">Terms of Service</Link>
+                </div>
+                <p className="text-[#617689] text-xs font-normal">
+                  © 2025 SponZilla. All rights reserved.
+                </p>
+              </div>
+            </footer>
+
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="flex justify-center">
-          <div className="flex max-w-[960px] flex-1 flex-col">
-            <footer className="flex flex-col gap-6 px-5 py-10 text-center">
-              <div className="flex flex-wrap items-center justify-center gap-6 sm:flex-row sm:justify-around">
-                <Link className="text-[#617689] text-base font-normal leading-normal min-w-40" to="/about">About</Link>
-                <Link to="/contact" className="text-[#617689] text-base font-normal leading-normal min-w-40">Contact Us</Link>
-                <Link to="/privacy-policy" className="text-[#617689] text-base font-normal leading-normal min-w-40">Privacy Policy</Link>
-                <Link to="/terms-of-service" className="text-[#617689] text-base font-normal leading-normal min-w-40">Terms of Service</Link>
-              </div>
-              <p className="text-[#617689] text-base font-normal leading-normal">© 2025 Krish. All rights reserved.</p>
-            </footer>
-          </div>
-        </footer>
       </div>
     </div>
   );

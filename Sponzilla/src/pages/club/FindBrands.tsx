@@ -146,8 +146,8 @@ const FindBrands: React.FC = () => {
           <div className="layout-content-container flex flex-col max-w-[960px] flex-1">
             <div className="flex flex-wrap justify-between gap-3 p-4">
               <div className="flex min-w-72 flex-col gap-3">
-                <p className="text-[#111518] tracking-light text-[32px] font-bold leading-tight text-left">Find Brands</p>
-                <p className="text-[#617989] text-sm font-normal leading-normal text-left">Explore brands that align with your club's mission and values.</p>
+                <p className="text-[#111518] tracking-light text-[32px] font-bold leading-tight text-left">Sponsorship Opportunities</p>
+                <p className="text-[#617989] text-sm font-normal leading-normal text-left">Connect with verified brands, complete performance milestones, and get funded securely via Escrow.</p>
               </div>
             </div>
             <div className="px-4 py-3">
@@ -164,7 +164,7 @@ const FindBrands: React.FC = () => {
                     </svg>
                   </div>
                   <input
-                    placeholder="Search for brands"
+                    placeholder="Search brands looking to sponsor active campaigns..."
                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#111518] focus:outline-0 focus:ring-0 border-none bg-[#f0f3f4] focus:border-none h-full placeholder:text-[#617989] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
                     value={searchTerm}
                     onChange={handleSearchChange}
