@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 
 const PrivacyPolicy: React.FC = () => {
@@ -23,11 +24,17 @@ const PrivacyPolicy: React.FC = () => {
         </div>
 
         {/* Footer */}
-        <footer className="flex justify-center">
-          <div className="flex max-w-[960px] flex-1 flex-col">
-            <footer className="flex flex-col gap-6 px-5 py-10 text-center @container">
-              <p className="text-[#617989] text-base font-normal leading-normal">© 2025 SponZilla. All rights reserved.</p>
-            </footer>
+        <footer className="mt-20 border-t border-[#dde1e3]">
+          <div className="flex flex-col gap-6 py-10 text-center">
+            <div className="flex flex-wrap items-center justify-center gap-8 sm:flex-row">
+              <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/about">About</Link>
+              <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/contact">Contact Us</Link>
+              <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/privacy-policy">Privacy Policy</Link>
+              <Link className="text-[#617689] hover:text-[#111518] text-sm font-medium transition-colors" to="/terms-of-service">Terms of Service</Link>
+            </div>
+            <p className="text-[#617689] text-xs font-normal">
+              © 2025 SponZilla. All rights reserved.
+            </p>
           </div>
         </footer>
       </div>
