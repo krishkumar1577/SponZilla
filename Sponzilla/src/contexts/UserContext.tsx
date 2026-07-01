@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { authAPI, type AuthResponse, type LoginCredentials, type RegisterData } from '../services/api';
+import { authAPI, type AuthResponse, type LoginCredentials, type RegisterData, type RegisterResponse } from '../services/api';
 
 export type UserType = 'guest' | 'club' | 'brand' | 'admin';
 
@@ -12,6 +12,7 @@ interface User {
   profileImage?: string;
   token?: string;
   profileCompleted: boolean;
+  isEmailVerified: boolean;
   subscriptionPlan?: 'free' | 'pro';
 }
 
@@ -19,7 +20,7 @@ interface UserContextType {
   user: User;
   setUser: (user: User) => void;
   login: (credentials: LoginCredentials) => Promise<User | null>;
-  register: (data: RegisterData) => Promise<User | null>;
+  register: (data: RegisterData) => Promise<RegisterResponse>;
   completeAuth: (response: AuthResponse) => User;
   refreshUser: () => Promise<User | null>;
   logout: () => void;
@@ -30,6 +31,7 @@ interface UserContextType {
 const defaultUser: User = {
   type: 'guest',
   profileCompleted: false,
+  isEmailVerified: false,
 };
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -66,6 +68,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     profileImage: response.user.avatar || undefined,
     token: response.accessToken,
     profileCompleted: response.user.profileCompleted,
+    isEmailVerified: Boolean(response.user.isEmailVerified),
   });
 
   const completeAuth = (response: AuthResponse): User => {
@@ -92,6 +95,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         profileImage: response.user.avatar || undefined,
         token: savedToken,
         profileCompleted: response.user.profileCompleted,
+        isEmailVerified: Boolean(response.user.isEmailVerified),
       };
 
       persistUser(userData);
@@ -115,11 +119,10 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (data: RegisterData): Promise<User | null> => {
+  const register = async (data: RegisterData): Promise<RegisterResponse> => {
     try {
       setLoading(true);
-      const response = await authAPI.register(data);
-      return completeAuth(response);
+      return await authAPI.register(data);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;

@@ -79,6 +79,11 @@ const OnboardingPage: React.FC<OnboardingPageProps> = ({ role }) => {
     }
 
     if (isAuthenticated) {
+      if (!user.isEmailVerified) {
+        navigate(`/verify-email?email=${encodeURIComponent(user.email || '')}`);
+        return;
+      }
+
       if (user.type !== role) {
         navigate(getDefaultRouteForRole(user.type));
         return;

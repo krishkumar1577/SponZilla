@@ -15,6 +15,10 @@ export const getPostAuthRoute = (user: RoutableUser) => {
     return '/admin';
   }
 
+  if (!user.profileCompleted && user.type === 'guest') {
+    return '/role-selection';
+  }
+
   if (!user.profileCompleted && (user.type === 'club' || user.type === 'brand')) {
     return `/onboarding/${user.type}`;
   }

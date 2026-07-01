@@ -14,6 +14,7 @@ const LoginPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
   const [userType, setUserType] = useState<'club' | 'brand'>('club');
   const [error, setError] = useState<string>('');
+  const [successMessage, setSuccessMessage] = useState<string>('');
   const [loginData, setLoginData] = useState({
     email: '',
     password: ''
@@ -22,9 +23,7 @@ const LoginPage: React.FC = () => {
     name: '',
     email: '',
     password: '',
-    confirmPassword: '',
-    contactPerson: '',
-    contactNumber: ''
+    confirmPassword: ''
   });
 
   // Check for search query errors on redirect (e.g., from OAuth callbacks)
@@ -33,6 +32,11 @@ const LoginPage: React.FC = () => {
     const errorParam = params.get('error');
     if (errorParam) {
       setError(decodeURIComponent(errorParam));
+    }
+
+    const verifiedParam = params.get('verified');
+    if (verifiedParam === '1') {
+      setSuccessMessage('Email verified successfully. You can log in now.');
     }
   }, []);
 
@@ -62,6 +66,7 @@ const LoginPage: React.FC = () => {
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (!loginData.email || !loginData.password) {
       setError('Please fill in all fields');
@@ -83,6 +88,7 @@ const LoginPage: React.FC = () => {
   const handleSignupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccessMessage('');
 
     if (!signupData.name || !signupData.email || !signupData.password || !signupData.confirmPassword) {
       setError('Please fill in all fields');
@@ -100,18 +106,15 @@ const LoginPage: React.FC = () => {
     }
 
     try {
-      const registeredUser = await register({
+      const response = await register({
         name: signupData.name,
         email: signupData.email,
         password: signupData.password,
         role: userType,
       });
 
-      if (registeredUser) {
-        navigate(getPostAuthRoute(registeredUser));
-      } else {
-        setError('Registration failed. Please try again.');
-      }
+      setSuccessMessage(response.message);
+      navigate(`/verify-email?email=${encodeURIComponent(signupData.email)}`);
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     }
@@ -155,6 +158,12 @@ const LoginPage: React.FC = () => {
             {error && (
               <div className="mx-4 mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                 <p className="text-red-600 text-sm">{error}</p>
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="mx-4 mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-700 text-sm">{successMessage}</p>
               </div>
             )}
 
@@ -310,31 +319,6 @@ const LoginPage: React.FC = () => {
                       value={signupData.confirmPassword}
                       onChange={handleSignupChange}
                       required
-                    />
-                  </label>
-                </div>
-                <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                  <label className="flex flex-col min-w-40 flex-1">
-                    <p className="text-[#121516] text-base font-medium leading-normal pb-2">Contact Person</p>
-                    <input
-                      name="contactPerson"
-                      placeholder="Enter contact person's name"
-                      className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121516] focus:outline-0 focus:ring-0 border border-[#dde1e3] bg-white focus:border-[#dde1e3] h-14 placeholder:text-[#6a7781] p-[15px] text-base font-normal leading-normal"
-                      value={signupData.contactPerson}
-                      onChange={handleSignupChange}
-                    />
-                  </label>
-                </div>
-                <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
-                  <label className="flex flex-col min-w-40 flex-1">
-                    <p className="text-[#121516] text-base font-medium leading-normal pb-2">Contact Number</p>
-                    <input
-                      name="contactNumber"
-                      type="tel"
-                      placeholder="Enter contact number"
-                      className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#121516] focus:outline-0 focus:ring-0 border border-[#dde1e3] bg-white focus:border-[#dde1e3] h-14 placeholder:text-[#6a7781] p-[15px] text-base font-normal leading-normal"
-                      value={signupData.contactNumber}
-                      onChange={handleSignupChange}
                     />
                   </label>
                 </div>

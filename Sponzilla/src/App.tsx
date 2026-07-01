@@ -1,10 +1,41 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useRef } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import { NotificationProvider } from './contexts/NotificationContext';
 import HomePage from './pages/home';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import './App.css';
+
+const GA_MEASUREMENT_ID = 'G-GGEBD56CZC';
+
+interface WindowWithGtag extends Window {
+  gtag?: (...args: unknown[]) => void;
+}
+
+function GoogleAnalyticsTracker() {
+  const location = useLocation();
+  const isFirstRender = useRef(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    const gtag = (window as WindowWithGtag).gtag;
+    if (!gtag) return;
+
+    const pagePath = `${location.pathname}${location.search}${location.hash}`;
+    const pageLocation = `${window.location.origin}${pagePath}`;
+
+    gtag('config', GA_MEASUREMENT_ID, {
+      page_path: pagePath,
+      page_location: pageLocation,
+    });
+  }, [location]);
+
+  return null;
+}
 
 const ListEventPage = lazy(() => import('./pages/ListEvent'));
 const BrowseEventsWithSearchPage = lazy(() => import('./pages/BrowseEvents'));
@@ -14,6 +45,7 @@ const PricingPage = lazy(() => import('./pages/Pricing'));
 const ContactPage = lazy(() => import('./pages/Contact'));
 const ContactWithHeaderPage = lazy(() => import('./pages/ContactWithHeader'));
 const LoginPage = lazy(() => import('./pages/Login'));
+const VerifyEmailPage = lazy(() => import('./pages/VerifyEmail'));
 const OAuthSuccessPage = lazy(() => import('./pages/OAuthSuccess'));
 const RoleSelectionPage = lazy(() => import('./pages/RoleSelection'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
@@ -42,6 +74,7 @@ function App() {
       <NotificationProvider>
         <Router>
           <div className="App">
+            <GoogleAnalyticsTracker />
             <Suspense fallback={null}>
               <Routes>
                 {/* Public Routes */}
@@ -54,6 +87,8 @@ function App() {
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/contact-with-header" element={<ContactWithHeaderPage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/verify-email" element={<VerifyEmailPage />} />
+                <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
                 <Route path="/oauth-success" element={<OAuthSuccessPage />} />
                 <Route path="/role-selection" element={<RoleSelectionPage />} />
                 <Route path="/onboarding/club" element={<OnboardingPage role="club" />} />

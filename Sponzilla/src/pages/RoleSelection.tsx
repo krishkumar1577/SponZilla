@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { useUser } from '../contexts/UserContext';
-import { getDefaultRouteForRole } from '../utils/authRouting';
+import { getPostAuthRoute } from '../utils/authRouting';
 
 const RoleSelectionPage: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +21,12 @@ const RoleSelectionPage: React.FC = () => {
     }
 
     if (isAuthenticated) {
-      navigate(getDefaultRouteForRole(user.type));
+      if (!user.isEmailVerified) {
+        navigate(`/verify-email?email=${encodeURIComponent(user.email || '')}`);
+        return;
+      }
+
+      navigate(getPostAuthRoute(user));
       return;
     }
 

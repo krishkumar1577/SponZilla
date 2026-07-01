@@ -30,6 +30,10 @@ export interface AuthResponse {
   user: AuthUser;
 }
 
+export interface RegisterResponse {
+  message: string;
+}
+
 export interface UserSettings {
   notifications: {
     emailNotifications: boolean;
@@ -60,10 +64,15 @@ export const authAPI = {
       body: JSON.stringify(credentials),
     }),
 
-  register: (data: RegisterData): Promise<AuthResponse> =>
+  register: (data: RegisterData): Promise<RegisterResponse> =>
     apiRequest('/auth/register', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  verifyEmail: (token: string): Promise<{ message: string }> =>
+    apiRequest(`/auth/verify-email/${token}`, {
+      method: 'POST',
     }),
 
   getProfile: (): Promise<{ user: AuthUser }> =>
