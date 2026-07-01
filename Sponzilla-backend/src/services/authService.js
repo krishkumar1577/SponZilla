@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const User = require('../models/user');
 const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
+const notificationService = require('./notificationService');
 
 class AuthService {
   async getProfileCompletionStatus(userId, role) {
@@ -67,10 +68,20 @@ class AuthService {
       isEmailVerified: false,
     });
 
-    const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
-    console.log('Verification URL:', verificationUrl);
+    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${verificationToken}`;
+    const html = `
+      <h2>Verify your SponZilla email</h2>
+      <p>Welcome to SponZilla, ${name}.</p>
+      <p>Please verify your email to continue with onboarding and login.</p>
+      <p><a href="${verificationUrl}">Verify email</a></p>
+      <p>This link expires in 24 hours.</p>
+    `;
 
-    return this.createAuthResult(user);
+    await notificationService.sendEmail(email, 'Verify your SponZilla account', html);
+
+    return {
+      message: 'Registration successful. Please verify your email before logging in.',
+    };
   }
 
   async login(email, password) {
@@ -82,6 +93,10 @@ class AuthService {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       throw new Error('Invalid email or password');
+    }
+
+    if (!user.isEmailVerified) {
+      throw new Error('Please verify your email before logging in');
     }
 
     return this.createAuthResult(user);
