@@ -21,13 +21,17 @@ class NotificationService {
     this.emailFrom = process.env.EMAIL_FROM || process.env.SMTP_FROM || '"SponZilla" <noreply@sponzilla.com>';
   }
 
-  async sendEmail(to, subject, html) {
+  async sendEmail(to, subject, html, options = {}) {
+    const { strict = false } = options;
     // If SMTP_USER is a placeholder or not set, bypass connection and log to console immediately
     const isMock = !process.env.SMTP_USER || 
                    process.env.SMTP_USER === 'test_user' || 
                    process.env.SMTP_USER.trim() === '';
 
     if (isMock) {
+      if (strict) {
+        throw new Error('Email service is not configured');
+      }
       console.log(`✉️  [MOCK EMAIL DISPATCH] (SMTP not configured)`);
       console.log(`-----------------------------------------`);
       console.log(`To:      ${to}`);
@@ -50,6 +54,10 @@ class NotificationService {
       }
       return info;
     } catch (error) {
+      if (strict) {
+        console.error('❌ Email sending error:', error);
+        throw new Error('Failed to send email');
+      }
       console.error('❌ Email sending error, falling back to mock delivery:', error);
       console.log(`✉️  [FALLBACK EMAIL LOG]`);
       console.log(`To:      ${to}`);

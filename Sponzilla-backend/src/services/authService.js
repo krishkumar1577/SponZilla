@@ -7,6 +7,12 @@ const BrandProfile = require('../models/BrandProfile');
 const notificationService = require('./notificationService');
 
 class AuthService {
+  generateRawAndHashedToken() {
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    return { rawToken, hashedToken };
+  }
+
   async getProfileCompletionStatus(userId, role) {
     if (role === 'admin') {
       return true;
@@ -46,6 +52,29 @@ class AuthService {
     };
   }
 
+  async sendVerificationEmail(user) {
+    const { rawToken, hashedToken } = this.generateRawAndHashedToken();
+    user.verificationToken = hashedToken;
+    user.verificationTokenExpiry = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${rawToken}`;
+    const html = `
+      <h2>Verify your SponZilla email</h2>
+      <p>Welcome to SponZilla, ${user.name}.</p>
+      <p>Please verify your email to continue with onboarding and login.</p>
+      <p><a href="${verificationUrl}">Verify email</a></p>
+      <p>This link expires in 24 hours.</p>
+    `;
+
+    await notificationService.sendEmail(
+      user.email,
+      'Verify your SponZilla account',
+      html,
+      { strict: true }
+    );
+  }
+
   async register(name, email, password, role) {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -55,29 +84,19 @@ class AuthService {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const hashedVerificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
-
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
       role,
-      verificationToken: hashedVerificationToken,
-      verificationTokenExpiry: Date.now() + 24 * 60 * 60 * 1000,
       isEmailVerified: false,
     });
 
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${verificationToken}`;
-    const html = `
-      <h2>Verify your SponZilla email</h2>
-      <p>Welcome to SponZilla, ${name}.</p>
-      <p>Please verify your email to continue with onboarding and login.</p>
-      <p><a href="${verificationUrl}">Verify email</a></p>
-      <p>This link expires in 24 hours.</p>
-    `;
-
-    await notificationService.sendEmail(email, 'Verify your SponZilla account', html);
+    try {
+      await this.sendVerificationEmail(user);
+    } catch (error) {
+      throw new Error('Account created but verification email could not be sent. Please use resend verification.');
+    }
 
     return {
       message: 'Registration successful. Please verify your email before logging in.',
@@ -100,6 +119,69 @@ class AuthService {
     }
 
     return this.createAuthResult(user);
+  }
+
+  async resendVerificationEmail(email) {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return { message: 'If this email exists, a verification link has been sent.' };
+    }
+
+    if (user.isEmailVerified) {
+      return { message: 'Email is already verified. You can log in.' };
+    }
+
+    await this.sendVerificationEmail(user);
+    return { message: 'Verification email sent. Please check your inbox.' };
+  }
+
+  async requestPasswordReset(email) {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return { message: 'If this email exists, a reset link has been sent.' };
+    }
+
+    const { rawToken, hashedToken } = this.generateRawAndHashedToken();
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpiry = Date.now() + 60 * 60 * 1000;
+    await user.save();
+
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${rawToken}`;
+    const html = `
+      <h2>Reset your SponZilla password</h2>
+      <p>We received a request to reset your password.</p>
+      <p><a href="${resetUrl}">Reset password</a></p>
+      <p>This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>
+    `;
+
+    await notificationService.sendEmail(
+      user.email,
+      'Reset your SponZilla password',
+      html,
+      { strict: true }
+    );
+
+    return { message: 'If this email exists, a reset link has been sent.' };
+  }
+
+  async resetPassword(rawToken, newPassword) {
+    const hashedToken = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpiry = null;
+    await user.save();
+
+    return { message: 'Password reset successfully' };
   }
 
   async getProfile(userId) {

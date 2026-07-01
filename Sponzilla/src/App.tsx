@@ -46,6 +46,8 @@ const ContactPage = lazy(() => import('./pages/Contact'));
 const ContactWithHeaderPage = lazy(() => import('./pages/ContactWithHeader'));
 const LoginPage = lazy(() => import('./pages/Login'));
 const VerifyEmailPage = lazy(() => import('./pages/VerifyEmail'));
+const ForgotPasswordPage = lazy(() => import('./pages/ForgotPassword'));
+const ResetPasswordPage = lazy(() => import('./pages/ResetPassword'));
 const OAuthSuccessPage = lazy(() => import('./pages/OAuthSuccess'));
 const RoleSelectionPage = lazy(() => import('./pages/RoleSelection'));
 const OnboardingPage = lazy(() => import('./pages/OnboardingPage'));
@@ -89,6 +91,8 @@ function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/verify-email" element={<VerifyEmailPage />} />
                 <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
                 <Route path="/oauth-success" element={<OAuthSuccessPage />} />
                 <Route path="/role-selection" element={<RoleSelectionPage />} />
                 <Route path="/onboarding/club" element={<OnboardingPage role="club" />} />

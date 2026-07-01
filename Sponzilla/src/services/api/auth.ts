@@ -75,6 +75,24 @@ export const authAPI = {
       method: 'POST',
     }),
 
+  resendVerificationEmail: (email: string): Promise<{ message: string }> =>
+    apiRequest('/auth/resend-verification', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  forgotPassword: (email: string): Promise<{ message: string }> =>
+    apiRequest('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token: string, password: string): Promise<{ message: string }> =>
+    apiRequest(`/auth/reset-password/${token}`, {
+      method: 'POST',
+      body: JSON.stringify({ password }),
+    }),
+
   getProfile: (): Promise<{ user: AuthUser }> =>
     apiRequest('/auth/me'),
 

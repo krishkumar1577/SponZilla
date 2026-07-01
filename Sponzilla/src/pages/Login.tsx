@@ -214,7 +214,13 @@ const LoginPage: React.FC = () => {
                     />
                   </label>
                 </div>
-                <p className="text-[#6a7781] text-sm font-normal leading-normal pb-3 pt-1 px-4 underline cursor-pointer">Forgot Password?</p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/forgot-password')}
+                  className="text-[#6a7781] text-sm font-normal leading-normal pb-3 pt-1 px-4 underline cursor-pointer text-left"
+                >
+                  Forgot Password?
+                </button>
                 <div className="flex px-4 py-3">
                   <button
                     type="submit"

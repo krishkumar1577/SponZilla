@@ -241,6 +241,56 @@ class AuthController {
     }
   }
 
+  async resendVerificationEmail(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+
+      const result = await authService.resendVerificationEmail(email);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+      }
+
+      const result = await authService.requestPasswordReset(email);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
+  async resetPassword(req, res) {
+    try {
+      const { token } = req.params;
+      const { password } = req.body;
+
+      if (!token || !password) {
+        return res.status(400).json({ error: 'Reset token and password are required' });
+      }
+
+      try {
+        validatePassword(password);
+      } catch (validationError) {
+        return res.status(400).json({ error: validationError.message });
+      }
+
+      const result = await authService.resetPassword(token, password);
+      res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: error.message });
+    }
+  }
+
   // ===== GOOGLE LOGIN =====
   async googleLogin(req, res) {
     try {

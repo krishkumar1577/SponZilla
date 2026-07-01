@@ -18,6 +18,9 @@ router.post('/register', authLimiter, authController.register);
 router.post('/login', authLimiter, authController.login);
 router.post('/refresh-token', authController.refreshToken);
 router.post('/verify-email/:token', authController.verifyEmail);
+router.post('/resend-verification', authLimiter, authController.resendVerificationEmail);
+router.post('/forgot-password', authLimiter, authController.forgotPassword);
+router.post('/reset-password/:token', authLimiter, authController.resetPassword);
 
 // Google OAuth Routes
 router.get('/google', authController.googleLogin);
