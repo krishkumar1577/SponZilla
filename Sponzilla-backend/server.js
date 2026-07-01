@@ -48,7 +48,7 @@ connectDB();
 //   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 // };
 const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? ['https://sponzilla.vercel.app']
+  ? ['https://sponzilla.vercel.app', 'https://www.sponzilla.app', 'https://sponzilla.app']
   : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://127.0.0.1:3000'];
 
 const corsOptions = {
