@@ -3,15 +3,22 @@ const Notification = require('../models/Notification');
 
 class NotificationService {
   constructor() {
+    const smtpPort = Number(process.env.SMTP_PORT || 587);
+    const smtpHost = process.env.SMTP_HOST || 'smtp.ethereal.email';
+    const smtpSecure = process.env.SMTP_SECURE
+      ? process.env.SMTP_SECURE === 'true'
+      : smtpPort === 465;
+
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-      port: process.env.SMTP_PORT || 587,
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpSecure,
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
       }
     });
-    this.emailFrom = process.env.EMAIL_FROM || '"SponZilla" <noreply@sponzilla.com>';
+    this.emailFrom = process.env.EMAIL_FROM || process.env.SMTP_FROM || '"SponZilla" <noreply@sponzilla.com>';
   }
 
   async sendEmail(to, subject, html) {
