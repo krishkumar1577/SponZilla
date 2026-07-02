@@ -170,7 +170,8 @@ const LoginPage: React.FC = () => {
             {/* Login Form */}
             {activeTab === 'login' && (
               <form onSubmit={handleLoginSubmit}>
-                {/* Demo Credentials Helper */}
+                {/* Demo credentials — only visible in dev mode */}
+                {import.meta.env.DEV && (
                 <div className="mx-4 mb-6 p-4 rounded-xl border border-[#dce8f3] bg-[#f4f9fd] text-left">
                   <p className="text-[10px] font-bold uppercase tracking-wider text-[#1383eb] mb-2">⚡ Quick Demo Access</p>
                   <div className="grid grid-cols-2 gap-4 text-xs">
@@ -186,6 +187,7 @@ const LoginPage: React.FC = () => {
                     </div>
                   </div>
                 </div>
+                )}
 
                 <div className="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
                   <label className="flex flex-col min-w-40 flex-1">

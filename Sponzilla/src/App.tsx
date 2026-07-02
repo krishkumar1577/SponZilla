@@ -69,6 +69,7 @@ const SettingsPage = lazy(() => import('./pages/Settings'));
 const ClubSettings = lazy(() => import('./pages/club/ClubSettings'));
 const BrandSettings = lazy(() => import('./pages/brand/BrandSettings'));
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 function App() {
   return (
@@ -77,7 +78,14 @@ function App() {
         <Router>
           <div className="App">
             <GoogleAnalyticsTracker />
-            <Suspense fallback={null}>
+            <Suspense fallback={
+              <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="w-10 h-10 border-4 border-[#118ee8] border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-[#617989] font-medium">Loading...</p>
+                </div>
+              </div>
+            }>
               <Routes>
                 {/* Public Routes */}
                 <Route path="/" element={<HomePage />} />
@@ -127,6 +135,9 @@ function App() {
 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+
+                {/* Catch-all 404 */}
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </Suspense>
           </div>
