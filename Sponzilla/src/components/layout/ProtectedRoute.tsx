@@ -27,9 +27,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (!user.isEmailVerified) {
-    return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email || '')}`} replace />;
-  }
+  // TODO: Re-enable email verification redirect once Resend/SMTP is properly configured
+  // if (!user.isEmailVerified) {
+  //   return <Navigate to={`/verify-email?email=${encodeURIComponent(user.email || '')}`} replace />;
+  // }
 
   // Logged in but wrong role
   if (allowedRoles && !allowedRoles.includes(user.type)) {
