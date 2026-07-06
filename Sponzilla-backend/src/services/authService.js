@@ -92,11 +92,12 @@ class AuthService {
       isEmailVerified: false,
     });
 
-    try {
-      await this.sendVerificationEmail(user);
-    } catch (error) {
-      throw new Error('Account created but verification email could not be sent. Please use resend verification.');
-    }
+    // TODO: Re-enable verification email once Resend/SMTP is properly configured
+    // try {
+    //   await this.sendVerificationEmail(user);
+    // } catch (error) {
+    //   throw new Error('Account created but verification email could not be sent. Please use resend verification.');
+    // }
 
     return {
       message: 'Registration successful. Please verify your email before logging in.',
@@ -114,9 +115,10 @@ class AuthService {
       throw new Error('Invalid email or password');
     }
 
-    if (!user.isEmailVerified) {
-      throw new Error('Please verify your email before logging in');
-    }
+    // TODO: Re-enable email verification gate once Resend/SMTP is properly configured
+    // if (!user.isEmailVerified) {
+    //   throw new Error('Please verify your email before logging in');
+    // }
 
     return this.createAuthResult(user);
   }

@@ -16,6 +16,7 @@ router.get('/clubs', adminController.getClubs);
 router.get('/brands', adminController.getBrands);
 router.get('/events', adminController.getEvents);
 router.get('/sponsorships', adminController.getSponsorships);
+router.get('/proof-of-work', adminController.getProofOfWork);
 
 // Verification and Featuring
 router.put('/clubs/:id/verify', adminController.toggleClubVerification);
@@ -24,5 +25,7 @@ router.put('/events/:id/feature', adminController.toggleEventFeatured);
 
 // Deletion
 router.delete('/users/:id', adminController.deleteUser);
+router.delete('/clubs/:id', adminController.deleteClub);
+router.delete('/brands/:id', adminController.deleteBrand);
 
 module.exports = router;

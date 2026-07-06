@@ -4,6 +4,7 @@ import { useUser } from '../contexts/UserContext';
 import Navbar from '../components/layout/Navbar';
 import { API_BASE_URL } from '../services/api';
 import { getPostAuthRoute } from '../utils/authRouting';
+import { wakeBackend } from '../utils/wakeBackend';
 
 const PASSWORD_RULE_MESSAGE = 'Password must be at least 8 characters with uppercase, lowercase, number, and special character';
 const PASSWORD_RULE_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/;
@@ -25,6 +26,21 @@ const LoginPage: React.FC = () => {
     password: '',
     confirmPassword: ''
   });
+  const [serverWarming, setServerWarming] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    wakeBackend().finally(() => {
+      if (!cancelled) {
+        setServerWarming(false);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Check for search query errors on redirect (e.g., from OAuth callbacks)
   useEffect(() => {
@@ -40,7 +56,12 @@ const LoginPage: React.FC = () => {
     }
   }, []);
 
-  const handleSocialLogin = (provider: 'google' | 'github') => {
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    setError('');
+    setServerWarming(true);
+    await wakeBackend();
+    setServerWarming(false);
+
     const baseUrl = API_BASE_URL || window.location.origin;
     window.location.href = `${baseUrl}/api/auth/${provider}`;
   };
@@ -74,6 +95,7 @@ const LoginPage: React.FC = () => {
     }
 
     try {
+      await wakeBackend();
       const loggedInUser = await login(loginData);
       if (loggedInUser) {
         navigate(getPostAuthRoute(loggedInUser));
@@ -106,6 +128,7 @@ const LoginPage: React.FC = () => {
     }
 
     try {
+      await wakeBackend();
       const response = await register({
         name: signupData.name,
         email: signupData.email,
@@ -153,6 +176,12 @@ const LoginPage: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {serverWarming && (
+              <div className="mx-4 mb-4 rounded-lg border border-blue-200 bg-blue-50 p-3">
+                <p className="text-sm text-blue-700">Connecting to servers, this may take a moment on first visit...</p>
+              </div>
+            )}
 
             {/* Error Message */}
             {error && (
@@ -226,10 +255,10 @@ const LoginPage: React.FC = () => {
                 <div className="flex px-4 py-3">
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || serverWarming}
                     className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#121516] text-white text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span className="truncate">{loading ? 'Logging in...' : 'Login'}</span>
+                    <span className="truncate">{loading ? 'Logging in...' : serverWarming ? 'Connecting...' : 'Login'}</span>
                   </button>
                 </div>
               </form>
@@ -333,10 +362,10 @@ const LoginPage: React.FC = () => {
                 <div className="flex px-4 py-3">
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || serverWarming}
                     className="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-10 px-4 flex-1 bg-[#121516] text-white text-sm font-bold leading-normal tracking-[0.015em] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span className="truncate">{loading ? 'Creating Account...' : 'Sign Up'}</span>
+                    <span className="truncate">{loading ? 'Creating Account...' : serverWarming ? 'Connecting...' : 'Sign Up'}</span>
                   </button>
                 </div>
               </form>

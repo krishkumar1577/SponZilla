@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { UserProvider } from './contexts/UserContext';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { wakeBackend } from './utils/wakeBackend';
 import HomePage from './pages/home';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 import './App.css';
@@ -72,6 +73,10 @@ const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 const NotFoundPage = lazy(() => import('./pages/NotFound'));
 
 function App() {
+  useEffect(() => {
+    wakeBackend();
+  }, []);
+
   return (
     <UserProvider>
       <NotificationProvider>

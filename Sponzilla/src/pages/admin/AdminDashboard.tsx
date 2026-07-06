@@ -81,7 +81,10 @@ const AdminDashboard: React.FC = () => {
         adminAPI.getStats(),
         analyticsAPI.getPlatformAnalytics()
       ]);
-      setStats(statsRes.stats);
+      setStats({
+        ...statsRes.stats,
+        recentActivity: statsRes.stats.recentActivity ?? []
+      });
       setPlatformAnalytics(analyticsRes.data);
     } catch (err: any) {
       if (!handleForbidden(err)) {
@@ -96,7 +99,7 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       const res = await adminAPI.getUsers();
-      setUsers(res.users);
+      setUsers(res.users ?? []);
     } catch (err: any) {
       if (!handleForbidden(err)) {
         setError('Failed to load users.');
@@ -110,7 +113,7 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       const res = await adminAPI.getClubs();
-      setClubs(res.clubs);
+      setClubs(res.clubs ?? []);
     } catch (err: any) {
       if (!handleForbidden(err)) {
         setError('Failed to load clubs.');
@@ -124,7 +127,7 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       const res = await adminAPI.getBrands();
-      setBrands(res.brands);
+      setBrands(res.brands ?? []);
     } catch (err: any) {
       if (!handleForbidden(err)) {
         setError('Failed to load brands.');
@@ -138,7 +141,7 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       const res = await adminAPI.getEvents();
-      setEvents(res.events);
+      setEvents(res.events ?? []);
     } catch (err: any) {
       if (!handleForbidden(err)) {
         setError('Failed to load events.');
@@ -152,7 +155,7 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       const res = await adminAPI.getSponsorships();
-      setSponsorships(res.sponsorships);
+      setSponsorships(res.sponsorships ?? []);
     } catch (err: any) {
       if (!handleForbidden(err)) {
         setError('Failed to load sponsorships.');
@@ -166,7 +169,12 @@ const AdminDashboard: React.FC = () => {
     try {
       setLoading(true);
       const res = await adminAPI.getProofOfWork();
-      setProofOfWork(res.proofOfWork);
+      setProofOfWork(
+        (res.proofOfWork ?? []).map((escrow) => ({
+          ...escrow,
+          milestones: escrow.milestones ?? []
+        }))
+      );
     } catch (err: any) {
       if (!handleForbidden(err)) {
         setError('Failed to load proof-of-work records.');
@@ -231,6 +239,34 @@ const AdminDashboard: React.FC = () => {
       alert('User deleted successfully.');
     } catch (err: any) {
       alert(err.message || 'Failed to delete user.');
+    }
+  };
+
+  const handleDeleteClub = async (id: string, clubName: string) => {
+    if (!window.confirm(`Delete "${clubName}" and all associated events, sponsorships, and escrow data?`)) {
+      return;
+    }
+
+    try {
+      await adminAPI.deleteClub(id);
+      setClubs((current) => current.filter((club) => club._id !== id));
+      alert('Club account deleted successfully.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete club.');
+    }
+  };
+
+  const handleDeleteBrand = async (id: string, brandName: string) => {
+    if (!window.confirm(`Delete "${brandName}" and all associated sponsorships and escrow data?`)) {
+      return;
+    }
+
+    try {
+      await adminAPI.deleteBrand(id);
+      setBrands((current) => current.filter((brand) => brand._id !== id));
+      alert('Brand account deleted successfully.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to delete brand.');
     }
   };
 
@@ -461,7 +497,7 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     </div>
                     <div className="grid gap-4">
-                      {stats.recentActivity.length > 0 ? stats.recentActivity.map(renderActivity) : (
+                      {(stats.recentActivity ?? []).length > 0 ? (stats.recentActivity ?? []).map(renderActivity) : (
                         <div className="rounded-xl border border-dashed border-gray-300 bg-white p-6 text-sm text-gray-500">
                           No recent activity to show yet.
                         </div>
@@ -577,7 +613,7 @@ const AdminDashboard: React.FC = () => {
                       {club.verified ? <span className="rounded bg-blue-100 px-2 py-1 text-xs font-bold text-blue-800">VERIFIED</span> : null}
                     </div>
                     <p className="mb-4 line-clamp-3 text-sm text-gray-600">{club.description}</p>
-                    <div className="mt-auto border-t border-gray-100 pt-4">
+                    <div className="mt-auto space-y-2 border-t border-gray-100 pt-4">
                       <button
                         onClick={() => handleVerifyClub(club._id)}
                         className={`w-full rounded-lg py-2 font-medium transition ${
@@ -587,6 +623,12 @@ const AdminDashboard: React.FC = () => {
                         }`}
                       >
                         {club.verified ? 'Remove Verification' : 'Verify Club'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClub(club._id, club.clubName)}
+                        className="w-full rounded-lg border border-red-200 py-2 font-medium text-red-600 transition hover:bg-red-50"
+                      >
+                        Delete Club
                       </button>
                     </div>
                   </div>
@@ -606,7 +648,7 @@ const AdminDashboard: React.FC = () => {
                       {brand.verified ? <span className="rounded bg-green-100 px-2 py-1 text-xs font-bold text-green-800">VERIFIED</span> : null}
                     </div>
                     <p className="mb-4 line-clamp-3 text-sm text-gray-600">{brand.description}</p>
-                    <div className="mt-auto border-t border-gray-100 pt-4">
+                    <div className="mt-auto space-y-2 border-t border-gray-100 pt-4">
                       <button
                         onClick={() => handleVerifyBrand(brand._id)}
                         className={`w-full rounded-lg py-2 font-medium transition ${
@@ -616,6 +658,12 @@ const AdminDashboard: React.FC = () => {
                         }`}
                       >
                         {brand.verified ? 'Remove Verification' : 'Verify Brand'}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBrand(brand._id, brand.brandName)}
+                        className="w-full rounded-lg border border-red-200 py-2 font-medium text-red-600 transition hover:bg-red-50"
+                      >
+                        Delete Brand
                       </button>
                     </div>
                   </div>
@@ -744,15 +792,15 @@ const AdminDashboard: React.FC = () => {
                       </div>
                       <div className="min-w-[180px] rounded-xl bg-gray-50 p-4">
                         <p className="text-xs uppercase tracking-wide text-gray-400">Milestones</p>
-                        <p className="mt-2 text-3xl font-bold text-gray-900">{escrow.milestones.length}</p>
+                        <p className="mt-2 text-3xl font-bold text-gray-900">{(escrow.milestones ?? []).length}</p>
                         <p className="mt-1 text-sm text-gray-500">
-                          {escrow.milestones.filter((milestone) => milestone.status === 'verified').length} verified
+                          {(escrow.milestones ?? []).filter((milestone) => milestone.status === 'verified').length} verified
                         </p>
                       </div>
                     </div>
 
                     <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                      {escrow.milestones.map((milestone, index) => (
+                      {(escrow.milestones ?? []).map((milestone, index) => (
                         <div key={`${escrow._id}-${milestone.title}-${index}`} className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                           <div className="flex items-start justify-between gap-3">
                             <div>

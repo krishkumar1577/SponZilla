@@ -1,3 +1,4 @@
+const Sentry = require('./instrument');
 require('dotenv').config();  // Load .env file
 
 // Validate JWT_SECRET in production
@@ -125,6 +126,17 @@ app.get('/health', (req, res) => {
   });
 });
 
+if (process.env.NODE_ENV !== 'production') {
+  app.get('/debug-sentry', (req, res) => {
+    try {
+      throw new Error('Sentry test error from /debug-sentry');
+    } catch (error) {
+      Sentry.captureException(error);
+      res.status(500).json({ success: false, error: 'Sentry test event captured.' });
+    }
+  });
+}
+
 // Test route: Create a test user (development only)
 if (process.env.NODE_ENV === 'development') {
   app.get('/test-user', async (req, res) => {
@@ -180,6 +192,13 @@ app.use((err, req, res, next) => {
   const message = isDev ? err.message : 'An error occurred. Please try again.';
 
   console.error('Error:', err);
+  Sentry.captureException(err, {
+    tags: { area: 'express' },
+    extra: {
+      path: req.path,
+      method: req.method
+    }
+  });
 
   res.status(statusCode).json({
     error: message,
@@ -197,11 +216,33 @@ app.use((req, res) => {
 
 // STEP 7: Start server
 const PORT = process.env.PORT || 5000;
+
+function startKeepAlive() {
+  if (process.env.ENABLE_KEEP_ALIVE === 'false') {
+    return;
+  }
+
+  const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.BACKEND_URL;
+  if (!baseUrl) {
+    return;
+  }
+
+  const healthUrl = `${baseUrl.replace(/\/$/, '')}/health`;
+  const intervalMs = 14 * 60 * 1000;
+
+  setInterval(() => {
+    fetch(healthUrl).catch(() => {});
+  }, intervalMs);
+
+  console.log(`⏰ Keep-alive enabled (every 14 min): ${healthUrl}`);
+}
+
 app.listen(PORT, () => {
   console.log('🚀 SponZilla Backend is running!');
   console.log(`📍 Server: http://localhost:${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
   console.log('-----------------------------------');
+  startKeepAlive();
 });
 
 module.exports = app;

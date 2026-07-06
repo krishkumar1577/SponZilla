@@ -137,4 +137,10 @@ export const adminAPI = {
 
   deleteUser: (id: string): Promise<{ success: boolean; message: string }> =>
     apiRequest(`/admin/users/${id}`, { method: 'DELETE' }),
+
+  deleteClub: (id: string): Promise<{ success: boolean; message: string }> =>
+    apiRequest(`/admin/clubs/${id}`, { method: 'DELETE' }),
+
+  deleteBrand: (id: string): Promise<{ success: boolean; message: string }> =>
+    apiRequest(`/admin/brands/${id}`, { method: 'DELETE' }),
 };
