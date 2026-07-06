@@ -462,4 +462,15 @@ class AdminController {
   }
 }
 
-module.exports = new AdminController();
+const adminController = new AdminController();
+
+for (const methodName of Object.getOwnPropertyNames(AdminController.prototype)) {
+  if (methodName === 'constructor') continue;
+
+  const method = adminController[methodName];
+  if (typeof method === 'function') {
+    adminController[methodName] = method.bind(adminController);
+  }
+}
+
+module.exports = adminController;
