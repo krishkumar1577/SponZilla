@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SmartNavbar } from '../../components/layout/Navbar';
-import { profilesAPI, authAPI, type BrandProfile, type UserSettings } from '../../services/api';
+import { profilesAPI, authAPI, type BrandProfile } from '../../services/api';
 
 const BrandSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('Account Settings');
@@ -8,7 +8,6 @@ const BrandSettings: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [brandProfile, setBrandProfile] = useState<BrandProfile | null>(null);
-  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [formData, setFormData] = useState({
     // Account fields
     accountEmail: '',
@@ -82,7 +81,6 @@ const BrandSettings: React.FC = () => {
         try {
           const settingsResponse = await authAPI.getSettings();
           loadedUserSettings = settingsResponse;
-          setUserSettings(loadedUserSettings);
         } catch (err) {
           console.log('No settings found - using defaults');
         }

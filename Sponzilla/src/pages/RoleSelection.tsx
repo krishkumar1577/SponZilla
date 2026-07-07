@@ -21,10 +21,10 @@ const RoleSelectionPage: React.FC = () => {
     }
 
     if (isAuthenticated) {
-      if (!user.isEmailVerified) {
-        navigate(`/verify-email?email=${encodeURIComponent(user.email || '')}`);
-        return;
-      }
+      // if (!user.isEmailVerified) {
+      //   navigate(`/verify-email?email=${encodeURIComponent(user.email || '')}`);
+      //   return;
+      // }
 
       navigate(getPostAuthRoute(user));
       return;

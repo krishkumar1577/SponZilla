@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SmartNavbar } from '../../components/layout/Navbar';
-import { profilesAPI, authAPI, type ClubProfile, type UserSettings } from '../../services/api';
+import { profilesAPI, authAPI, type ClubProfile } from '../../services/api';
 
 const ClubSettings: React.FC = () => {
   const [activeTab, setActiveTab] = useState('Account Settings');
@@ -8,7 +8,6 @@ const ClubSettings: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [clubProfile, setClubProfile] = useState<ClubProfile | null>(null);
-  const [userSettings, setUserSettings] = useState<UserSettings | null>(null);
   const [formData, setFormData] = useState({
     // Account fields
     accountEmail: '',
@@ -72,7 +71,6 @@ const ClubSettings: React.FC = () => {
         try {
           const settingsResponse = await authAPI.getSettings();
           loadedUserSettings = settingsResponse;
-          setUserSettings(loadedUserSettings);
         } catch (err) {
           console.log('No settings found - using defaults');
         }

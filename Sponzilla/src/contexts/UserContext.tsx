@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
-import { authAPI, type AuthResponse, type LoginCredentials, type RegisterData, type RegisterResponse } from '../services/api';
+import { authAPI, type AuthResponse, type LoginCredentials, type RegisterData } from '../services/api';
 
 export type UserType = 'guest' | 'club' | 'brand' | 'admin';
 
@@ -20,7 +20,7 @@ interface UserContextType {
   user: User;
   setUser: (user: User) => void;
   login: (credentials: LoginCredentials) => Promise<User | null>;
-  register: (data: RegisterData) => Promise<RegisterResponse>;
+  register: (data: RegisterData) => Promise<User | null>;
   completeAuth: (response: AuthResponse) => User;
   refreshUser: () => Promise<User | null>;
   logout: () => void;
