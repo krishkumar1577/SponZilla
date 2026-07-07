@@ -2,6 +2,8 @@ const ClubProfile = require('../models/ClubProfile');
 const BrandProfile = require('../models/BrandProfile');
 const DOMPurify = require('isomorphic-dompurify');
 const Joi = require('joi');
+const User = require('../models/user');
+const notificationService = require('../services/notificationService');
 
 // Utility function to escape regex special characters
 const escapeRegex = (string) => {
@@ -67,6 +69,16 @@ class ProfileController {
       // Create profile
       const profile = await ClubProfile.create(sanitizedData);
 
+      // Trigger Welcome Email on Onboarding Completion
+      try {
+        const user = await User.findById(req.userId);
+        if (user) {
+          await notificationService.sendWelcomeEmail(user, profile);
+        }
+      } catch (emailError) {
+        console.warn('⚠️ Welcome email could not be sent after club profile creation:', emailError.message);
+      }
+
       res.status(201).json({
         message: 'Club profile created successfully',
         profile
@@ -104,6 +116,16 @@ class ProfileController {
 
       // Create profile
       const profile = await BrandProfile.create(sanitizedData);
+
+      // Trigger Welcome Email on Onboarding Completion
+      try {
+        const user = await User.findById(req.userId);
+        if (user) {
+          await notificationService.sendWelcomeEmail(user, profile);
+        }
+      } catch (emailError) {
+        console.warn('⚠️ Welcome email could not be sent after brand profile creation:', emailError.message);
+      }
 
       res.status(201).json({
         message: 'Brand profile created successfully',

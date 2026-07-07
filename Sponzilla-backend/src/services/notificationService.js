@@ -140,18 +140,18 @@ class NotificationService {
     `;
   }
 
-  async sendWelcomeEmail(user) {
+  async sendWelcomeEmail(user, profile = null) {
     if (!user || !user.email) return;
 
     const title = `Welcome to SponZilla, ${user.name}!`;
 
-    if (user.role === 'club') {
+    if (user.role === 'club' || user.type === 'club') {
       const variables = {
         user_name: user.name,
         first_name: user.name ? user.name.trim().split(/\s+/)[0] : 'there',
         onboarding_link: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
         get_started_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
-        company_name: 'SponZilla'
+        company_name: profile?.clubName || 'your Club'
       };
 
       if (this.isMock) {
@@ -189,13 +189,13 @@ class NotificationService {
       }
     }
 
-    if (user.role === 'brand') {
+    if (user.role === 'brand' || user.type === 'brand') {
       const variables = {
         user_name: user.name,
         first_name: user.name ? user.name.trim().split(/\s+/)[0] : 'there',
         onboarding_link: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
         get_started_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
-        company_name: 'SponZilla'
+        company_name: profile?.brandName || 'your Brand'
       };
 
       if (this.isMock) {

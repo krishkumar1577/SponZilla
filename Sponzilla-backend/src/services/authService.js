@@ -85,12 +85,6 @@ class AuthService {
       console.warn('⚠️ Verification email could not be sent during registration:', error.message);
     }
 
-    try {
-      await notificationService.sendWelcomeEmail(user);
-    } catch (error) {
-      console.warn('⚠️ Welcome email could not be sent during registration:', error.message);
-    }
-
     return {
       message: 'Registration successful. Please verify your email before logging in.',
     };
