@@ -59,20 +59,7 @@ class AuthService {
     await user.save();
 
     const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email/${rawToken}`;
-    const html = `
-      <h2>Verify your SponZilla email</h2>
-      <p>Welcome to SponZilla, ${user.name}.</p>
-      <p>Please verify your email to continue with onboarding and login.</p>
-      <p><a href="${verificationUrl}">Verify email</a></p>
-      <p>This link expires in 24 hours.</p>
-    `;
-
-    await notificationService.sendEmail(
-      user.email,
-      'Verify your SponZilla account',
-      html,
-      { strict: true }
-    );
+    await notificationService.sendAccountVerificationEmail(user, verificationUrl);
   }
 
   async register(name, email, password, role) {
@@ -96,6 +83,12 @@ class AuthService {
       await this.sendVerificationEmail(user);
     } catch (error) {
       console.warn('⚠️ Verification email could not be sent during registration:', error.message);
+    }
+
+    try {
+      await notificationService.sendWelcomeEmail(user);
+    } catch (error) {
+      console.warn('⚠️ Welcome email could not be sent during registration:', error.message);
     }
 
     return {
@@ -148,19 +141,7 @@ class AuthService {
     await user.save();
 
     const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${rawToken}`;
-    const html = `
-      <h2>Reset your SponZilla password</h2>
-      <p>We received a request to reset your password.</p>
-      <p><a href="${resetUrl}">Reset password</a></p>
-      <p>This link expires in 1 hour. If you didn't request this, you can ignore this email.</p>
-    `;
-
-    await notificationService.sendEmail(
-      user.email,
-      'Reset your SponZilla password',
-      html,
-      { strict: true }
-    );
+    await notificationService.sendPasswordResetEmail(user, resetUrl);
 
     return { message: 'If this email exists, a reset link has been sent.' };
   }
