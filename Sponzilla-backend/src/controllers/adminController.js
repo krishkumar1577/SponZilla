@@ -333,6 +333,32 @@ class AdminController {
     }
   }
 
+  // ===== TOGGLE USER VERIFICATION =====
+  async toggleUserVerification(req, res) {
+    try {
+      const { id } = req.params;
+      const user = await User.findById(id);
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      user.verified = !user.verified;
+      await user.save();
+
+      // Also toggle the corresponding profile's verified status for consistency
+      if (user.role === 'club') {
+        await ClubProfile.findOneAndUpdate({ userId: id }, { verified: user.verified });
+      } else if (user.role === 'brand') {
+        await BrandProfile.findOneAndUpdate({ userId: id }, { verified: user.verified });
+      }
+
+      res.json({ success: true, verified: user.verified, user });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
   // ===== TOGGLE EVENT FEATURED STATUS =====
   async toggleEventFeatured(req, res) {
     try {

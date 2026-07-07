@@ -119,10 +119,12 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
-  const register = async (data: RegisterData): Promise<RegisterResponse> => {
+  const register = async (data: RegisterData): Promise<User | null> => {
     try {
       setLoading(true);
-      return await authAPI.register(data);
+      const response = await authAPI.register(data);
+      // Since response is now AuthResponse, complete auth just like login!
+      return completeAuth(response as unknown as AuthResponse);
     } catch (error) {
       console.error('Registration failed:', error);
       throw error;

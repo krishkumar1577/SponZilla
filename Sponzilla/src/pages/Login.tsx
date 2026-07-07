@@ -136,8 +136,11 @@ const LoginPage: React.FC = () => {
         role: userType,
       });
 
-      setSuccessMessage(response.message);
-      navigate(`/verify-email?email=${encodeURIComponent(signupData.email)}`);
+      if (response) {
+        setSuccessMessage('Registration successful! Logging you in...');
+        const nextRoute = getPostAuthRoute(response);
+        navigate(nextRoute);
+      }
     } catch (err: any) {
       setError(err.message || 'Registration failed. Please try again.');
     }

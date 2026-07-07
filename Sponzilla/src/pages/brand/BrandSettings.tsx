@@ -65,20 +65,24 @@ const BrandSettings: React.FC = () => {
         const userResponse = await authAPI.getProfile();
         const user = userResponse.user;
         
+        let loadedBrandProfile = null;
         // Load brand profile if it exists
         try {
           const brandResponse = await profilesAPI.getMyProfile();
           if (brandResponse.profile && 'brandName' in brandResponse.profile) {
-            setBrandProfile(brandResponse.profile as BrandProfile);
+            loadedBrandProfile = brandResponse.profile as BrandProfile;
+            setBrandProfile(loadedBrandProfile);
           }
         } catch (err) {
           console.log('No brand profile found - this is OK for new users');
         }
         
+        let loadedUserSettings = null;
         // Load user settings
         try {
           const settingsResponse = await authAPI.getSettings();
-          setUserSettings(settingsResponse);
+          loadedUserSettings = settingsResponse;
+          setUserSettings(loadedUserSettings);
         } catch (err) {
           console.log('No settings found - using defaults');
         }
@@ -90,33 +94,33 @@ const BrandSettings: React.FC = () => {
           accountEmail: user.email || '',
           accountName: user.name || '',
           // Brand data
-          brandName: brandProfile?.brandName || '',
-          logo: brandProfile?.logo || '',
-          banner: brandProfile?.banner || '',
-          description: brandProfile?.description || '',
-          industry: brandProfile?.industry || '',
-          companySize: brandProfile?.companySize || '',
-          website: brandProfile?.website || '',
-          contactEmail: brandProfile?.contactPerson?.email || '',
-          contactName: brandProfile?.contactPerson?.name || '',
-          phoneNumber: brandProfile?.contactPerson?.phone || '',
+          brandName: loadedBrandProfile?.brandName || '',
+          logo: loadedBrandProfile?.logo || '',
+          banner: loadedBrandProfile?.banner || '',
+          description: loadedBrandProfile?.description || '',
+          industry: loadedBrandProfile?.industry || '',
+          companySize: loadedBrandProfile?.companySize || '',
+          website: loadedBrandProfile?.website || '',
+          contactEmail: loadedBrandProfile?.contactPerson?.email || '',
+          contactName: loadedBrandProfile?.contactPerson?.name || '',
+          phoneNumber: loadedBrandProfile?.contactPerson?.phone || '',
           // Social media
-          instagram: brandProfile?.socialMedia?.instagram || '',
-          twitter: brandProfile?.socialMedia?.twitter || '',
-          linkedin: brandProfile?.socialMedia?.linkedin || '',
+          instagram: loadedBrandProfile?.socialMedia?.instagram || '',
+          twitter: loadedBrandProfile?.socialMedia?.twitter || '',
+          linkedin: loadedBrandProfile?.socialMedia?.linkedin || '',
           // Sponsorship
-          minBudget: brandProfile?.budget?.min?.toString() || '',
-          maxBudget: brandProfile?.budget?.max?.toString() || '',
-          targetAudience: Array.isArray(brandProfile?.targetAudience) ? brandProfile.targetAudience.join(', ') : '',
-          preferredEventTypes: Array.isArray(brandProfile?.interests) ? brandProfile.interests.join(', ') : '',
+          minBudget: loadedBrandProfile?.budget?.min?.toString() || '',
+          maxBudget: loadedBrandProfile?.budget?.max?.toString() || '',
+          targetAudience: Array.isArray(loadedBrandProfile?.targetAudience) ? loadedBrandProfile.targetAudience.join(', ') : '',
+          preferredEventTypes: Array.isArray(loadedBrandProfile?.interests) ? loadedBrandProfile.interests.join(', ') : '',
           // Settings data
-          emailNotifications: userSettings?.notifications?.emailNotifications ?? true,
-          pushNotifications: userSettings?.notifications?.pushNotifications ?? true,
-          eventNotifications: userSettings?.notifications?.eventReminders ?? true,
-          messageNotifications: userSettings?.notifications?.messageNotifications ?? true,
-          twoFactorAuth: userSettings?.security?.twoFactorAuth ?? false,
-          loginAlerts: userSettings?.security?.loginAlerts ?? true,
-          sessionTimeout: userSettings?.security?.sessionTimeout || '30'
+          emailNotifications: loadedUserSettings?.notifications?.emailNotifications ?? true,
+          pushNotifications: loadedUserSettings?.notifications?.pushNotifications ?? true,
+          eventNotifications: loadedUserSettings?.notifications?.eventReminders ?? true,
+          messageNotifications: loadedUserSettings?.notifications?.messageNotifications ?? true,
+          twoFactorAuth: loadedUserSettings?.security?.twoFactorAuth ?? false,
+          loginAlerts: loadedUserSettings?.security?.loginAlerts ?? true,
+          sessionTimeout: loadedUserSettings?.security?.sessionTimeout || '30'
         }));
         
       } catch (err) {

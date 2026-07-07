@@ -217,6 +217,25 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const handleVerifyUser = async (id: string) => {
+    try {
+      const res = await adminAPI.verifyUser(id);
+      setUsers((current) => current.map((user) => (
+        user._id === id ? { ...user, verified: res.verified } : user
+      )));
+      
+      // Sync corresponding profiles loaded in memory
+      setClubs((current) => current.map((club) => (
+        club.userId === id ? { ...club, verified: res.verified } : club
+      )));
+      setBrands((current) => current.map((brand) => (
+        brand.userId === id ? { ...brand, verified: res.verified } : brand
+      )));
+    } catch {
+      alert('Failed to verify user.');
+    }
+  };
+
   const handleFeatureEvent = async (id: string) => {
     try {
       const res = await adminAPI.featureEvent(id);
@@ -587,11 +606,22 @@ const AdminDashboard: React.FC = () => {
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                           {formatDate(user.createdAt)}
                         </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
+                        <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium space-x-3">
                           {user.role !== 'admin' ? (
-                            <button onClick={() => handleDeleteUser(user._id)} className="text-red-600 hover:text-red-900">
-                              Delete
-                            </button>
+                            <>
+                              <button 
+                                onClick={() => handleVerifyUser(user._id)} 
+                                className="text-blue-600 hover:text-blue-900"
+                              >
+                                {user.verified ? 'Unverify' : 'Verify'}
+                              </button>
+                              <button 
+                                onClick={() => handleDeleteUser(user._id)} 
+                                className="text-red-600 hover:text-red-900"
+                              >
+                                Delete
+                              </button>
+                            </>
                           ) : null}
                         </td>
                       </tr>

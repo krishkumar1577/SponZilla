@@ -126,6 +126,9 @@ export const adminAPI = {
   getProofOfWork: (): Promise<{ success: boolean; proofOfWork: ProofOfWorkAdminItem[] }> =>
     apiRequest('/admin/proof-of-work'),
 
+  verifyUser: (id: string): Promise<{ success: boolean; verified: boolean; user: any }> =>
+    apiRequest(`/admin/users/${id}/verify`, { method: 'PUT' }),
+
   verifyClub: (id: string): Promise<{ success: boolean; verified: boolean; club: ClubProfile }> =>
     apiRequest(`/admin/clubs/${id}/verify`, { method: 'PUT' }),
 

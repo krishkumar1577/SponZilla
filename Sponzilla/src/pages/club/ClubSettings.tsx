@@ -55,20 +55,24 @@ const ClubSettings: React.FC = () => {
         const userResponse = await authAPI.getProfile();
         const user = userResponse.user;
         
+        let loadedClubProfile = null;
         // Load club profile if it exists
         try {
           const clubResponse = await profilesAPI.getMyProfile();
           if (clubResponse.profile && 'clubName' in clubResponse.profile) {
-            setClubProfile(clubResponse.profile as ClubProfile);
+            loadedClubProfile = clubResponse.profile as ClubProfile;
+            setClubProfile(loadedClubProfile);
           }
         } catch (err) {
           console.log('No club profile found - this is OK for new users');
         }
         
+        let loadedUserSettings = null;
         // Load user settings
         try {
           const settingsResponse = await authAPI.getSettings();
-          setUserSettings(settingsResponse);
+          loadedUserSettings = settingsResponse;
+          setUserSettings(loadedUserSettings);
         } catch (err) {
           console.log('No settings found - using defaults');
         }
@@ -80,26 +84,26 @@ const ClubSettings: React.FC = () => {
           accountEmail: user.email || '',
           accountName: user.name || '',
           // Club data
-          clubName: clubProfile?.clubName || '',
-          logo: clubProfile?.logo || '',
-          banner: clubProfile?.banner || '',
-          description: clubProfile?.description || '',
-          category: clubProfile?.category || '',
-          university: clubProfile?.university || '',
-          website: clubProfile?.website || '',
-          contactEmail: clubProfile?.contactPerson?.email || '',
-          contactName: clubProfile?.contactPerson?.name || '',
-          phoneNumber: clubProfile?.contactPerson?.phone || '',
-          memberCount: clubProfile?.memberCount?.toString() || '',
-          establishedYear: clubProfile?.establishedYear?.toString() || '',
+          clubName: loadedClubProfile?.clubName || '',
+          logo: loadedClubProfile?.logo || '',
+          banner: loadedClubProfile?.banner || '',
+          description: loadedClubProfile?.description || '',
+          category: loadedClubProfile?.category || '',
+          university: loadedClubProfile?.university || '',
+          website: loadedClubProfile?.website || '',
+          contactEmail: loadedClubProfile?.contactPerson?.email || '',
+          contactName: loadedClubProfile?.contactPerson?.name || '',
+          phoneNumber: loadedClubProfile?.contactPerson?.phone || '',
+          memberCount: loadedClubProfile?.memberCount?.toString() || '',
+          establishedYear: loadedClubProfile?.establishedYear?.toString() || '',
           // Settings data
-          emailNotifications: userSettings?.notifications?.emailNotifications ?? true,
-          pushNotifications: userSettings?.notifications?.pushNotifications ?? true,
-          eventReminders: userSettings?.notifications?.eventReminders ?? true,
-          messageNotifications: userSettings?.notifications?.messageNotifications ?? true,
-          twoFactorAuth: userSettings?.security?.twoFactorAuth ?? false,
-          loginAlerts: userSettings?.security?.loginAlerts ?? true,
-          sessionTimeout: userSettings?.security?.sessionTimeout || '30'
+          emailNotifications: loadedUserSettings?.notifications?.emailNotifications ?? true,
+          pushNotifications: loadedUserSettings?.notifications?.pushNotifications ?? true,
+          eventReminders: loadedUserSettings?.notifications?.eventReminders ?? true,
+          messageNotifications: loadedUserSettings?.notifications?.messageNotifications ?? true,
+          twoFactorAuth: loadedUserSettings?.security?.twoFactorAuth ?? false,
+          loginAlerts: loadedUserSettings?.security?.loginAlerts ?? true,
+          sessionTimeout: loadedUserSettings?.security?.sessionTimeout || '30'
         }));
         
       } catch (err) {

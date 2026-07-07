@@ -19,6 +19,7 @@ router.get('/sponsorships', adminController.getSponsorships);
 router.get('/proof-of-work', adminController.getProofOfWork);
 
 // Verification and Featuring
+router.put('/users/:id/verify', adminController.toggleUserVerification);
 router.put('/clubs/:id/verify', adminController.toggleClubVerification);
 router.put('/brands/:id/verify', adminController.toggleBrandVerification);
 router.put('/events/:id/feature', adminController.toggleEventFeatured);

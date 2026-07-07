@@ -85,9 +85,7 @@ class AuthService {
       console.warn('⚠️ Verification email could not be sent during registration:', error.message);
     }
 
-    return {
-      message: 'Registration successful. Please verify your email before logging in.',
-    };
+    return this.createAuthResult(user);
   }
 
   async login(email, password) {
