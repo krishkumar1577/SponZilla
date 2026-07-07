@@ -1,69 +1,72 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const Notification = require('../models/Notification');
 
 class NotificationService {
   constructor() {
-    const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const smtpHost = process.env.SMTP_HOST || 'smtp.ethereal.email';
-    const smtpSecure = process.env.SMTP_SECURE
-      ? process.env.SMTP_SECURE === 'true'
-      : smtpPort === 465;
+    this.apiKey = process.env.RESEND_API_KEY;
+    this.emailFrom = process.env.EMAIL_FROM || '"SponZilla" <onboarding@resend.dev>';
+    
+    // Check if we should run in Mock mode
+    this.isMock = !this.apiKey ||
+                  this.apiKey.trim() === '' ||
+                  this.apiKey.startsWith('re_your_api_key') ||
+                  this.apiKey === 'placeholder';
 
-    this.transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpSecure,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
-    this.emailFrom = process.env.EMAIL_FROM || process.env.SMTP_FROM || '"SponZilla" <noreply@sponzilla.com>';
+    if (!this.isMock) {
+      this.resend = new Resend(this.apiKey);
+    }
   }
 
   async sendEmail(to, subject, html, options = {}) {
     const { strict = false } = options;
-    // If SMTP_USER is a placeholder or not set, bypass connection and log to console immediately
-    const isMock = !process.env.SMTP_USER || 
-                   process.env.SMTP_USER === 'test_user' || 
-                   process.env.SMTP_USER.trim() === '';
 
-    if (isMock) {
+    if (this.isMock) {
       if (strict) {
-        throw new Error('Email service is not configured');
+        throw new Error('Email service is not configured (Running in Mock mode)');
       }
-      console.log(`✉️  [MOCK EMAIL DISPATCH] (SMTP not configured)`);
+      console.log(`✉️  [MOCK EMAIL DISPATCH] (Resend SDK not configured/Mock Mode)`);
       console.log(`-----------------------------------------`);
       console.log(`To:      ${to}`);
       console.log(`Subject: ${subject}`);
       console.log(`Body:\n${html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300)}...`);
       console.log(`-----------------------------------------`);
-      return { messageId: `mock-id-${Date.now()}`, mock: true };
+      return { id: `mock-id-${Date.now()}`, mock: true };
     }
 
     try {
-      const info = await this.transporter.sendMail({
+      const response = await this.resend.emails.send({
         from: this.emailFrom,
-        to,
+        to: [to],
         subject,
         html
       });
-      console.log(`✉️ Email sent: ${info.messageId}`);
-      if (process.env.SMTP_HOST === 'smtp.ethereal.email') {
-        console.log(`🔗 Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+
+      if (response.error) {
+        console.error('❌ Resend API returned error:', response.error);
+        if (strict) {
+          throw new Error(`Failed to send email: ${response.error.message}`);
+        }
+        // Fallback to mock log on error
+        console.log(`✉️  [FALLBACK EMAIL LOG]`);
+        console.log(`To:      ${to}`);
+        console.log(`Subject: ${subject}`);
+        console.log(`Body (Text): ${html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300)}...`);
+        return { id: `mock-fallback-id-${Date.now()}`, error: response.error.message };
       }
-      return info;
+
+      console.log(`✉️ Email sent: ${response.data.id}`);
+      return response.data;
     } catch (error) {
       if (strict) {
         console.error('❌ Email sending error:', error);
-        throw new Error('Failed to send email');
+        throw new Error(`Failed to send email: ${error.message}`);
       }
       console.error('❌ Email sending error, falling back to mock delivery:', error);
       console.log(`✉️  [FALLBACK EMAIL LOG]`);
       console.log(`To:      ${to}`);
       console.log(`Subject: ${subject}`);
       console.log(`Body (Text): ${html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300)}...`);
-      return { messageId: `mock-fallback-id-${Date.now()}`, error: error.message };
+      return { id: `mock-fallback-id-${Date.now()}`, error: error.message };
     }
   }
 

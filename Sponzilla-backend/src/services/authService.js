@@ -92,12 +92,11 @@ class AuthService {
       isEmailVerified: false,
     });
 
-    // TODO: Re-enable verification email once Resend/SMTP is properly configured
-    // try {
-    //   await this.sendVerificationEmail(user);
-    // } catch (error) {
-    //   throw new Error('Account created but verification email could not be sent. Please use resend verification.');
-    // }
+    try {
+      await this.sendVerificationEmail(user);
+    } catch (error) {
+      console.warn('⚠️ Verification email could not be sent during registration:', error.message);
+    }
 
     return {
       message: 'Registration successful. Please verify your email before logging in.',
