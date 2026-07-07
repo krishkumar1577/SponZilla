@@ -238,8 +238,28 @@ const FindClubsPage: React.FC = () => {
             <h2 className="text-[#131516] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Featured Clubs</h2>
             
             {loading ? (
-              <div className="p-4 text-center">
-                <p className="text-[#6b7780]">Loading clubs...</p>
+              <div className="flex flex-col gap-4 p-4">
+                {[...Array(3)].map((_, index) => (
+                  <div key={index} className="flex items-stretch justify-between gap-4 rounded-xl p-2 animate-pulse">
+                    <div className="flex flex-[2_2_0px] flex-col gap-4">
+                      <div className="flex flex-col gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                        </div>
+                        <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-4 bg-gray-200 rounded w-11/12"></div>
+                        <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                        <div className="flex gap-4 mt-1">
+                          <div className="h-3 bg-gray-200 rounded w-20"></div>
+                          <div className="h-3 bg-gray-200 rounded w-24"></div>
+                          <div className="h-3 bg-gray-200 rounded w-16"></div>
+                        </div>
+                      </div>
+                      <div className="h-8 bg-gray-200 rounded-full w-28"></div>
+                    </div>
+                    <div className="w-full aspect-video bg-gray-200 rounded-xl flex-1 max-w-[200px]"></div>
+                  </div>
+                ))}
               </div>
             ) : error ? (
               <div className="p-4 text-center">
@@ -253,7 +273,7 @@ const FindClubsPage: React.FC = () => {
               filteredClubs.map((club) => (
                 <div key={club._id} className="p-4">
                   <div 
-                    className="flex items-stretch justify-between gap-4 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="flex items-stretch justify-between gap-4 rounded-xl cursor-pointer hover:bg-gray-50 p-2 transition-all duration-300 hover:scale-[1.01] hover:shadow-sm"
                     onClick={() => handleClubClick(club._id)}
                   >
                     <div className="flex flex-[2_2_0px] flex-col gap-4">

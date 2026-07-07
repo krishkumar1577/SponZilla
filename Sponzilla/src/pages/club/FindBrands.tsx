@@ -323,8 +323,17 @@ const FindBrands: React.FC = () => {
             <h2 className="text-[#111518] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5 text-left">Featured Brands</h2>
             
             {loading ? (
-              <div className="p-4 text-center">
-                <p className="text-[#617989]">Loading brands...</p>
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(158px,1fr))] gap-3 p-4">
+                {[...Array(6)].map((_, index) => (
+                  <div key={index} className="flex flex-col gap-3 pb-3 p-2 animate-pulse">
+                    <div className="w-full aspect-square bg-gray-200 rounded-xl"></div>
+                    <div className="flex flex-col gap-2">
+                      <div className="h-5 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : error ? (
               <div className="p-4 text-center">
@@ -339,7 +348,7 @@ const FindBrands: React.FC = () => {
                 {filteredBrands.map((brand) => (
                   <div 
                     key={brand._id} 
-                    className="flex flex-col gap-3 pb-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-colors"
+                    className="flex flex-col gap-3 pb-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 transition-all duration-300 hover:scale-[1.03] hover:shadow-sm"
                     onClick={() => handleBrandClick(brand._id)}
                   >
                     <div
