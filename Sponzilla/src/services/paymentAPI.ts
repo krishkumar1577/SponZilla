@@ -1,19 +1,33 @@
-// TEMPORARILY DISABLED: Razorpay payment API
-// Uncomment and install axios (`npm i axios`) when Razorpay account is ready.
+import { apiRequest } from './api/base';
 
-/*
-import axios from 'axios';
+export type PlanName = 'club_pro' | 'brand_starter' | 'brand_pro';
+export type BillingCycle = 'monthly' | 'yearly';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+interface CreateOrderResponse {
+  success: boolean;
+  order: { id: string; amount: number; currency: string };
+}
+
+interface VerifyPaymentResponse {
+  success: boolean;
+  message: string;
+}
 
 export const paymentAPI = {
-  createOrder: async (planType: 'monthly' | 'yearly') => {
-    const response = await axios.post(`${API_URL}/payments/create-order`, { planType }, { withCredentials: true });
-    return response.data;
-  },
-  verifyPayment: async (verificationData: { razorpay_order_id: string; razorpay_payment_id: string; razorpay_signature: string }) => {
-    const response = await axios.post(`${API_URL}/payments/verify`, verificationData, { withCredentials: true });
-    return response.data;
-  }
+  createOrder: (planName: PlanName, billingCycle: BillingCycle) =>
+    apiRequest<CreateOrderResponse>('/payments/create-order', {
+      method: 'POST',
+      body: JSON.stringify({ planName, billingCycle }),
+    }),
+
+  verifyPayment: (data: {
+    razorpay_order_id: string;
+    razorpay_payment_id: string;
+    razorpay_signature: string;
+    planName: PlanName;
+  }) =>
+    apiRequest<VerifyPaymentResponse>('/payments/verify', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
 };
-*/

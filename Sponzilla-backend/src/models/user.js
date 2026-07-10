@@ -68,7 +68,7 @@ const userSchema = new mongoose.Schema({
   },
   subscriptionPlan: {
     type: String,
-    enum: ['free', 'pro'],
+    enum: ['free', 'club_pro', 'brand_starter', 'brand_pro'],
     default: 'free'
   },
   razorpayOrderId: {

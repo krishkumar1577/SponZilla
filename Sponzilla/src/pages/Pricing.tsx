@@ -2,24 +2,88 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import { useUser } from '../contexts/UserContext';
+import { paymentAPI, type PlanName, type BillingCycle } from '../services/paymentAPI';
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
+const loadRazorpayScript = (): Promise<boolean> => {
+  if (window.Razorpay) return Promise.resolve(true);
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const PricingPage: React.FC = () => {
   const navigate = useNavigate();
-  const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('monthly');
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
   const [userType, setUserType] = useState<'club' | 'brand'>('club');
-  const { isAuthenticated } = useUser();
+  const [loading, setLoading] = useState<string | null>(null);
+  const { isAuthenticated, user } = useUser();
 
-  const handleUpgrade = async () => {
+  const handleUpgrade = async (planName: PlanName) => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    alert("Pro subscriptions will be available soon! We are currently finalizing our payment gateway.");
+
+    setLoading(planName);
+    try {
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded) {
+        alert('Failed to load payment gateway. Please try again.');
+        return;
+      }
+
+      const { order } = await paymentAPI.createOrder(planName, billingCycle);
+
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'SponZilla',
+        description: `${planName.replace('_', ' ')} — ${billingCycle}`,
+        order_id: order.id,
+        prefill: {
+          email: user?.email || '',
+        },
+        theme: { color: '#118ee8' },
+        handler: async (response: any) => {
+          try {
+            await paymentAPI.verifyPayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planName,
+            });
+            alert('Payment successful! Your plan has been upgraded.');
+            navigate(user?.type === 'club' ? '/club-dashboard' : '/brand-dashboard');
+          } catch {
+            alert('Payment verification failed. Please contact support.');
+          }
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch {
+      alert('Could not initiate payment. Please try again.');
+    } finally {
+      setLoading(null);
+    }
   };
 
   const clubPlans = [
     {
       name: 'Starter',
+      planName: null as PlanName | null,
       price: 'Free',
       priceNote: 'Forever free',
       description: 'Perfect for new student clubs looking to find their first sponsor.',
@@ -34,7 +98,8 @@ const PricingPage: React.FC = () => {
     },
     {
       name: 'Club Pro',
-      price: billingCycle === 'monthly' ? '₹299' : '₹2,990',
+      planName: 'club_pro' as PlanName,
+      price: billingCycle === 'monthly' ? '₹199' : '₹1,990',
       priceNote: billingCycle === 'monthly' ? '/month' : '/year',
       description: 'For active organizations that host multiple events throughout the year.',
       features: [
@@ -51,7 +116,8 @@ const PricingPage: React.FC = () => {
   const brandPlans = [
     {
       name: 'Brand Starter',
-      price: billingCycle === 'monthly' ? '₹999' : '₹9,990',
+      planName: 'brand_starter' as PlanName,
+      price: billingCycle === 'monthly' ? '₹699' : '₹6,990',
       priceNote: billingCycle === 'monthly' ? '/month' : '/year',
       description: 'For small businesses looking to connect with local university talent.',
       features: [
@@ -65,7 +131,8 @@ const PricingPage: React.FC = () => {
     },
     {
       name: 'Brand Pro',
-      price: billingCycle === 'monthly' ? '₹4,999' : '₹49,990',
+      planName: 'brand_pro' as PlanName,
+      price: billingCycle === 'monthly' ? '₹999' : '₹9,990',
       priceNote: billingCycle === 'monthly' ? '/month' : '/year',
       description: 'For enterprises that want to scale their campus marketing campaigns.',
       features: [
@@ -88,7 +155,7 @@ const PricingPage: React.FC = () => {
 
         <div className="flex-1 flex justify-center py-10 px-4 md:px-8">
           <div className="w-full max-w-[960px] flex flex-col">
-            
+
             {/* Page Header */}
             <div className="text-center py-6 max-w-2xl mx-auto flex flex-col gap-3">
               <h1 className="text-[#111518] text-4xl font-extrabold tracking-tight">
@@ -101,14 +168,14 @@ const PricingPage: React.FC = () => {
 
             {/* Toggle Switch Controls */}
             <div className="flex flex-col items-center gap-6 py-6">
-              
+
               {/* User Type Toggle */}
               <div className="flex p-1.5 rounded-full bg-[#f0f3f4] border border-[#dbe1e6]">
                 <button
                   onClick={() => setUserType('club')}
                   className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-200 ${
-                    userType === 'club' 
-                      ? 'bg-white text-[#111518] shadow-sm' 
+                    userType === 'club'
+                      ? 'bg-white text-[#111518] shadow-sm'
                       : 'text-[#617689] hover:text-[#111518]'
                   }`}
                 >
@@ -117,8 +184,8 @@ const PricingPage: React.FC = () => {
                 <button
                   onClick={() => setUserType('brand')}
                   className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all duration-200 ${
-                    userType === 'brand' 
-                      ? 'bg-white text-[#111518] shadow-sm' 
+                    userType === 'brand'
+                      ? 'bg-white text-[#111518] shadow-sm'
                       : 'text-[#617689] hover:text-[#111518]'
                   }`}
                 >
@@ -153,8 +220,8 @@ const PricingPage: React.FC = () => {
                 <div
                   key={idx}
                   className={`flex flex-col gap-6 rounded-2xl p-8 bg-white border transition-all duration-300 ${
-                    plan.highlighted 
-                      ? 'border-[#118ee8] shadow-md ring-1 ring-[#118ee8]' 
+                    plan.highlighted
+                      ? 'border-[#118ee8] shadow-md ring-1 ring-[#118ee8]'
                       : 'border-[#dde1e3] shadow-sm hover:shadow-md'
                   }`}
                 >
@@ -208,14 +275,15 @@ const PricingPage: React.FC = () => {
 
                   {/* Button Action */}
                   <button
-                    onClick={plan.highlighted ? handleUpgrade : () => navigate(isAuthenticated ? '/dashboard' : '/login')}
-                    className={`flex items-center justify-center rounded-full h-12 px-6 text-sm font-bold tracking-wide w-full transition-all duration-200 ${
-                      plan.highlighted 
-                        ? 'bg-[#118ee8] hover:bg-[#0f7fcb] text-white shadow-sm' 
+                    onClick={plan.planName ? () => handleUpgrade(plan.planName!) : () => navigate(isAuthenticated ? '/club-dashboard' : '/login')}
+                    disabled={loading === plan.planName}
+                    className={`flex items-center justify-center rounded-full h-12 px-6 text-sm font-bold tracking-wide w-full transition-all duration-200 disabled:opacity-60 ${
+                      plan.highlighted
+                        ? 'bg-[#118ee8] hover:bg-[#0f7fcb] text-white shadow-sm'
                         : 'bg-[#f0f3f4] hover:bg-[#e4e8eb] text-[#111518]'
                     }`}
                   >
-                    {plan.buttonText}
+                    {loading === plan.planName ? 'Processing...' : plan.buttonText}
                   </button>
                 </div>
               ))}

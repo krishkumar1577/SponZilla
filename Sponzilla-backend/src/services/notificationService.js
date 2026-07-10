@@ -146,11 +146,12 @@ class NotificationService {
     const title = `Welcome to SponZilla, ${user.name}!`;
 
     if (user.role === 'club' || user.type === 'club') {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       const variables = {
         user_name: user.name,
         first_name: user.name ? user.name.trim().split(/\s+/)[0] : 'there',
-        onboarding_link: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
-        get_started_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
+        onboarding_link: `${frontendUrl}/club-dashboard`,
+        get_started_url: `${frontendUrl}/club-dashboard`,
         company_name: profile?.clubName || 'your Club'
       };
 
@@ -190,11 +191,12 @@ class NotificationService {
     }
 
     if (user.role === 'brand' || user.type === 'brand') {
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
       const variables = {
         user_name: user.name,
         first_name: user.name ? user.name.trim().split(/\s+/)[0] : 'there',
-        onboarding_link: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
-        get_started_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/onboarding`,
+        onboarding_link: `${frontendUrl}/brand-dashboard`,
+        get_started_url: `${frontendUrl}/brand-dashboard`,
         company_name: profile?.brandName || 'your Brand'
       };
 
@@ -419,31 +421,44 @@ class NotificationService {
     return this.sendEmail(clubUser.email, `Milestone ${isApproved ? 'Approved' : 'Needs Changes'} - ${brandName}`, html);
   }
 
+  escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
   async sendContactEmail(name, email, subject, message) {
     const supportEmail = process.env.SUPPORT_EMAIL || 'Sponzilla.k@gmail.com';
+    const safeName = this.escapeHtml(name);
+    const safeEmail = this.escapeHtml(email);
+    const safeSubject = this.escapeHtml(subject);
+    const safeMessage = this.escapeHtml(message).replace(/\n/g, '<br/>');
+
     const title = 'New Contact Form Submission';
     const bodyHtml = `
       <p>You have received a new message from the SponZilla contact form:</p>
       <table border="0" cellpadding="0" cellspacing="0" style="margin: 20px 0; font-size: 14px;">
         <tr>
           <td style="padding: 6px 12px 6px 0; font-weight: 700; color: #4a5568;">Name:</td>
-          <td style="color: #121516;">${name}</td>
+          <td style="color: #121516;">${safeName}</td>
         </tr>
         <tr>
           <td style="padding: 6px 12px 6px 0; font-weight: 700; color: #4a5568;">Email:</td>
-          <td style="color: #121516;"><a href="mailto:${email}" style="color: #6366f1; text-decoration: none;">${email}</a></td>
+          <td style="color: #121516;"><a href="mailto:${safeEmail}" style="color: #6366f1; text-decoration: none;">${safeEmail}</a></td>
         </tr>
         <tr>
           <td style="padding: 6px 12px 6px 0; font-weight: 700; color: #4a5568;">Subject:</td>
-          <td style="color: #121516;">${subject}</td>
+          <td style="color: #121516;">${safeSubject}</td>
         </tr>
       </table>
       <div style="background-color: #f8fafc; border-left: 4px solid #6366f1; padding: 16px; border-radius: 4px; font-style: italic; margin-top: 16px; font-size: 14px;">
-        ${message.replace(/\n/g, '<br/>')}
+        ${safeMessage}
       </div>
     `;
     const html = this.getEmailHtmlWrapper(title, bodyHtml);
-    return this.sendEmail(supportEmail, `Contact Form: ${subject}`, html);
+    return this.sendEmail(supportEmail, `Contact Form: ${safeSubject}`, html);
   }
 }
 

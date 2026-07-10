@@ -181,8 +181,7 @@ app.use('/api/admin', require('./src/routes/adminRoutes'));
 app.use('/api/proof-of-work', require('./src/routes/proofOfWorkRoutes'));
 app.use('/api/contact', require('./src/routes/contactRoutes'));
 app.use('/api/notifications', notificationRoutes);
-// TEMPORARILY DISABLED for deployment until Razorpay account is ready
-// app.use('/api/payments', require('./src/routes/paymentRoutes'));
+app.use('/api/payments', require('./src/routes/paymentRoutes'));
 
 // Global error handler
 app.use((err, req, res, next) => {
