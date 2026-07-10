@@ -3,6 +3,11 @@ const crypto = require('crypto');
 const User = require('../models/user');
 
 const getRazorpayInstance = () => {
+  if (!process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET) {
+    const err = new Error('Razorpay keys are not configured on the server.');
+    err.code = 'RAZORPAY_CONFIG_MISSING';
+    throw err;
+  }
   return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
@@ -13,6 +18,14 @@ const PLAN_PRICING = {
   club_pro:      { monthly: 199, yearly: 1990 },
   brand_starter: { monthly: 699, yearly: 6990 },
   brand_pro:     { monthly: 999, yearly: 9990 },
+};
+
+// Razorpay caps `receipt` at 40 chars. ObjectId (24) + prefixes + a 13-digit
+// Date.now() is 42, so we shorten the user id and use base36 for the timestamp
+// to stay safely under the limit while keeping receipts unique and debuggable.
+const buildReceipt = (userId) => {
+  const shortUser = userId.toString().slice(-12);
+  return `r_${shortUser}_${Date.now().toString(36)}`.slice(0, 40);
 };
 
 exports.createOrder = async (req, res) => {
@@ -26,12 +39,17 @@ exports.createOrder = async (req, res) => {
     }
 
     const amount = plan[billingCycle] * 100;
+    if (amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid amount for plan' });
+    }
+
+    const receipt = buildReceipt(userId);
 
     const razorpay = getRazorpayInstance();
     const order = await razorpay.orders.create({
       amount,
       currency: 'INR',
-      receipt: `rcpt_${userId}_${Date.now()}`,
+      receipt,
       notes: { planName, billingCycle, userId: userId.toString() },
     });
 
@@ -44,7 +62,8 @@ exports.createOrder = async (req, res) => {
     res.status(200).json({ success: true, order });
   } catch (error) {
     console.error('Error creating Razorpay order:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    const description = error?.error?.description || error?.message || 'Internal Server Error';
+    res.status(500).json({ success: false, message: description });
   }
 };
 
